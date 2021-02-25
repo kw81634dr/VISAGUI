@@ -1,6 +1,7 @@
 from datetime import datetime # std library
 import pyvisa as visa # https://pyvisa.readthedocs.org/en/stable/
 import os
+
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
@@ -16,9 +17,9 @@ def getScreenShotFromScope(path):
     visaResourceAddr = 'GPIB::6::INSTR'
     #fileSavePathonPC = r'C:\Users\Kevin.Wang\Desktop\ScopeShotssss\\' # Folder on your PC where to save image
     if path == '':
-        fileSavePathonPC = os.getcwd() + '\\'
+        fileSavePathonPC = os.getcwd() + '/'
     else:
-        fileSavePathonPC = path + '\\'
+        fileSavePathonPC = path + '/'
     #==============================================
     dt = datetime.now()
 
@@ -56,17 +57,16 @@ def getScreenShotFromScope(path):
     #plt.show()
     #plt.imsave('filename.png', np.array(imgData).reshape(1024,1024))
 
+
 def getFolderPath():
     folder_selected = filedialog.askdirectory()
     folderPath.set(folder_selected)
+    folderGlobe = folderPath.get()
 
 def doStuff():
     folder = folderPath.get()
     print("Doing stuff with folder", folder)
-    returnText = getScreenShotFromScope(folder)
-
-
-
+    getScreenShotFromScope(folder)
 
 
 folderPath = StringVar()
@@ -77,11 +77,13 @@ status_var.set("Waiting for User")
 E = Entry(gui,textvariable=folderPath,width="50")
 E.grid(row=0,column=0)
 
-btnFind = ttk.Button(gui, text="Prompt",command=getFolderPath)
+btnFind = ttk.Button(gui, text="Prompt (P)",command=getFolderPath)
 btnFind.grid(row=0,column=1,padx=5,pady=5,ipady=1)
+gui.bind('p', lambda event: getFolderPath())
 
-c = ttk.Button(gui ,text="Capture", command=doStuff)
+c = ttk.Button(gui ,text="Capture (Enter)", command=doStuff)
 c.grid(row=1,column=1,padx=1,pady=1,ipady=5)
+gui.bind('<Return>', lambda event: getScreenShotFromScope(folderPath.get()))
 
 label = Label(gui, text = "Prompt directory or leave it blank to save in current directory.\nMake sure the GPIB Address of your scope has set to 6.")
 label.grid(row=1,column=0,padx=1,pady=1,ipady=3)
