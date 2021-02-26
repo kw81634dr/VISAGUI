@@ -1,29 +1,33 @@
 from datetime import datetime # std library
 import pyvisa as visa # https://pyvisa.readthedocs.org/en/stable/
 import os
+from pathlib import Path
+from tkinter import Tk, Text, TOP, BOTH, X, N, LEFT, W, E
+from tkinter.ttk import Frame, Label, Entry
 
-from tkinter import *
-from tkinter import ttk
-from tkinter import filedialog
 
-class MainClass:
+class MainClass(Frame):
 
-    def __init__(self, parent, *args, **kwargs):
-        frame = Frame(parent)
-        frame.pack()
+    def __init__(self):
+        super().__init__()
 
-        self.visa_addr = StringVar()
-        self.save_path = StringVar()
-        self.status_var = StringVar()
-        self.IDNofScope = StringVar()
+        self.visa_address = Tk.StringVar()
+        self.path_var = Tk.StringVar()
+        self.status_var = Tk.StringVar()
+        self.IDNofScope = Tk.StringVar()
 
-        self.visa_addr.set('GPIB::6::INSTR')
+        self.visa_address.set('GPIB::6::INSTR')
         self.status_var.set("Waiting for User")
         self.save_path.set(os.getcwd())
-        self.IDNofScope.set('')
+        self.IDN_of_scope.set('')
 
         self.dt = datetime.now()
         self.visa_timeout_duration = 8000    # in ms
+
+        self.init_ui()
+
+    def init_ui(self):
+        self.master.title("KW Scope Capture")
 
         E = Entry(self, textvariable=self.save_path, width="50")
         E.grid(row=0, column=0)
