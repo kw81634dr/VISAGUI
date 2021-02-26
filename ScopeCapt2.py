@@ -6,6 +6,11 @@ from tkinter import Tk, Text, TOP, BOTH, X, N, LEFT, W, E
 from tkinter.ttk import Frame, Label, Entry
 
 
+# https://pythonguides.com/python-tkinter-menu-bar/
+# https://zetcode.com/tkinter/layout/
+# https://www.pythontutorial.net/tkinter/tkinter-grid/
+
+
 class MainClass(Frame):
 
     def __init__(self):
