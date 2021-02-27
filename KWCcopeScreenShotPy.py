@@ -1,7 +1,7 @@
 from datetime import datetime # std library
 import pyvisa as visa # https://pyvisa.readthedocs.org/en/stable/
 import os
-
+from pathlib import Path
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
@@ -15,11 +15,10 @@ def getScreenShotFromScope(path):
     # Modify the following lines to configure this script for your instrument
     #==============================================
     visaResourceAddr = 'GPIB::6::INSTR'
-    #fileSavePathonPC = r'C:\Users\Kevin.Wang\Desktop\ScopeShotssss\\' # Folder on your PC where to save image
     if path == '':
-        fileSavePathonPC = os.getcwd() + '/'
+        fileSavePathonPC = Path(os.getcwd())
     else:
-        fileSavePathonPC = path + '/'
+        fileSavePathonPC = Path(path)
     #==============================================
     dt = datetime.now()
 
@@ -63,17 +62,23 @@ def getFolderPath():
     folderPath.set(folder_selected)
     folderGlobe = folderPath.get()
 
+def getFilePath():
+    filename_prompt = filedialog.asksaveasfilename()
+    finlename_prompt.set(filename_prompt)
+
+
 def doStuff():
     folder = folderPath.get()
     print("Doing stuff with folder", folder)
     getScreenShotFromScope(folder)
 
-
+finlename_prompt = StringVar()
 folderPath = StringVar()
 status_var = StringVar()
 status_var.set("Waiting for User")
 #a = Label(gui ,text="Destination Folder")
 #a.grid(row=0,column = 0)
+
 E = Entry(gui,textvariable=folderPath,width="50")
 E.grid(row=0,column=0)
 
