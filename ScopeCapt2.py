@@ -7,8 +7,7 @@ import tkinter as tk
 from tkinter import ttk, Entry, filedialog
 
 # https://pythonguides.com/python-tkinter-menu-bar/
-# https://zetcode.com/tkinter/layout/
-# https://www.pythontutorial.net/tkinter/tkinter-grid/
+# https://coderslegacy.com/python/list-of-tkinter-widgets/
 
 
 class MenuBar(tk.Menu):
