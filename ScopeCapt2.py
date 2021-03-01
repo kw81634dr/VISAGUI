@@ -58,9 +58,9 @@ class App:
         self.filename_var = tk.StringVar()
         self.IDN_of_scope = tk.StringVar()
 
-        self.GPIB_list = ['GPIB::6::INSTR']
+        # self.GPIB_list = ['GPIB::6::INSTR']
 
-        self.target_gpib_address.set('')
+        self.target_gpib_address.set('GPIB::6::INSTR')
         self.status_var.set("Waiting for User")
         self.path_var.set(os.getcwd())
         self.IDN_of_scope.set('')
@@ -86,13 +86,13 @@ class App:
         # row 0
         #label_GPIB_address = tk.Label(self.frame, text="GPIB Address")
         #label_GPIB_address.grid(row=0, column=0)
-        btn_scan_gpib = tk.Button(self.frame, text="Scan Scope", command=self.prompt_path)
-        btn_scan_gpib.grid(row=0, column=0)
-        Combo = ttk.Combobox(self.frame, values=self.GPIB_list, width=35)
-        Combo.set("Pick an Option")
-        Combo.grid(row=0, column=1)
-        btn_connect_scope = tk.Button(self.frame, text="Connect", command=self.prompt_path)
-        btn_connect_scope.grid(row=0, column=2)
+        #btn_scan_gpib = tk.Button(self.frame, text="Scan Scope", command=self.scan_gpib)
+        #btn_scan_gpib.grid(row=0, column=0)
+        #Combo = ttk.Combobox(self.frame, values=self.GPIB_list, width=35)
+        #Combo.set("Pick an Option")
+        #Combo.grid(row=0, column=1)
+        # btn_connect_scope = tk.Button(self.frame, text="Get Scope info", command=self.get_scope_info)
+        # btn_connect_scope.grid(row=0, column=2)
 
         # row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
@@ -122,16 +122,28 @@ class App:
         status_bar.grid(row=4, column=0, columnspan=4, sticky='we')
 
         self.frame.pack()
-
-        try:
-            rm = visa.ResourceManager()
-            self.GPIB_list = rm.list_resources()
-        except ValueError:
-            self.status_var.set("VISA driver Error")
-
+        self.get_scope_info()
 
     def client_exit(self):
         exit()
+
+    # def scan_gpib(self):
+    #     self.GPIB_list = ['a','b','c']
+    #     try:
+    #         rm = visa.ResourceManager()
+    #         self.GPIB_list = rm.list_resources()
+    #
+    #     except ValueError:
+    #         self.status_var.set("VISA driver Error")
+
+    def get_scope_info(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_visa_address.get()) as scope:
+                status_text = "Device Found: " + scope.query('*IDN?')
+                self.IDN_of_scope.set(status_text)
+        except ValueError:
+            self.status_var.set("VISA driver Error, Scope NOT Found")
 
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
