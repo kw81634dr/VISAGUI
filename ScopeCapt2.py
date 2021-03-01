@@ -142,6 +142,8 @@ class App:
             with rm.open_resource(self.target_visa_address.get()) as scope:
                 status_text = "Device Found: " + scope.query('*IDN?')
                 self.IDN_of_scope.set(status_text)
+                scope.close()
+                rm.close()
         except ValueError:
             self.status_var.set("VISA driver Error, Scope NOT Found")
 
@@ -152,9 +154,14 @@ class App:
         self.filename_var.set(time_now)
         self.status_var.set("Time Stamp Applied")
 
+    def start_n_stop_scope_accquisition(self):
+        # try:
+        #     rm = visa.ResourceManager()
+        #     with rm.open_resource(self.target_visa_address.get()) as scope:
+        # #'ACQuire: STOPAfter:COUNt500'
+
     def get_shot_scope(self):
         self.status_var.set("Try Talking to Scope")
-
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_visa_address.get()) as scope:
@@ -193,7 +200,7 @@ class App:
             self.status_var.set("Did not prompt destination folder")
         else:
             self.path_var.set(folder_prompted)
-            status_text_temp = "Will save to " + "\"" + str(folder_prompted) + "\""
+            status_text_temp = "file will be saved to " + "\"" + str(folder_prompted) + "\""
             self.status_var.set(status_text_temp)
 
     def btn_capture_clicked(self):
