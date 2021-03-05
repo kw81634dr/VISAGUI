@@ -139,7 +139,7 @@ class App:
     def get_scope_info(self):
         try:
             rm = visa.ResourceManager()
-            with rm.open_resource(self.target_visa_address.get()) as scope:
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
                 status_text = "Device Found: " + scope.query('*IDN?')
                 self.IDN_of_scope.set(status_text)
                 scope.close()
@@ -149,22 +149,23 @@ class App:
 
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
+        self.dt = datetime.now()
         time_now = self.dt.strftime("DSO_%Y%m%d_%H%M%S.png")
-        print("Save Image to ", time_now)
+        print("Will Save Image to ", time_now)
         self.filename_var.set(time_now)
         self.status_var.set("Time Stamp Applied")
 
-    def start_n_stop_scope_accquisition(self):
-        # try:
-        #     rm = visa.ResourceManager()
-        #     with rm.open_resource(self.target_visa_address.get()) as scope:
-        # #'ACQuire: STOPAfter:COUNt500'
+    # def start_n_stop_scope_accquisition(self):
+    #     # try:
+    #     #     rm = visa.ResourceManager()
+    #     #     with rm.open_resource(self.target_gpib_address.get()) as scope:
+    #     # #'ACQuire: STOPAfter:COUNt500'
 
     def get_shot_scope(self):
         self.status_var.set("Try Talking to Scope")
         try:
             rm = visa.ResourceManager()
-            with rm.open_resource(self.target_visa_address.get()) as scope:
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
                 self.IDN_of_scope.set(scope.query('*IDN?'))
                 self.status_var.set("Time Stamp Applied")
@@ -181,12 +182,13 @@ class App:
                 img_data = scope.read_raw()
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
-
-                with open(save_path_default, "wb") as imgFile:
+                save_path = Path(self.path_var.get()) / Path(self.filename_var.get())
+                print("SAVE PATH:", save_path)
+                with open(save_path, "wb") as imgFile:
                     imgFile.write(img_data)
                     imgFile.close()
                     print("Saved!")
-                    self.status_var.set(save_path_default)
+                    self.status_var.set(save_path)
 
                 scope.close()
                 rm.close()
