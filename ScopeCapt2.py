@@ -143,7 +143,7 @@ class App:
                 status_text = "Device Found: " + scope.query('*IDN?')
                 self.IDN_of_scope.set(status_text)
                 scope.close()
-                rm.close()
+            rm.close()
         except ValueError:
             self.status_var.set("VISA driver Error, Scope NOT Found")
 
