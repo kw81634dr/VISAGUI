@@ -3,6 +3,11 @@ import pyvisa as visa # https://pyvisa.readthedocs.org/en/stable/
 import os
 from pathlib import Path
 
+from PIL import Image
+from io import BytesIO
+import numpy as np
+import cv2
+
 import tkinter as tk
 from tkinter import ttk, Entry, filedialog
 
@@ -123,6 +128,7 @@ class App:
 
         self.frame.pack()
         self.get_scope_info()
+        self.get_default_filename()
 
     def client_exit(self):
         exit()
@@ -192,6 +198,16 @@ class App:
 
                 scope.close()
                 rm.close()
+
+                file_png_data = BytesIO(img_data)
+                dt = Image.open(file_png_data)
+                I = np.asarray(dt)
+                print("Got image, shape:", I.shape)
+                I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
+                cv2.imshow("Shot", I_cv2)
+                cv2.waitKey()
+                cv2.destroyAllWindows()
+
         except ValueError:
             self.status_var.set("CANNOT connect to Scope")
 
