@@ -121,6 +121,8 @@ class App:
         btn_capture.grid(row=3, column=1)
         self.frame.bind('<Return>', lambda event: self.get_shot_scope(self.path_var.get()))
         #label.grid(row=2, column=0, padx=1, pady=1, ipady=3)
+        btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
+        btn_exit.grid(row=3, column=2)
 
         # status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -156,9 +158,15 @@ class App:
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
         self.dt = datetime.now()
-        time_now = self.dt.strftime("DSO_%Y%m%d_%H%M%S.png")
+        time_now = self.dt.strftime("%H%M%S.png")
+        # time_now = self.dt.strftime("_%Y%m%d_%H%M%S.png")
         print("Will Save Image to ", time_now)
-        self.filename_var.set(time_now)
+        get_exist_text = self.filename_var.get()
+        if get_exist_text != '':
+            default_filename = get_exist_text + '_' + time_now
+        else:
+            default_filename = 'scope_' + time_now
+        self.filename_var.set(default_filename)
         self.status_var.set("Time Stamp Applied")
 
     # def start_n_stop_scope_accquisition(self):
@@ -223,7 +231,12 @@ class App:
 
     def btn_capture_clicked(self):
         folder = self.path_var.get()
-        print("Doing stuff with folder", folder)
+        print("Capture Btn clicked, save folder", folder)
+        self.get_shot_scope()
+
+    def btn_countdown_capture_clicked(self):
+        folder = self.path_var.get()
+        print("Capture Btn clicked, save folder", folder)
         self.get_shot_scope()
 
 
