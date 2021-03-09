@@ -64,12 +64,13 @@ class App:
 
         self.filename_var = tk.StringVar()
         self.filename_var.set('DSO')
+        self.savefilename = ''
 
         self.IDN_of_scope = tk.StringVar()
         self.imshow_var = IntVar()
+
         self.continuous_var = IntVar()
-        self.add_timestamp_var = IntVar()
-        self.add_timestamp_var.set(1)
+        self.add_timestamp_var = IntVar(value=1)
 
         # self.GPIB_list = ['GPIB::6::INSTR']
 
@@ -179,16 +180,17 @@ class App:
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
         self.dt = datetime.now()
-        time_now = self.dt.strftime("%H%M%S.png")
+        time_now = self.dt.strftime("%H%M%S")
         # time_now = self.dt.strftime("_%Y%m%d_%H%M%S.png")
         print("Will Save Image to ", time_now)
         # get_exist_text = self.filename_var.get()
 
-        if self.add_timestamp_var:
-            default_filename = self.filename_var.get() + '_' + time_now
+        if self.add_timestamp_var.get() == 1:
+            self.savefilename = self.filename_var.get() + '_' + time_now
         else:
-            default_filename = 'DSO'
-        self.filename_var.set(default_filename)
+            if self.filename_var.get() == '':
+                self.filename_var.set('DSO')
+            self.savefilename = self.filename_var.get()
         # self.status_var.set("Time Stamp Applied")
 
     # def start_n_stop_scope_accquisition(self):
@@ -199,6 +201,7 @@ class App:
 
     def get_shot_scope(self):
         self.status_var.set("Try Talking to Scope")
+        self.get_default_filename()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -218,9 +221,13 @@ class App:
                 img_data = scope.read_raw()
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
-                save_path = Path(self.path_var.get()) / Path(self.filename_var.get())
+                save_path = Path(self.path_var.get()) / Path(self.savefilename)
+
+                # NEED FIX HERE
+                save_path = str(save_path) + '.png'
                 print("SAVE PATH:", save_path)
 
+                # NEED ADD OverWrite Protection Here
                 try:
                     with open(save_path, "wb") as imgFile:
                         imgFile.write(img_data)
