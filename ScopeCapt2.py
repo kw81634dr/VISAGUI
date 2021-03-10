@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 
 import tkinter as tk
-from tkinter import ttk, Entry, filedialog, IntVar
+from tkinter import ttk, Entry, messagebox, filedialog, IntVar
 
 
 # https://pythonguides.com/python-tkinter-menu-bar/
@@ -71,6 +71,8 @@ class App:
 
         self.continuous_var = IntVar()
         self.add_timestamp_var = IntVar(value=1)
+
+        self.overwrite_bool = True
 
         # self.GPIB_list = ['GPIB::6::INSTR']
 
@@ -221,37 +223,47 @@ class App:
                 img_data = scope.read_raw()
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
-                save_path = Path(self.path_var.get()) / Path(self.savefilename)
-
-                # NEED FIX HERE
-                save_path = str(save_path) + '.png'
-                print("SAVE PATH:", save_path)
-
-                # NEED ADD OverWrite Protection Here
-                try:
-                    with open(save_path, "wb") as imgFile:
-                        imgFile.write(img_data)
-                        imgFile.close()
-                        print("Saved!")
-                        self.status_var.set(save_path)
-                except IOError:
-                    self.status_var.set("Cannot save file, check folder and filename")
-
-                scope.close()
-                rm.close()
-
+                # Image show
                 if self.imshow_var.get():
                     file_png_data = BytesIO(img_data)
                     dt = Image.open(file_png_data)
                     I = np.asarray(dt)
                     print("Got image, shape:", I.shape)
                     I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
-                    cv2.imshow("Captured, press any key to dismiss", I_cv2)
+                    cv2.imshow(" Captured, Press Any Key to Dismiss", I_cv2)
                     cv2.waitKey()
                     cv2.destroyAllWindows()
 
-        except ValueError:
+                # Image save
+                save_path = Path(self.path_var.get()) / Path(self.savefilename)
+                # NEED minor FIX HERE
+                save_path = str(save_path) + '.png'
+                print("SAVE PATH:", save_path)
+
+                # overwrite protection
+                if Path(save_path).is_file():
+                    answer = messagebox.askokcancel("Overwrite Protection",
+                                                    "file name already exist, would you like to overwrite ?")
+                    self.overwrite_bool = answer
+                    print("Overwrite", self.overwrite_bool)
+                try:
+                    if self.overwrite_bool is True:
+                        with open(save_path, "wb") as imgFile:
+                            imgFile.write(img_data)
+                            imgFile.close()
+                            print("Saved!")
+                            self.status_var.set(save_path)
+                    else:
+                        print("saving action canceled!")
+                        self.status_var.set("saving action canceled!")
+                except IOError:
+                    self.status_var.set("Cannot save file, check folder and filename")
+                scope.close()
+                rm.close()
+        # resource manager init error exception
+        except IOError:
             self.status_var.set("CANNOT connect to Scope")
+
         self.get_default_filename()
 
     def prompt_path(self):
