@@ -54,28 +54,22 @@ class App:
         self.master = master
 
         self.frame = tk.Frame(self.master)
-
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.master.title("KW Scope Capture")
 
         self.target_gpib_address = tk.StringVar()
         self.status_var = tk.StringVar()
         self.path_var = tk.StringVar()
-
         self.filename_var = tk.StringVar()
-        self.filename_var.set('DSO')
-        self.savefilename = ''
 
         self.IDN_of_scope = tk.StringVar()
-        self.imshow_var = IntVar()
-
-        self.continuous_var = IntVar()
+        self.imshow_var_bool = IntVar()
+        self.fastacq_var_bool = IntVar()
         self.add_timestamp_var = IntVar(value=1)
 
         self.overwrite_bool = True
-
-        # self.GPIB_list = ['GPIB::6::INSTR']
-
+        self.filename_var.set('DSO')
+        self.savefilename = ''
         self.target_gpib_address.set('GPIB::6::INSTR')
         self.status_var.set("Waiting for User")
         self.path_var.set(os.getcwd())
@@ -83,9 +77,6 @@ class App:
 
         self.dt = datetime.now()
         self.visa_timeout_duration = 5000  # in ms
-
-        colum = 3
-        row = 4
 
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
@@ -130,31 +121,35 @@ class App:
                                              command=None)
         chkbox_addTimeStamp.grid(row=2, column=3)
 
-        # row 3
-        btn_capture = tk.Button(self.frame, text="Capture (Enter)", command=self.btn_capture_clicked)
-        btn_capture.grid(row=3, column=0)
-        btn_capture.bind('c', lambda event: self.get_shot_scope())
-        # label.grid(row=2, column=0, padx=1, pady=1, ipady=3)
-
-        chkbox_imshow = tk.Checkbutton(self.frame, text='ShowImage', variable=self.imshow_var, onvalue=1, offvalue=0,
+        # row3
+        chkbox_imshow = tk.Checkbutton(self.frame, text='ShowImage', variable=self.imshow_var_bool, onvalue=1, offvalue=0,
                                        command=None)
         chkbox_imshow.grid(row=3, column=1)
+        chkbox_Fstacq = tk.Checkbutton(self.frame, text='FastAcq', variable=self.fastacq_var_bool, onvalue=1,
+                                           offvalue=0, command=self.trigger_fstacq)
+        chkbox_Fstacq.grid(row=3, column=2)
 
-        chkbox_Continuous = tk.Checkbutton(self.frame, text='Continuous Mode', variable=self.continuous_var, onvalue=1,
-                                           offvalue=0,
-                                           command=None)
-        chkbox_Continuous.grid(row=3, column=2)
-
+        # row 4
+        btn_Run = tk.Button(self.frame, text="Run", command=self.btn_run_clicked)
+        btn_Run.grid(row=4, column=0)
+        btn_Stop = tk.Button(self.frame, text="Stop", command=self.btn_stop_clicked)
+        btn_Stop.grid(row=4, column=1)
+        btn_Clear = tk.Button(self.frame, text="Clear", command=self.btn_clear_clicked)
+        btn_Clear.grid(row=4, column=2)
+        btn_capture = tk.Button(self.frame, text="Capture", command=self.btn_capture_clicked)
+        btn_capture.grid(row=4, column=3)
+        # self.frame.bind('<Enter>', lambda event: self.get_shot_scope())
         btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
-        btn_exit.grid(row=3, column=3)
+        btn_exit.grid(row=4, column=4)
 
-        # status bar
+        # row 5, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.grid(row=4, column=0, columnspan=4, sticky='we')
+        status_bar.grid(row=5, column=0, columnspan=5, sticky='we')
 
         self.frame.pack()
         self.get_scope_info()
         self.get_default_filename()
+        self.get_scope_info()
 
     def client_exit(self):
         exit()
@@ -173,11 +168,13 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 status_text = "Device Found: " + scope.query('*IDN?')
+                print(status_text)
+                self.status_var.set(status_text[:-1])
                 self.IDN_of_scope.set(status_text)
                 scope.close()
             rm.close()
         except ValueError:
-            self.status_var.set("VISA driver Error, Scope NOT Found")
+            print("VISA driver Error")
 
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
@@ -224,7 +221,7 @@ class App:
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
                 # Image show
-                if self.imshow_var.get():
+                if self.imshow_var_bool.get():
                     file_png_data = BytesIO(img_data)
                     dt = Image.open(file_png_data)
                     I = np.asarray(dt)
@@ -260,10 +257,8 @@ class App:
                     self.status_var.set("Cannot save file, check folder and filename")
                 scope.close()
                 rm.close()
-        # resource manager init error exception
-        except IOError:
-            self.status_var.set("CANNOT connect to Scope")
-
+        except ValueError:
+            print("VISA driver Error")
         self.get_default_filename()
 
     def prompt_path(self):
@@ -275,6 +270,49 @@ class App:
             self.path_var.set(folder_prompted)
             status_text_temp = "file will be saved to " + "\"" + str(folder_prompted) + "\""
             self.status_var.set(status_text_temp)
+
+    def trigger_fstacq(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                if self.fastacq_var_bool.get():
+                    scope.write('FASTAcq:STATE ON')
+                else:
+                    scope.write('FASTAcq:STATE OFF')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("VISA driver Error")
+
+    def btn_clear_clicked(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('CLEAR ALL')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("VISA driver Error")
+
+    def btn_run_clicked(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('ACQuire:STATE ON')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("VISA driver Error")
+
+    def btn_stop_clicked(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('ACQuire:STATE OFF')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("VISA driver Error")
 
     def btn_capture_clicked(self):
         folder = self.path_var.get()

@@ -22,7 +22,7 @@ try:
 
         # WORKS BUT AS Fallback
         # print("clear waveform ", scope.write('ACQuire:REPEt OFF'))
-        # print("clear waveform ", scope.write('FASTAcq:STATE ON'))
+        print("clear waveform ", scope.write('FASTAcq:STATE ON'))
         # print("clear waveform ", scope.write('ACQuire:REPEt ON'))
         # WORKS BUT AS Fallback
 
