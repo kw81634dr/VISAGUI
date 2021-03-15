@@ -5,5 +5,5 @@ Currently, support Tek DPO7 Series.
 
 #####Dependencies: pyvisa, openCV
 
-![GUI screen shot](GUI.png)
-![Scope screen shot](test.png)
+![GUI screen shot](img/GUI.png)
+![Scope screen shot](img/test.png)
