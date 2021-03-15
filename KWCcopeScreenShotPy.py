@@ -41,7 +41,7 @@ def getScreenShotFromScope(path):
     scope.write('FILESystem:DELEte \'C:\Temp\KW.png\'')
 
     # Generate a filename based on the current Date & Time
-    fileName = dt.strftime("DSO_%Y%m%d_%H%M%S.png")
+    fileName = dt.strftime("DPO_%Y%m%d_%H%M%S.png")
     print(fileSavePathonPC + fileName)
     imgFile = open(fileSavePathonPC + fileName, "wb")
     imgFile.write(imgData)

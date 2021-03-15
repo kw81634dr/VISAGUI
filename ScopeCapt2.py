@@ -36,7 +36,7 @@ class App:
         self.add_timestamp_var_bool = IntVar(value=1)
 
         self.overwrite_bool = True
-        self.filename_var.set('DSO')
+        self.filename_var.set('DPO')
         self.save＿filename = ''
         self.target_gpib_address.set('GPIB::6::INSTR')
         self.status_var.set("Waiting for User")
@@ -188,7 +188,7 @@ class App:
             self.savefilename = self.filename_var.get() + '_' + time_now
         else:
             if self.filename_var.get() == '':
-                self.filename_var.set('DSO')
+                self.filename_var.set('DPO')
             self.savefilename = self.filename_var.get()
         # self.status_var.set("Time Stamp Applied")
 
