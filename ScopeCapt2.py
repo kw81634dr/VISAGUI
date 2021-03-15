@@ -80,7 +80,7 @@ class App:
         # row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
         label_entry_dir.grid(row=1, column=0)
-        self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
+        self.E_dir = tk.Entry(self.frame, textvariable=self.path_var, width=37)
         self.E_dir.grid(row=1, column=1, columnspan=2)
         btn_prompt_dir = tk.Button(self.frame, text="Prompt", command=self.prompt_path)
         btn_prompt_dir.grid(row=1, column=3)
@@ -89,7 +89,7 @@ class App:
         # row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
         label_entry_filename.grid(row=2, column=0)
-        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
+        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var, width=37)
         self.E_filename.grid(row=2, column=1, columnspan=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
@@ -126,6 +126,8 @@ class App:
 
         self.frame.pack()
 
+        self.get_acq_state()
+
         # self.get_scope_info()
         # self.get_default_filename()
         # self.get_scope_info()
@@ -150,11 +152,12 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                acq_state = "Device Found: " + scope.query('ACQuire:STATE?')
-                self.acq_state_var_bool = acq_state
-                if acq_state == 1:
+                acq_state = int(scope.query('ACQuire:STATE?')[:-1])
+                print(acq_state)
+                self.acq_state_var_bool.set(acq_state)
+                if self.acq_state_var_bool.get() == True:
                     self.btn_RunStop.configure(fg="green")
-                elif acq_state == 0:
+                elif self.acq_state_var_bool.get() == False:
                     self.btn_RunStop.configure(fg="black")
                 else:
                     print("Cannot get Acq state")
@@ -214,7 +217,7 @@ class App:
                 img_data = scope.read_raw()
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
-                # Image show
+                # # Image show (OpenCV)
                 if self.imshow_var_bool.get():
                     file_png_data = BytesIO(img_data)
                     dt = Image.open(file_png_data)
@@ -224,6 +227,20 @@ class App:
                     cv2.imshow(" Captured, Press Any Key to Dismiss", I_cv2)
                     cv2.waitKey()
                     cv2.destroyAllWindows()
+
+                # # Image show (PIL)
+                # if self.imshow_var_bool.get():
+                #     file_png_data = BytesIO(img_data)
+                #     img = Image.open(file_png_data)
+                #     img.show()
+
+                    # I = np.asarray(dt)
+                    # print("Got image, shape:", I.shape)
+
+                    # I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
+                    # cv2.imshow(" Captured, Press Any Key to Dismiss", I_cv2)
+                    # cv2.waitKey()
+                    # cv2.destroyAllWindows()
 
                 # Image save
                 save_path = Path(self.path_var.get()) / Path(self.savefilename)
@@ -294,11 +311,10 @@ class App:
 
     def btn_runstop_clicked(self, *args):
         print("Run/Stop Btn clicked")
-        self.get_acq_state()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                if self.acq_state_var_bool.get() == 1:
+                if self.acq_state_var_bool.get() == True:
                     scope.write('ACQuire:STATE OFF')
                 else:
                     scope.write('ACQuire:STATE ON')
@@ -308,6 +324,7 @@ class App:
             print("VISA driver Error")
             self.status_var.set("VISA driver Error")
             self.btn_RunStop.configure(fg="red")
+        self.get_acq_state()
 
     # def btn_stop_clicked(self):
     #     try:
