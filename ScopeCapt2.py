@@ -12,6 +12,7 @@ import tkinter as tk
 from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu
 
 
+
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 
@@ -210,7 +211,7 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
                 self.IDN_of_scope.set(scope.query('*IDN?'))
-                self.status_var.set("Time Stamp Applied")
+                self.status_var.set(self.IDN_of_scope.get()[:-1])
                 scope.write("HARDCopy:PORT FILE")
                 scope.write("HARDCOPY:PALETTE COLOR")
                 scope.write("SAVe:IMAGe:FILEFormat PNG")
@@ -259,10 +260,12 @@ class App:
 
                 # overwrite protection
                 if Path(save_path).is_file():
-                    answer = messagebox.askokcancel("Overwrite Protection",
-                                                    "file name already exist, would you like to overwrite ?")
+                    answer = messagebox.askokcancel("Oops!",
+                                                    "File already exists, overwrite ?")
                     self.overwrite_bool = answer
                     print("Overwrite", self.overwrite_bool)
+                else:
+                    self.overwrite_bool = True
                 try:
                     if self.overwrite_bool is True:
                         if self.addTextOverlay_var_bool.get():
@@ -278,8 +281,26 @@ class App:
                                 print("Saved!")
                                 self.status_var.set("Saved: "+self.savefilename+'.png')
                     else:
-                        print("saving action canceled!")
-                        self.status_var.set("saving action canceled!")
+                        files = [('PNG Image', '*.png')]
+                        filepath = filedialog.asksaveasfilename(filetypes=files, defaultextension=files)
+                        if filepath is None:
+                            print("saving action canceled!")
+                            self.status_var.set("saving action canceled!")
+                        else:
+                            if self.addTextOverlay_var_bool.get():
+                                try:
+                                    cv2.imwrite(filepath, outputImage)
+                                except IOError:
+                                    print("cv2 save Failed")
+                                    self.status_var.set("Cannot save file, check folder and filename")
+                            else:
+                                with open(Path(filepath), "wb") as imgFile:
+                                    print("filepath", Path(filepath))
+                                    imgFile.write(img_data)
+                                    imgFile.close()
+                                    print("Saved!")
+                        self.status_var.set("Saved: " + str(Path(filepath).name))
+
                 except IOError:
                     self.status_var.set("Cannot save file, check folder and filename")
                 scope.close()
