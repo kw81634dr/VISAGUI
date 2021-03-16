@@ -261,7 +261,7 @@ class App:
                 # overwrite protection
                 if Path(save_path).is_file():
                     answer = messagebox.askokcancel("Oops!",
-                                                    "File already exists, overwrite ?")
+                                                    "File already exists, Overwrite ?")
                     self.overwrite_bool = answer
                     print("Overwrite", self.overwrite_bool)
                 else:
