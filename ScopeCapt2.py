@@ -80,8 +80,8 @@ class App:
         # row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
         label_entry_dir.grid(row=1, column=0)
-        self.E_dir = tk.Entry(self.frame, textvariable=self.path_var, width=37)
-        self.E_dir.grid(row=1, column=1, columnspan=2)
+        self.E_dir = tk.Entry(self.frame, textvariable=self.path_var, width=40)
+        self.E_dir.grid(row=1, column=1, columnspan=2, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt", command=self.prompt_path)
         btn_prompt_dir.grid(row=1, column=3)
         # self.frame.bind('p', lambda event: self.prompt_path())
@@ -89,8 +89,8 @@ class App:
         # row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
         label_entry_filename.grid(row=2, column=0)
-        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var, width=37)
-        self.E_filename.grid(row=2, column=1, columnspan=2)
+        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var, width=40)
+        self.E_filename.grid(row=2, column=1, columnspan=2, sticky='we')
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
@@ -260,7 +260,7 @@ class App:
                             imgFile.write(img_data)
                             imgFile.close()
                             print("Saved!")
-                            self.status_var.set(save_path)
+                            self.status_var.set("Saved: "+self.savefilename+'.png')
                     else:
                         print("saving action canceled!")
                         self.status_var.set("saving action canceled!")
