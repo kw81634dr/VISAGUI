@@ -159,7 +159,8 @@ class App:
     def get_acq_state(self):
         try:
             rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
+            try:
+                scope = rm.open_resource(self.target_gpib_address.get())
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
                 print(acq_state)
                 self.acq_state_var_bool.set(acq_state)
@@ -171,6 +172,10 @@ class App:
                     print("Cannot get Acq state")
                     self.status_var.set("Cannot get Acq state")
                 scope.close()
+            except Exception:
+                print("VISA IO Error")
+                self.status_var.set("ERROR: Oscilloscope Not Found, "
+                                    "Set GPIB address to 6 and \"Talk/Listen\" mode!")
             rm.close()
         except ValueError:
             print("VISA driver Error")
