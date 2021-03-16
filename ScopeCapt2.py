@@ -34,6 +34,8 @@ class App:
         self.fastacq_var_bool = IntVar()
         self.acq_state_var_bool = IntVar()
         self.add_timestamp_var_bool = IntVar(value=1)
+        self.stopAfterAcq_var = IntVar(value=500)
+        self.addTextOverlay_var_bool = IntVar(value=0)
 
         self.overwrite_bool = True
         self.filename_var.set('DPO')
@@ -45,7 +47,6 @@ class App:
 
         self.dt = datetime.now()
         self.visa_timeout_duration = 5000  # in ms
-
 
 
         # self.frame.columnconfigure(0, pad=3)
@@ -79,50 +80,56 @@ class App:
 
         # row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
-        label_entry_dir.grid(row=1, column=0)
-        self.E_dir = tk.Entry(self.frame, textvariable=self.path_var, width=40)
-        self.E_dir.grid(row=1, column=1, columnspan=2, sticky='we')
+        label_entry_dir.grid(row=1, column=0, sticky='W')
+        self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
+        self.E_dir.grid(row=1, column=1, columnspan=4, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=3)
+        btn_prompt_dir.grid(row=1, column=6)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
         # row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
-        label_entry_filename.grid(row=2, column=0)
-        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var, width=40)
-        self.E_filename.grid(row=2, column=1, columnspan=2, sticky='we')
+        label_entry_filename.grid(row=2, column=0, sticky='W')
+        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
+        self.E_filename.grid(row=2, column=1, columnspan=4, sticky='we')
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
         chkbox_addTimeStamp = tk.Checkbutton(self.frame, text='Add Time', variable=self.add_timestamp_var_bool,
                                              onvalue=1, offvalue=0,
                                              command=None)
-        chkbox_addTimeStamp.grid(row=2, column=3)
+        chkbox_addTimeStamp.grid(row=2, column=6)
 
         # row3
-        chkbox_imshow = tk.Checkbutton(self.frame, text='ShowImage', variable=self.imshow_var_bool, onvalue=1, offvalue=0,
+        label_Misc = tk.Label(self.frame, text="Miscellaneous")
+        label_Misc.grid(row=3, column=0, sticky='W')
+        chkbox_imshow = tk.Checkbutton(self.frame, text='Show Image', variable=self.imshow_var_bool, onvalue=1, offvalue=0,
                                        command=None)
-        chkbox_imshow.grid(row=3, column=1)
-        chkbox_Fstacq = tk.Checkbutton(self.frame, text='FastAcq', variable=self.fastacq_var_bool, onvalue=1,
+        chkbox_imshow.grid(row=3, column=1, sticky='W')
+        chkbox_Fstacq = tk.Checkbutton(self.frame, text='Fast Acq(DPX)', variable=self.fastacq_var_bool, onvalue=1,
                                            offvalue=0, command=self.trigger_fstacq)
-        chkbox_Fstacq.grid(row=3, column=2)
+        chkbox_Fstacq.grid(row=3, column=2, sticky='W')
+        chkbox_AutoStop = tk.Checkbutton(self.frame, text='Add Text Overlay', variable=self.addTextOverlay_var_bool, onvalue=1,
+                                       offvalue=0, command=None)
+        chkbox_AutoStop.grid(row=3, column=3, sticky='W')
 
         # row 4
-        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl+⏎)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=4, column=1, columnspan=2)
+        btn_capture = tk.Button(self.frame, text="ScreenShot(⏎)", command=self.btn_capture_clicked)
+        btn_capture.grid(row=4, column=1)
+        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⏎)", command=self.btn_runstop_clicked)
+        self.btn_RunStop.grid(row=4, column=2)
         # btn_Stop = tk.Button(self.frame, text="Stop", command=self.btn_stop_clicked)
         # btn_Stop.grid(row=4, column=1)
         btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
         btn_Clear.grid(row=4, column=3)
-        btn_capture = tk.Button(self.frame, text="Capture(⏎)", command=self.btn_capture_clicked)
-        btn_capture.grid(row=4, column=0)
+
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
 
         # row 5, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.grid(row=5, column=0, columnspan=5, sticky='we')
+        status_bar.grid(row=5, column=0, columnspan=7, sticky='we')
 
         self.frame.pack()
 
@@ -217,30 +224,32 @@ class App:
                 img_data = scope.read_raw()
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
-                # # Image show (OpenCV)
-                if self.imshow_var_bool.get():
+                ## Add Text Overlay
+                if self.addTextOverlay_var_bool.get() or self.imshow_var_bool.get():
                     file_png_data = BytesIO(img_data)
                     dt = Image.open(file_png_data)
                     I = np.asarray(dt)
-                    print("Got image, shape:", I.shape)
                     I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
-                    cv2.imshow(" Captured, Press Any Key to Dismiss", I_cv2)
+                    print("cv2 image shape:", I.shape)
+                    if self.addTextOverlay_var_bool.get():
+                        font = cv2.FONT_HERSHEY_DUPLEX
+                        font_size = 0.44
+                        font_color = (255, 255, 255)
+                        font_thickness = 1
+                        text = self.filename_var.get()
+                        height, width, depth = I_cv2.shape
+                        cv2.rectangle(I_cv2, (width - width + 677, height - height), (width, height - height + 31),
+                                      (0, 0, 0), -1)
+                        img_text = cv2.putText(I_cv2, text, (width - width + 677, height - height + 20), font,
+                                               font_size, font_color, font_thickness,
+                                               cv2.LINE_AA)
+                        outputImage = img_text
+                    # # Image show (OpenCV)
+                    else:
+                        outputImage = I_cv2
+                    cv2.imshow(" Captured, Press Any Key to Dismiss", outputImage)
                     cv2.waitKey()
                     cv2.destroyAllWindows()
-
-                # # Image show (PIL)
-                # if self.imshow_var_bool.get():
-                #     file_png_data = BytesIO(img_data)
-                #     img = Image.open(file_png_data)
-                #     img.show()
-
-                    # I = np.asarray(dt)
-                    # print("Got image, shape:", I.shape)
-
-                    # I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
-                    # cv2.imshow(" Captured, Press Any Key to Dismiss", I_cv2)
-                    # cv2.waitKey()
-                    # cv2.destroyAllWindows()
 
                 # Image save
                 save_path = Path(self.path_var.get()) / Path(self.savefilename)
@@ -256,11 +265,18 @@ class App:
                     print("Overwrite", self.overwrite_bool)
                 try:
                     if self.overwrite_bool is True:
-                        with open(save_path, "wb") as imgFile:
-                            imgFile.write(img_data)
-                            imgFile.close()
-                            print("Saved!")
-                            self.status_var.set("Saved: "+self.savefilename+'.png')
+                        if self.addTextOverlay_var_bool.get():
+                            try:
+                                cv2.imwrite(save_path, outputImage)
+                            except IOError:
+                                print("cv2 save Failed")
+                                self.status_var.set("Cannot save file, check folder and filename")
+                        else:
+                            with open(save_path, "wb") as imgFile:
+                                imgFile.write(img_data)
+                                imgFile.close()
+                                print("Saved!")
+                                self.status_var.set("Saved: "+self.savefilename+'.png')
                     else:
                         print("saving action canceled!")
                         self.status_var.set("saving action canceled!")
