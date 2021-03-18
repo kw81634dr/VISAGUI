@@ -11,10 +11,9 @@ import cv2
 import tkinter as tk
 from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu
 
-
-
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
+
 
 class App:
     # Define settings upon initialization.
@@ -48,7 +47,6 @@ class App:
 
         self.dt = datetime.now()
         self.visa_timeout_duration = 5000  # in ms
-
 
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
@@ -124,7 +122,6 @@ class App:
         btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
         btn_Clear.grid(row=4, column=3)
 
-
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
 
@@ -194,7 +191,6 @@ class App:
             print("VISA driver Error")
 
     def get_default_filename(self):
-
         # Generate a filename based on the current Date & Time
         self.dt = datetime.now()
         time_now = self.dt.strftime("%H%M%S")
@@ -353,7 +349,6 @@ class App:
         except ValueError:
             print("VISA driver Error")
             self.status_var.set("VISA driver Error")
-
 
     def btn_runstop_clicked(self, *args):
         print("Run/Stop Btn clicked")
