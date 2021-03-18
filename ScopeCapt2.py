@@ -194,6 +194,7 @@ class App:
             print("VISA driver Error")
 
     def get_default_filename(self):
+
         # Generate a filename based on the current Date & Time
         self.dt = datetime.now()
         time_now = self.dt.strftime("%H%M%S")
@@ -315,6 +316,7 @@ class App:
             self.status_var.set("VISA driver Error")
         self.get_default_filename()
 
+
     def prompt_path(self):
         folder_prompted = filedialog.askdirectory()
         print("Prompt", folder_prompted)
@@ -340,6 +342,7 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def btn_clear_clicked(self, *args):
+
         print("Clear Btn clicked")
         try:
             rm = visa.ResourceManager()
@@ -350,6 +353,7 @@ class App:
         except ValueError:
             print("VISA driver Error")
             self.status_var.set("VISA driver Error")
+
 
     def btn_runstop_clicked(self, *args):
         print("Run/Stop Btn clicked")
@@ -393,7 +397,8 @@ class App:
 def main():
     root = tk.Tk()
     app = App(root)
-
+    root.bind("<Control_L>", lambda i: app.frame.focus_set())
+    root.bind("<Control_R>", lambda i: app.frame.focus_set())
     root.bind("<Return>", app.btn_capture_clicked)
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
