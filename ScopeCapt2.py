@@ -409,7 +409,9 @@ class App:
 def main():
     root = tk.Tk()
     app = App(root)
-    root.bind("<Control_L>", lambda i: app.frame.focus_set())
+
+    # NEED a better way to fix the delete of filename and cannot Paste by Ctrl+V bug.
+    # root.bind("<Control_L>", lambda i: app.frame.focus_set())
     root.bind("<Control_R>", lambda i: app.frame.focus_set())
     root.bind("<Return>", app.btn_capture_clicked)
     root.bind("<Control-Return>", app.btn_runstop_clicked)
