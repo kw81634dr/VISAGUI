@@ -174,7 +174,7 @@ class App:
                                     "Set GPIB address to 6 and \"Talk/Listen\" mode!")
             rm.close()
         except ValueError:
-            print("VISA driver Error")
+            print("Cannot get Acq status-VISA driver Error")
 
     def get_scope_info(self):
         try:
@@ -188,7 +188,7 @@ class App:
                 scope.close()
             rm.close()
         except ValueError:
-            print("VISA driver Error")
+            print("Cannot get scope info-VISA driver Error")
 
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
@@ -308,7 +308,7 @@ class App:
                 scope.close()
                 rm.close()
         except ValueError:
-            print("VISA driver Error")
+            print("Cannot get scope shot-VISA driver Error")
             self.status_var.set("VISA driver Error")
         self.get_default_filename()
 
@@ -334,18 +334,21 @@ class App:
                 scope.close()
             rm.close()
         except ValueError:
-            print("VISA driver Error")
+            print("cannot trigger FastAcq-VISA driver Error")
             self.status_var.set("VISA driver Error")
 
     def btn_clear_clicked(self, *args):
         ScopeModel = self.IDN_of_scope.get().split(",")
         # print(ScopeModel)
         isCModel = False
-        if ScopeModel[1][-1] == 'C':
-            isCModel = True
-            print('isCModel=', isCModel)
-        else:
-            isCModel = False
+        try:
+            if ScopeModel[1][-1] == 'C':
+                isCModel = True
+                print('isCModel=', isCModel)
+            else:
+                isCModel = False
+        except IndexError:
+            print("var \"self.IDN_of_scope[1][-1]\" did not exist.")
         print("Clear Btn clicked")
         try:
             rm = visa.ResourceManager()
@@ -364,7 +367,7 @@ class App:
                 scope.close()
             rm.close()
         except ValueError:
-            print("VISA driver Error")
+            print("cannot clear scope-VISA driver Error")
             self.status_var.set("VISA driver Error")
 
     def btn_runstop_clicked(self, *args):
@@ -379,21 +382,10 @@ class App:
                 scope.close()
             rm.close()
         except ValueError:
-            print("VISA driver Error")
+            print("cannot RunStop-VISA driver Error")
             self.status_var.set("VISA driver Error")
             self.btn_RunStop.configure(fg="red")
         self.get_acq_state()
-
-    # def btn_stop_clicked(self):
-    #     try:
-    #         rm = visa.ResourceManager()
-    #         with rm.open_resource(self.target_gpib_address.get()) as scope:
-    #             scope.write('ACQuire:STATE OFF')
-    #             scope.close()
-    #         rm.close()
-    #     except ValueError:
-    #         print("VISA driver Error")
-    #         self.status_var.set("VISA driver Error")
 
     def btn_capture_clicked(self, *args):
         folder = self.path_var.get()
