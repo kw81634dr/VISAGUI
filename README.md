@@ -6,5 +6,5 @@ Currently, support Tek DPO7/7C Series.
 Dependencies: pyvisa, openCV
 
 ![mac_GUI screen shot](img/macGUI.png)
-![win_GUI screen shot](img/winGUIScrshot.png)
+![win_GUI screen shot](img/winGUI.png)
 ![Scope screen shot](img/test.png)
