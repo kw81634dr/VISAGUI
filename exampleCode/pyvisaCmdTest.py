@@ -10,7 +10,14 @@ try:
 
     with rm.open_resource('GPIB0::6::INSTR') as scope:
         scope.timeout = 2000  # ms
-        print("Device Found: ", scope.query('*IDN?'))
+        idn = scope.query('*IDN?')
+        print("Device Found: ", idn)
+        x = idn.split(",")
+        print(x[1])
+        if x[1][-1] == 'C':
+            print("it's C model")
+        else:
+            print("Isn't C model")
         # scope.query('*OPC?')
         # scope.write('ACQUIRE:STATE STOP')
         # print("Acc state: ", scope.query('ACQuire:STATE?'))
@@ -22,20 +29,25 @@ try:
 
         # WORKS BUT AS Fallback
         # print("clear waveform ", scope.write('ACQuire:REPEt OFF'))
-        print("clear waveform ", scope.write('FASTAcq:STATE ON'))
+        # print("clear waveform ", scope.write('FASTAcq:STATE ON'))
         # print("clear waveform ", scope.write('ACQuire:REPEt ON'))
         # WORKS BUT AS Fallback
 
+        #alter CLEAR ALL for non C model
+        scope.write('ACQuire:STOPAFTER SEQUENCE')
+        scope.write('ACQ:STATE ON')
+        scope.write('ACQ:STOPA RUNST')
+
         # equivalent to clear button
-        scope.write('CLEAR ALL')
-        acc_num = 0
+        # scope.write('CLEAR ALL')
+        # acc_num = 0
 
-        while acc_num < 30:
-            acc_num = int(scope.query('ACQuire:NUMACq?'))
-            print("Acc #=", acc_num)
-            time.sleep(1)
-
-        scope.write('ACQuire:STATE STOP')
+        # while acc_num < 30:
+        #     acc_num = int(scope.query('ACQuire:NUMACq?'))
+        #     print("Acc #=", acc_num)
+        #     time.sleep(1)
+        #
+        # scope.write('ACQuire:STATE STOP')
 
         scope.close()
 

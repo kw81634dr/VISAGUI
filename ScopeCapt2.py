@@ -133,9 +133,8 @@ class App:
 
         self.get_acq_state()
 
-        # self.get_scope_info()
+        self.get_scope_info()
         # self.get_default_filename()
-        # self.get_scope_info()
 
     def client_exit(self):
         self.frame.destroy()
@@ -185,6 +184,7 @@ class App:
                 print(status_text)
                 self.status_var.set(status_text[:-1])
                 self.IDN_of_scope.set(status_text)
+                # print("IDN VAR get", self.IDN_of_scope.get())
                 scope.close()
             rm.close()
         except ValueError:
@@ -338,12 +338,26 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def btn_clear_clicked(self, *args):
-
+        ScopeModel = self.IDN_of_scope.get().split(",")
+        # print(ScopeModel)
+        isCModel = False
+        if ScopeModel[1][-1] == 'C':
+            isCModel = True
+            print('isCModel=', isCModel)
+        else:
+            isCModel = False
         print("Clear Btn clicked")
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scope.write('CLEAR ALL')
+                if isCModel:
+                    scope.write('CLEAR ALL')
+                    print("Send \"CLEAR ALL\"")
+                else:
+                    scope.write('ACQuire:STOPAFTER SEQUENCE')
+                    scope.write('ACQ:STATE ON')
+                    scope.write('ACQ:STOPA RUNST')
+                    print("Send Alter Cmd for CLEAR ALL")
                 scope.close()
             rm.close()
         except ValueError:
