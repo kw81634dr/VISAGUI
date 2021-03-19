@@ -113,9 +113,9 @@ class App:
         chkbox_AutoStop.grid(row=3, column=3, sticky='W')
 
         # row 4
-        btn_capture = tk.Button(self.frame, text="ScreenShot(⏎)", command=self.btn_capture_clicked)
+        btn_capture = tk.Button(self.frame, text="ScreenShot(↵)", command=self.btn_capture_clicked)
         btn_capture.grid(row=4, column=1)
-        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⏎)", command=self.btn_runstop_clicked)
+        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl↵)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=4, column=2)
         # btn_Stop = tk.Button(self.frame, text="Stop", command=self.btn_stop_clicked)
         # btn_Stop.grid(row=4, column=1)
