@@ -353,11 +353,14 @@ class App:
                 if isCModel:
                     scope.write('CLEAR ALL')
                     print("Send \"CLEAR ALL\"")
+                    self.status_var.set("\"CLEAR ALL\" sent, Cleared")
                 else:
                     scope.write('ACQuire:STOPAFTER SEQUENCE')
+                    scope.write('DISplay:PERSistence:RESET')
                     scope.write('ACQ:STATE ON')
                     scope.write('ACQ:STOPA RUNST')
                     print("Send Alter Cmd for CLEAR ALL")
+                    self.status_var.set("Cleared")
                 scope.close()
             rm.close()
         except ValueError:
