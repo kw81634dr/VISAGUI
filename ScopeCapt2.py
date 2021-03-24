@@ -235,22 +235,25 @@ class App:
                     I = np.asarray(dt)
                     I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
                     print("cv2 image shape:", I.shape)
-                    if self.addTextOverlay_var_bool.get():
-                        font = cv2.FONT_HERSHEY_DUPLEX
-                        font_size = 0.44
-                        font_color = (255, 255, 255)
-                        font_thickness = 1
-                        text = self.filename_var.get()
-                        height, width, depth = I_cv2.shape
-                        cv2.rectangle(I_cv2, (width - width + 677, height - height), (width, height - height + 31),
-                                      (0, 0, 0), -1)
-                        img_text = cv2.putText(I_cv2, text, (width - width + 677, height - height + 20), font,
-                                               font_size, font_color, font_thickness,
-                                               cv2.LINE_AA)
-                        outputImage = img_text
-                    # # Image show (OpenCV)
-                    else:
-                        outputImage = I_cv2
+
+                if self.addTextOverlay_var_bool.get():
+                    font = cv2.FONT_HERSHEY_DUPLEX
+                    font_size = 0.44
+                    font_color = (255, 255, 255)
+                    font_thickness = 1
+                    text = self.filename_var.get()
+                    height, width, depth = I_cv2.shape
+                    cv2.rectangle(I_cv2, (width - width + 677, height - height), (width, height - height + 31),
+                                  (0, 0, 0), -1)
+                    img_text = cv2.putText(I_cv2, text, (width - width + 677, height - height + 20), font,
+                                           font_size, font_color, font_thickness,
+                                           cv2.LINE_AA)
+                    outputImage = img_text
+                else:
+                    outputImage = I_cv2
+
+                # # Image show (OpenCV)
+                if self.imshow_var_bool.get():
                     cv2.imshow(" Captured, Press Any Key to Dismiss", outputImage)
                     cv2.waitKey()
                     cv2.destroyAllWindows()
