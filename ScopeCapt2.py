@@ -228,13 +228,12 @@ class App:
                 img_data = scope.read_raw()
                 scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
-                ## Add Text Overlay
-                if self.addTextOverlay_var_bool.get() or self.imshow_var_bool.get():
-                    file_png_data = BytesIO(img_data)
-                    dt = Image.open(file_png_data)
-                    I = np.asarray(dt)
-                    I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
-                    print("cv2 image shape:", I.shape)
+
+                file_png_data = BytesIO(img_data)
+                dt = Image.open(file_png_data)
+                I = np.asarray(dt)
+                I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
+                print("cv2 image shape:", I.shape)
 
                 if self.addTextOverlay_var_bool.get():
                     font = cv2.FONT_HERSHEY_DUPLEX
@@ -254,7 +253,7 @@ class App:
 
                 # # Image show (OpenCV)
                 if self.imshow_var_bool.get():
-                    cv2.imshow(" Captured, Press Any Key to Dismiss", outputImage)
+                    cv2.imshow("Captured, Press Any Key to Dismiss", outputImage)
                     cv2.waitKey()
                     cv2.destroyAllWindows()
 
