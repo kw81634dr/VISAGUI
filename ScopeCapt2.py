@@ -23,7 +23,7 @@ class App:
         self.frame = tk.Frame(self.master)
 
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
-        self.master.title("KW Scope Capture v1.2")
+        self.master.title("KW Scope Capture v1.3")
 
         self.target_gpib_address = tk.StringVar()
         self.status_var = tk.StringVar()
