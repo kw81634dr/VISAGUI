@@ -6,12 +6,14 @@ target_gpib_address='GPIB::6::INSTR'
 try:
     rm = visa.ResourceManager()
     GPIB_list = rm.list_resources()
-    print(GPIB_list)
+    print("GPIB list:", GPIB_list)
+    # GPIB list: ('GPIB0::6::INSTR',)
 
     with rm.open_resource('GPIB0::6::INSTR') as scope:
         scope.timeout = 2000  # ms
         idn = scope.query('*IDN?')
         print("Device Found: ", idn)
+        # Device Found: TEKTRONIX,DPO7104C,C302654,CF:91.1CT FV:10.8.3 Build 3
         x = idn.split(",")
         print(x[1])
         if x[1][-1] == 'C':
