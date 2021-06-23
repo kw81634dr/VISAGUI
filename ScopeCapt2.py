@@ -33,6 +33,7 @@ class App:
 
         self.imshow_var_bool = IntVar()
         self.fastacq_var_bool = IntVar()
+        self.persistence_var_bool = IntVar()
         self.acq_state_var_bool = IntVar()
         self.add_timestamp_var_bool = IntVar(value=1)
         self.stopAfterAcq_var = IntVar(value=500)
@@ -109,19 +110,24 @@ class App:
         chkbox_Fstacq = tk.Checkbutton(self.frame, text='Fast Acq(DPX)', variable=self.fastacq_var_bool, onvalue=1,
                                            offvalue=0, command=self.trigger_fstacq)
         chkbox_Fstacq.grid(row=3, column=2, sticky='W')
-        chkbox_AutoStop = tk.Checkbutton(self.frame, text='Add Text Overlay', variable=self.addTextOverlay_var_bool, onvalue=1,
+        chkbox_Persistence = tk.Checkbutton(self.frame, text='Persistence', variable=self.persistence_var_bool,
+                                         onvalue=1,
+                                         offvalue=0, command=self.set_persistence)
+
+        chkbox_Persistence.grid(row=3, column=3, sticky='W')
+        chkbox_txtOverlay = tk.Checkbutton(self.frame, text='Add Text Overlay', variable=self.addTextOverlay_var_bool, onvalue=1,
                                        offvalue=0, command=None)
-        chkbox_AutoStop.grid(row=3, column=3, sticky='W')
+        chkbox_txtOverlay.grid(row=3, column=4, sticky='W')
 
         # row 4
         btn_capture = tk.Button(self.frame, text="ScreenShot(↵)", command=self.btn_capture_clicked)
         btn_capture.grid(row=4, column=1)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl+↵)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=4, column=2)
-        # btn_Stop = tk.Button(self.frame, text="Stop", command=self.btn_stop_clicked)
-        # btn_Stop.grid(row=4, column=1)
+        btn_Single = tk.Button(self.frame, text="Single", command=self.btn_single_clicked)
+        btn_Single.grid(row=4, column=3)
         btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
-        btn_Clear.grid(row=4, column=3)
+        btn_Clear.grid(row=4, column=4)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
@@ -340,6 +346,30 @@ class App:
             print("cannot trigger FastAcq-VISA driver Error")
             self.status_var.set("VISA driver Error")
 
+    def set_persistence(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                if self.persistence_var_bool.get():
+                    scope.write('DISplay:PERSistence INFPersist')
+                else:
+                    scope.write('DISplay:PERSistence OFF')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("cannot set Persistence")
+            self.status_var.set("VISA driver Error")
+
+    def btn_single_clicked(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('ACQuire:STOPAFTER SEQUENCE')
+                scope.write('ACQ:STATE ON')
+        except ValueError:
+            print("cannot do Single shot")
+            self.status_var.set("VISA driver Error")
+
     def btn_clear_clicked(self, *args):
         ScopeModel = self.IDN_of_scope.get().split(",")
         # print(ScopeModel)
@@ -381,6 +411,7 @@ class App:
                 if self.acq_state_var_bool.get() == True:
                     scope.write('ACQuire:STATE OFF')
                 else:
+                    scope.write('ACQ:STOPA RUNST')
                     scope.write('ACQuire:STATE ON')
                 scope.close()
             rm.close()
