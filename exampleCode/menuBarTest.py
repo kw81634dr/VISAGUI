@@ -1,4 +1,4 @@
-from Tkinter import *
+from tkinter import *
 
 class MenuBar: #'player' is the name of the Tk window
     def __init__(self, parent):
@@ -23,7 +23,7 @@ def onExit():
     sys.exit()
 
 def onOpen():
-    print 'Open'
+    print ('Open')
 
     player = Tk()
 

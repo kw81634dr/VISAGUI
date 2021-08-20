@@ -23,7 +23,8 @@ class App:
         self.frame = tk.Frame(self.master)
 
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
-        self.master.title("KW Scope Capture v1.3")
+        self.appTitleText = "KW Scope Capture v1.4"
+        self.master.title(self.appTitleText)
 
         self.target_gpib_address = tk.StringVar()
         self.status_var = tk.StringVar()
@@ -49,6 +50,8 @@ class App:
 
         self.dt = datetime.now()
         self.visa_timeout_duration = 5000  # in ms
+
+
 
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
@@ -78,6 +81,9 @@ class App:
 
         # btn_connect_scope = tk.Button(self.frame, text="Get Scope info", command=self.get_scope_info)
         # btn_connect_scope.grid(row=0, column=4)
+
+
+
 
         # row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
@@ -120,8 +126,8 @@ class App:
         chkbox_txtOverlay.grid(row=3, column=4, sticky='W')
 
         # row 4
-        btn_capture = tk.Button(self.frame, text="ScreenShot(↵)", command=self.btn_capture_clicked)
-        btn_capture.grid(row=4, column=1)
+        self.btn_capture = tk.Button(self.frame, text="ScreenShot(↵)", command=self.btn_capture_clicked)
+        self.btn_capture.grid(row=4, column=1)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl+↵)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=4, column=2)
         btn_Single = tk.Button(self.frame, text="Single", command=self.btn_single_clicked)
@@ -142,6 +148,24 @@ class App:
 
         self.get_scope_info()
         # self.get_default_filename()
+        self.closest_index = 0
+        self.scaleList = [1e-9, 2e-9, 5e-9,
+                          1e-8, 2e-8, 5e-8,
+                          1e-7, 2e-7, 5e-7,
+                          1e-6, 2e-6, 5e-6,
+                          1e-5, 2e-5, 5e-5,
+                          1e-4, 2e-4, 5e-4,
+                          1e-3, 2e-3, 5e-3,
+                          1e-2, 2e-2, 5e-2,
+                          1e-1, 2e-1, 5e-1,
+                          1e0, 2e0, 5e0,
+                          1e1, 2e1, 5e1]
+
+        menubar = Menu(self.master)
+        self.master.config(menu=menubar)
+        fileMenu = Menu(menubar)
+        fileMenu.add_command(label="Exit", command=self.client_exit)
+        menubar.add_cascade(label="File", menu=fileMenu)
 
     def client_exit(self):
         self.frame.destroy()
@@ -187,14 +211,19 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                status_text = "Device Found: " + scope.query('*IDN?')
-                print(status_text)
-                self.status_var.set(status_text[:-1])
-                self.IDN_of_scope.set(status_text)
+                idn_text = ("  Found : " + scope.query('*IDN?'))[:-1]
+                print(idn_text)
+                self.status_var.set(" tip: Use Left(←) or Right(→) arrow key to scale time division")
+                self.IDN_of_scope.set(idn_text)
                 # print("IDN VAR get", self.IDN_of_scope.get())
+                idn_text_title = idn_text.split(",")[0] + " " + idn_text.split(",")[1]
+                self.appTitleText = self.appTitleText + " " + idn_text_title
+                self.master.title(self.appTitleText)
                 scope.close()
             rm.close()
         except ValueError:
+            self.appTitleText = self.appTitleText + "No Device Found on GPIB Bus"
+            self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
 
     def get_default_filename(self):
@@ -366,6 +395,8 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.write('ACQuire:STOPAFTER SEQUENCE')
                 scope.write('ACQ:STATE ON')
+            scope.close()
+            rm.close()
         except ValueError:
             print("cannot do Single shot")
             self.status_var.set("VISA driver Error")
@@ -431,6 +462,35 @@ class App:
     #     print("Capture Btn clicked, save folder", folder)
     #     self.get_shot_scope()
 
+    def horizontal_scale(self, event):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale = float(scope.query('HORizontal:MAIn:SCAle?'))
+                print("Scale = ", scale)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.scaleList)), key=lambda i: abs(self.scaleList[i]-scale))
+                print("closetstIndex=", self.closest_index)
+                self.target_index = self.closest_index
+                if event.keysym == 'Right':
+                    if self.closest_index < (len(self.scaleList)-1):
+                        self.target_index = self.closest_index + 1
+                        scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
+                        scope.write('HORizontal:RESOlution 5e5')
+                elif event.keysym == 'Left':
+                    if self.closest_index > 1:
+                        self.target_index = self.closest_index - 1
+                        scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
+                        scope.write('HORizontal:RESOlution 5e5')
+                else:
+                    pass
+                scope.write('HORizontal:MODE AUTO')
+            rm.close()
+        except ValueError:
+            self.status_var.set("VISA driver Error")
+            self.btn_RunStop.configure(fg="red")
+
+    # scope.write('CURSOR: FUNCTION SCREEN')
 
 def main():
     root = tk.Tk()
@@ -442,7 +502,8 @@ def main():
     root.bind("<Return>", app.btn_capture_clicked)
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
-
+    root.bind("<Left>", app.horizontal_scale)
+    root.bind("<Right>", app.horizontal_scale)
     root.mainloop()
 
 
