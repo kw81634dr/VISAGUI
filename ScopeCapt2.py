@@ -32,6 +32,10 @@ class App:
         self.filename_var = tk.StringVar()
         self.IDN_of_scope = tk.StringVar()
 
+        self.sel_ch1_var_bool = IntVar()
+        self.sel_ch2_var_bool = IntVar()
+        self.sel_ch3_var_bool = IntVar()
+        self.sel_ch4_var_bool = IntVar()
         self.imshow_var_bool = IntVar()
         self.fastacq_var_bool = IntVar()
         self.persistence_var_bool = IntVar()
@@ -82,19 +86,16 @@ class App:
         # btn_connect_scope = tk.Button(self.frame, text="Get Scope info", command=self.get_scope_info)
         # btn_connect_scope.grid(row=0, column=4)
 
-
-
-
-        # row 1
+        # --------------row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
         label_entry_dir.grid(row=1, column=0, sticky='W')
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
         self.E_dir.grid(row=1, column=1, columnspan=4, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=6)
+        btn_prompt_dir.grid(row=1, column=6, padx=10)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
-        # row 2
+        # --------------row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
         label_entry_filename.grid(row=2, column=0, sticky='W')
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
@@ -102,43 +103,28 @@ class App:
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
-        chkbox_addTimeStamp = tk.Checkbutton(self.frame, text='Add Time', variable=self.add_timestamp_var_bool,
-                                             onvalue=1, offvalue=0,
-                                             command=None)
-        chkbox_addTimeStamp.grid(row=2, column=6)
+        # chkbox_addTimeStamp = tk.Checkbutton(self.frame, text='Add Time', variable=self.add_timestamp_var_bool,
+        #                                      onvalue=1, offvalue=0,
+        #                                      command=None)
+        # chkbox_addTimeStamp.grid(row=2, column=6)
 
-        # row3
-        label_Misc = tk.Label(self.frame, text="Miscellaneous")
-        label_Misc.grid(row=3, column=0, sticky='W')
-        chkbox_imshow = tk.Checkbutton(self.frame, text='Show Image', variable=self.imshow_var_bool, onvalue=1, offvalue=0,
-                                       command=None)
-        chkbox_imshow.grid(row=3, column=1, sticky='W')
-        chkbox_Fstacq = tk.Checkbutton(self.frame, text='Fast Acq(DPX)', variable=self.fastacq_var_bool, onvalue=1,
-                                           offvalue=0, command=self.trigger_fstacq)
-        chkbox_Fstacq.grid(row=3, column=2, sticky='W')
-        chkbox_Persistence = tk.Checkbutton(self.frame, text='Persistence', variable=self.persistence_var_bool,
-                                         onvalue=1,
-                                         offvalue=0, command=self.set_persistence)
+        # --------------row3
 
-        chkbox_Persistence.grid(row=3, column=3, sticky='W')
-        chkbox_txtOverlay = tk.Checkbutton(self.frame, text='Add Text Overlay', variable=self.addTextOverlay_var_bool, onvalue=1,
-                                       offvalue=0, command=None)
-        chkbox_txtOverlay.grid(row=3, column=4, sticky='W')
 
-        # row 4
+        # --------------row 4
         self.btn_capture = tk.Button(self.frame, text="ScreenShot(↵)", command=self.btn_capture_clicked)
-        self.btn_capture.grid(row=4, column=1)
+        self.btn_capture.grid(row=4, column=1, padx=2)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl+↵)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=4, column=2)
+        self.btn_RunStop.grid(row=4, column=2, padx=2)
         btn_Single = tk.Button(self.frame, text="Single", command=self.btn_single_clicked)
-        btn_Single.grid(row=4, column=3)
+        btn_Single.grid(row=4, column=3, padx=2)
         btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
-        btn_Clear.grid(row=4, column=4)
+        btn_Clear.grid(row=4, column=4, padx=2)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
 
-        # row 5, status bar
+        # --------------row 5, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
         status_bar.grid(row=5, column=0, columnspan=7, sticky='we')
 
@@ -161,14 +147,56 @@ class App:
                           1e0, 2e0, 5e0,
                           1e1, 2e1, 5e1]
 
+        # --------------MenuBar
         menubar = Menu(self.master)
         self.master.config(menu=menubar)
-        fileMenu = Menu(menubar)
-        fileMenu.add_command(label="Exit", command=self.client_exit)
-        menubar.add_cascade(label="File", menu=fileMenu)
 
-    def client_exit(self):
+        filemenu = Menu(menubar, tearoff=False)
+        scopemenu = Menu(menubar, tearoff=False)
+        miscmenu = Menu(menubar, tearoff=False)
+        toolmenu = Menu(menubar, tearoff=False)
+        helpmenu = Menu(menubar, tearoff=False)
+
+        file_submenu = Menu(filemenu)
+        file_submenu.add_command(label="Future Implement 1")
+        file_submenu.add_command(label="Future Implement 2")
+        file_submenu.add_command(label="Future Implement 3")
+        filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", underline=0, command=self.on_exit)
+
+        miscmenu.add_checkbutton(label="Add Time", onvalue=1, offvalue=0, variable=self.add_timestamp_var_bool)
+        miscmenu.add_checkbutton(label="Show Image after ScreenShot", onvalue=1, offvalue=0, variable=self.imshow_var_bool)
+        miscmenu.add_checkbutton(label="Add Text overlay on ScreenShot", onvalue=1, offvalue=0, variable=self.addTextOverlay_var_bool)
+
+        scope_submenu = Menu(scopemenu)
+
+        scope_submenu.add_checkbutton(label="CH 1", onvalue=1, offvalue=0, variable=self.sel_ch1_var_bool,
+                                      command=self.scope_channel_select)
+        scope_submenu.add_checkbutton(label="CH 2", onvalue=1, offvalue=0, variable=self.sel_ch2_var_bool,
+                                      command=self.scope_channel_select)
+        scope_submenu.add_checkbutton(label="CH 3", onvalue=1, offvalue=0, variable=self.sel_ch3_var_bool,
+                                      command=self.scope_channel_select)
+        scope_submenu.add_checkbutton(label="CH 4", onvalue=1, offvalue=0, variable=self.sel_ch4_var_bool,
+                                      command=self.scope_channel_select)
+
+        scopemenu.add_cascade(label='Enable CH', menu=scope_submenu, underline=0)
+        scopemenu.add_checkbutton(label="Use DPX", onvalue=1, offvalue=0, variable=self.fastacq_var_bool,
+                                  command=self.trigger_fstacq)
+        scopemenu.add_checkbutton(label="Use Persistence", onvalue=1, offvalue=0, variable=self.persistence_var_bool,
+                                  command=self.set_persistence)
+        scopemenu.add_command(label="Exec. AutoSet", command=self.scope_execute_autoset)
+        scopemenu.add_command(label="Recall Default Settings", command=self.scope_factory_reset)
+
+        menubar.add_cascade(label="File", underline=0, menu=filemenu)
+        menubar.add_cascade(label="Scope", underline=0, menu=scopemenu)
+        menubar.add_cascade(label="Misc.", underline=0, menu=miscmenu)
+        menubar.add_cascade(label="Tool", underline=0, menu=toolmenu)
+        menubar.add_cascade(label="Help", underline=0, menu=helpmenu)
+
+    def on_exit(self):
         self.frame.destroy()
+        self.frame.quit()
         exit()
 
     def onKey(self, event):
@@ -188,6 +216,10 @@ class App:
             rm = visa.ResourceManager()
             try:
                 scope = rm.open_resource(self.target_gpib_address.get())
+                self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?')[:-1]))
+                self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?')[:-1]))
+                self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
+                self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
                 print(acq_state)
                 self.acq_state_var_bool.set(acq_state)
@@ -361,6 +393,55 @@ class App:
             status_text_temp = "file will be saved to " + "\"" + str(folder_prompted) + "\""
             self.status_var.set(status_text_temp)
 
+    def scope_execute_autoset(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('AUTOSet EXECute')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Autoset Failed")
+            self.status_var.set("AutoSet Failed, VISA ERROR")
+
+    def scope_factory_reset(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('*RST')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Factory Reset Failed")
+            self.status_var.set("Factory Reset, VISA ERROR")
+
+    def scope_channel_select(self):
+        print("Into --scope_channel_select--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                if self.sel_ch1_var_bool.get():
+                    scope.write('SELect:CH1 ON')
+                else:
+                    scope.write('SELect:CH1 OFF')
+                if self.sel_ch2_var_bool.get():
+                    scope.write('SELect:CH2 ON')
+                else:
+                    scope.write('SELect:CH2 OFF')
+                if self.sel_ch3_var_bool.get():
+                    scope.write('SELect:CH3 ON')
+                else:
+                    scope.write('SELect:CH3 OFF')
+                if self.sel_ch4_var_bool.get():
+                    scope.write('SELect:CH4 ON')
+                else:
+                    scope.write('SELect:CH4 OFF')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Sel CH Failed")
+            self.status_var.set("Sel CH Failed, VISA ERROR")
+
     def trigger_fstacq(self):
         try:
             rm = visa.ResourceManager()
@@ -472,12 +553,12 @@ class App:
                 self.closest_index = min(range(len(self.scaleList)), key=lambda i: abs(self.scaleList[i]-scale))
                 print("closetstIndex=", self.closest_index)
                 self.target_index = self.closest_index
-                if event.keysym == 'Right':
+                if event.keysym == 'Left':
                     if self.closest_index < (len(self.scaleList)-1):
                         self.target_index = self.closest_index + 1
                         scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
                         scope.write('HORizontal:RESOlution 5e5')
-                elif event.keysym == 'Left':
+                elif event.keysym == 'Right':
                     if self.closest_index > 1:
                         self.target_index = self.closest_index - 1
                         scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
