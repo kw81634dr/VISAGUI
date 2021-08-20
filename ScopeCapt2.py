@@ -21,9 +21,9 @@ class App:
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
-
+        self.app_version = " V1.4"
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
-        self.appTitleText = "KW Scope Capture v1.4"
+        self.appTitleText = "KW Scope Capture" + self.app_version
         self.master.title(self.appTitleText)
 
         self.target_gpib_address = tk.StringVar()
@@ -54,8 +54,6 @@ class App:
 
         self.dt = datetime.now()
         self.visa_timeout_duration = 5000  # in ms
-
-
 
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
@@ -188,6 +186,12 @@ class App:
         scopemenu.add_command(label="Exec. AutoSet", command=self.scope_execute_autoset)
         scopemenu.add_command(label="Recall Default Settings", command=self.scope_factory_reset)
 
+        helpmenu.add_command(label="tips", underline=0, command=lambda: self.status_var.set(
+            " tip: Use <Control> key + <Left> or <Right> arrow key to scale time division"))
+
+        helpmenu.add_command(label="About", underline=0, command=lambda: self.status_var.set(
+            "KW Scope Shot" + self.app_version))
+
         menubar.add_cascade(label="File", underline=0, menu=filemenu)
         menubar.add_cascade(label="Scope", underline=0, menu=scopemenu)
         menubar.add_cascade(label="Misc.", underline=0, menu=miscmenu)
@@ -245,7 +249,7 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 idn_text = ("  Found : " + scope.query('*IDN?'))[:-1]
                 print(idn_text)
-                self.status_var.set(" tip: Use Left(←) or Right(→) arrow key to scale time division")
+                self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
                 self.IDN_of_scope.set(idn_text)
                 # print("IDN VAR get", self.IDN_of_scope.get())
                 idn_text_title = idn_text.split(",")[0] + " " + idn_text.split(",")[1]
@@ -583,8 +587,8 @@ def main():
     root.bind("<Return>", app.btn_capture_clicked)
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
-    root.bind("<Left>", app.horizontal_scale)
-    root.bind("<Right>", app.horizontal_scale)
+    root.bind("<Control-Left>", app.horizontal_scale)
+    root.bind("<Control-Right>", app.horizontal_scale)
     root.mainloop()
 
 
