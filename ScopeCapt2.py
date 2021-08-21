@@ -6,13 +6,12 @@ from pathlib import Path
 from PIL import Image
 from io import BytesIO
 import numpy as np
-# from matplotlib import pyplot as plt
 import cv2
+import base64
+import imgBase64 as myIcon
 
 import tkinter as tk
 from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
-import base64
-import imgBase64 as myIcon
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 
@@ -22,6 +21,7 @@ class App:
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
+
         self.app_version = " V1.4"
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + self.app_version
@@ -29,27 +29,30 @@ class App:
 
         self.target_gpib_address = tk.StringVar()
         self.status_var = tk.StringVar()
-        self.path_var = tk.StringVar()
         self.filename_var = tk.StringVar()
         self.IDN_of_scope = tk.StringVar()
 
+        # scope menu var
         self.sel_ch1_var_bool = IntVar()
         self.sel_ch2_var_bool = IntVar()
         self.sel_ch3_var_bool = IntVar()
         self.sel_ch4_var_bool = IntVar()
-        self.imshow_var_bool = IntVar()
-        self.fastacq_var_bool = IntVar()
         self.persistence_var_bool = IntVar()
+        self.fastacq_var_bool = IntVar()
         self.acq_state_var_bool = IntVar()
+
+        # misc. mune var
+        self.imshow_var_bool = IntVar()
         self.add_timestamp_var_bool = IntVar(value=1)
         self.stopAfterAcq_var = IntVar(value=500)
         self.addTextOverlay_var_bool = IntVar(value=0)
 
+        self.path_var = tk.StringVar()
         self.overwrite_bool = True
-        self.filename_var.set('DPO')
         self.save＿filename = ''
         self.target_gpib_address.set('GPIB::6::INSTR')
         self.status_var.set("Waiting for User")
+        self.filename_var.set('DPO')
         self.path_var.set(os.getcwd())
         self.IDN_of_scope.set('')
 
