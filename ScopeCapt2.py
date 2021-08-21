@@ -12,7 +12,7 @@ import cv2
 import tkinter as tk
 from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 import base64
-import iconBase64_32px as myIcon
+import imgBase64 as myIcon
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 
@@ -579,7 +579,44 @@ class App:
     # scope.write('CURSOR: FUNCTION SCREEN')
 
 
+def center(win):
+    """
+    centers a tkinter window
+    :param win: the main window or Toplevel window to center
+    """
+    win.update_idletasks()
+    width = win.winfo_width()
+    frm_width = win.winfo_rootx() - win.winfo_x()
+    win_width = width + 2 * frm_width
+    height = win.winfo_height()
+    titlebar_height = win.winfo_rooty() - win.winfo_y()
+    win_height = height + titlebar_height + frm_width
+    x = win.winfo_screenwidth() // 2 - win_width // 2
+    y = win.winfo_screenheight() // 2 - win_height // 2
+    win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+    win.deiconify()
+
+
 def main():
+    # splash = tk.Tk()
+    # splash.overrideredirect(True)
+    # splash.title("Splash!")
+    # width = splash.winfo_screenwidth()
+    # height = splash.winfo_screenheight()
+    # # splash.geometry('%dx%d+%d+%d' % (width*0.2, height*0.2, width*0.1, height*0.1))
+    # # splash.geometry("800x750+128+128")
+    # splash_img = myIcon.splash_base64_128px
+    # splash_img = base64.b64decode(splash_img)
+    # splash_img = PhotoImage(data=splash_img)
+    # # highlightthickness=0 -> remove frame
+    # canvas = tk.Canvas(splash, height=256, width=256, bg='black', highlightthickness=0)
+    # canvas.create_image(128, 128, image=splash_img)
+    # canvas.pack(fill='both')
+    # splash.after(3000, splash.destroy)
+    # splash.wm_attributes('-transparentcolor', 'black')
+    # center(splash)
+    # splash.mainloop()
+
     root = tk.Tk()
     app = App(root)
     img = myIcon.icon_base64_32px
@@ -596,6 +633,7 @@ def main():
     root.bind("<Control-Delete>", app.btn_clear_clicked)
     root.bind("<Control-Left>", app.horizontal_scale)
     root.bind("<Control-Right>", app.horizontal_scale)
+    center(root)
     root.mainloop()
 
 
