@@ -15,6 +15,7 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 
+import json
 
 
 class App:
@@ -27,9 +28,12 @@ class App:
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + self.app_version
         self.master.title(self.appTitleText)
+        self.user_pref_file = Path('user_pref.json')
 
         self.target_gpib_address = tk.StringVar()
+        self.target_gpib_address.set('GPIB::6::INSTR')
         self.status_var = tk.StringVar()
+        self.status_var.set("Waiting for User")
         self.filename_var = tk.StringVar()
         self.IDN_of_scope = tk.StringVar()
 
@@ -42,21 +46,17 @@ class App:
         self.fastacq_var_bool = IntVar()
         self.acq_state_var_bool = IntVar()
 
-        # misc. mune var
+        # User Preference var
         self.imshow_var_bool = IntVar()
         self.add_timestamp_var_bool = IntVar(value=1)
         self.stopAfterAcq_var = IntVar(value=500)
         self.addTextOverlay_var_bool = IntVar(value=0)
-
         self.path_var = tk.StringVar()
-        self.overwrite_bool = True
-        self.save＿filename = ''
-        self.target_gpib_address.set('GPIB::6::INSTR')
-        self.status_var.set("Waiting for User")
-        self.filename_var.set('DPO')
         self.path_var.set(os.getcwd())
-        self.IDN_of_scope.set('')
+        self.filename_var.set('DPO')
 
+        self.overwrite_bool = True
+        self.IDN_of_scope.set('')
         self.dt = datetime.now()
         self.visa_timeout_duration = 5000  # in ms
 
@@ -194,8 +194,13 @@ class App:
         helpmenu.add_command(label="tips", underline=0, command=lambda: self.status_var.set(
             " tip: Use <Control> key + <Left> or <Right> arrow key to scale time division"))
 
-        helpmenu.add_command(label="About", underline=0, command=lambda: self.status_var.set(
-            "KW Scope Shot" + self.app_version))
+        helpmenu.add_command(label="About", underline=0, command=lambda:
+            messagebox.showinfo("KW ScopeCapt", "Version:" + self.app_version
+                                +"\nIcons made by [smashicons.com]"
+                                +"\n'OpenCV' is licensed under the [Apache 2 License]."
+                                +"\n'numpy' is licensed under the [NumPy license]."
+                                +"\n'pyvisa' is licensed under the [MIT License]."
+                                +"\n'PIL' is licensed under open the [source HPND License]."))
 
         menubar.add_cascade(label="File", underline=0, menu=filemenu)
         menubar.add_cascade(label="Scope", underline=0, menu=scopemenu)
@@ -203,10 +208,14 @@ class App:
         menubar.add_cascade(label="Tool", underline=0, menu=toolmenu)
         menubar.add_cascade(label="Help", underline=0, menu=helpmenu)
 
+        self.read_user_pref()
+
     def on_exit(self):
-        self.frame.destroy()
-        self.frame.quit()
-        exit()
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.write_user_pref()
+            self.frame.destroy()
+            self.frame.quit()
+            exit()
 
     def onKey(self, event):
         print("On key")
@@ -219,6 +228,30 @@ class App:
     #
     #     except ValueError:
     #         self.status_var.set("VISA driver Error")
+
+    def read_user_pref(self):
+        if self.user_pref_file.is_file():
+            with open('user_pref.json', 'r') as f:
+                config = json.load(f)
+            # edit the data
+            self.imshow_var_bool.set(config['imshow_var_bool'])
+            self.add_timestamp_var_bool.set(config['add_timestamp_var_bool'])
+            self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
+            self.path_var.set(config['path_var'])
+            self.filename_var.set(config['filename_var'])
+        else:
+            self.write_user_pref()
+
+    def write_user_pref(self):
+        if self.user_pref_file.is_file():
+            with open('user_pref.json', 'w') as f:
+                config = {"imshow_var_bool": self.imshow_var_bool.get(),
+                          "add_timestamp_var_bool": self.add_timestamp_var_bool.get(),
+                          "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
+                          "path_var": self.path_var.get(),
+                          "filename_var": self.filename_var.get()
+                          }
+                json.dump(config, f)
 
     def get_acq_state(self):
         try:
@@ -333,6 +366,14 @@ class App:
                     cv2.waitKey()
                     cv2.destroyAllWindows()
 
+                # create directory if doesn't exist
+                if not Path(self.path_var.get()).exists():
+                    try:
+                        Path(self.path_var.get()).mkdir(parents=True, exist_ok=False)
+                    except Exception as E:
+                        messagebox.showerror("Oops! Error occurred!",
+                                             "Please Choose available folder to save file.\n" + "Error:\n" + str(E))
+                        self.status_var.set(str(E))
                 # Image save
                 save_path = Path(self.path_var.get()) / Path(self.savefilename)
                 # NEED minor FIX HERE
@@ -640,6 +681,7 @@ def mainApp():
     root.bind("<Control-Left>", app.horizontal_scale)
     root.bind("<Control-Right>", app.horizontal_scale)
     center(root)
+    root.protocol("WM_DELETE_WINDOW", app.on_exit)
     root.mainloop()
 
 
