@@ -10,8 +10,9 @@ import numpy as np
 import cv2
 
 import tkinter as tk
-from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu
-
+from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
+import base64
+import iconBase64_32px as myIcon
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 
@@ -577,9 +578,15 @@ class App:
 
     # scope.write('CURSOR: FUNCTION SCREEN')
 
+
 def main():
     root = tk.Tk()
     app = App(root)
+    img = myIcon.icon_base64_32px
+    img = base64.b64decode(img)
+    img = PhotoImage(data=img)
+    root.wm_iconphoto(True, img)
+    # root.iconbitmap(r'img/ico32.ico')
 
     # NEED a better way to fix the delete of filename and cannot Paste by Ctrl+V bug.
     # root.bind("<Control_L>", lambda i: app.frame.focus_set())
