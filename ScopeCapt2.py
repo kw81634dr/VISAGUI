@@ -16,6 +16,7 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 
 
+
 class App:
     # Define settings upon initialization.
     def __init__(self, master):
@@ -600,26 +601,28 @@ def center(win):
     win.deiconify()
 
 
-def main():
-    # splash = tk.Tk()
-    # splash.overrideredirect(True)
-    # splash.title("Splash!")
-    # width = splash.winfo_screenwidth()
-    # height = splash.winfo_screenheight()
-    # # splash.geometry('%dx%d+%d+%d' % (width*0.2, height*0.2, width*0.1, height*0.1))
-    # # splash.geometry("800x750+128+128")
-    # splash_img = myIcon.splash_base64_128px
-    # splash_img = base64.b64decode(splash_img)
-    # splash_img = PhotoImage(data=splash_img)
-    # # highlightthickness=0 -> remove frame
-    # canvas = tk.Canvas(splash, height=256, width=256, bg='black', highlightthickness=0)
-    # canvas.create_image(128, 128, image=splash_img)
-    # canvas.pack(fill='both')
-    # splash.after(3000, splash.destroy)
-    # splash.wm_attributes('-transparentcolor', 'black')
-    # center(splash)
-    # splash.mainloop()
+def splash():
+    splash = tk.Tk()
+    splash.overrideredirect(True)
+    splash.title("Splash!")
+    width = splash.winfo_screenwidth()
+    height = splash.winfo_screenheight()
+    # splash.geometry('%dx%d+%d+%d' % (width*0.2, height*0.2, width*0.1, height*0.1))
+    # splash.geometry("800x750+128+128")
+    splash_img = myIcon.splash_base64_128px
+    splash_img = base64.b64decode(splash_img)
+    splash_img = PhotoImage(data=splash_img)
+    # highlightthickness=0 -> remove frame
+    canvas = tk.Canvas(splash, height=256, width=256, bg='black', highlightthickness=0)
+    canvas.create_image(128, 128, image=splash_img)
+    canvas.pack(fill='both')
+    splash.after(2700, splash.destroy)
+    splash.wm_attributes('-transparentcolor', 'black')
+    center(splash)
+    splash.mainloop()
 
+
+def mainApp():
     root = tk.Tk()
     app = App(root)
     img = myIcon.icon_base64_32px
@@ -641,4 +644,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    mainApp()
