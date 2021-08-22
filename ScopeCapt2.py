@@ -28,8 +28,9 @@ class App:
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + self.app_version
         self.master.title(self.appTitleText)
-        self.user_pref_file = Path('user_pref.json')
 
+        self.user_pref_filename = Path(os.getcwd()) / Path('user_pref.json')
+        print("self.user_pref_filename=", self.user_pref_filename)
         self.target_gpib_address = tk.StringVar()
         self.target_gpib_address.set('GPIB::6::INSTR')
         self.status_var = tk.StringVar()
@@ -230,8 +231,8 @@ class App:
     #         self.status_var.set("VISA driver Error")
 
     def read_user_pref(self):
-        if self.user_pref_file.is_file():
-            with open('user_pref.json', 'r') as f:
+        if self.user_pref_filename.exists():
+            with open(self.user_pref_filename, 'r') as f:
                 config = json.load(f)
             # edit the data
             self.imshow_var_bool.set(config['imshow_var_bool'])
@@ -243,15 +244,14 @@ class App:
             self.write_user_pref()
 
     def write_user_pref(self):
-        if self.user_pref_file.is_file():
-            with open('user_pref.json', 'w') as f:
-                config = {"imshow_var_bool": self.imshow_var_bool.get(),
-                          "add_timestamp_var_bool": self.add_timestamp_var_bool.get(),
-                          "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
-                          "path_var": self.path_var.get(),
-                          "filename_var": self.filename_var.get()
-                          }
-                json.dump(config, f)
+        with open(self.user_pref_filename, 'w') as f:
+            config = {"imshow_var_bool": self.imshow_var_bool.get(),
+                      "add_timestamp_var_bool": self.add_timestamp_var_bool.get(),
+                      "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
+                      "path_var": self.path_var.get(),
+                      "filename_var": self.filename_var.get()
+                      }
+            json.dump(config, f)
 
     def get_acq_state(self):
         try:
