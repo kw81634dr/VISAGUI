@@ -2,7 +2,7 @@ from datetime import datetime  # std library
 import pyvisa as visa  # https://pyvisa.readthedocs.org/en/stable/
 import os
 from pathlib import Path
-
+import atexit
 from PIL import Image
 from io import BytesIO
 import numpy as np
@@ -48,13 +48,14 @@ class App:
         self.acq_state_var_bool = IntVar()
 
         # User Preference var
-        self.imshow_var_bool = IntVar()
+        self.imshow_var_bool = IntVar(value=0)
         self.add_timestamp_var_bool = IntVar(value=1)
-        self.stopAfterAcq_var = IntVar(value=500)
         self.addTextOverlay_var_bool = IntVar(value=0)
         self.path_var = tk.StringVar()
         self.path_var.set(os.getcwd())
         self.filename_var.set('DPO')
+        self.scopeUseExtDrv_var_bool = IntVar(value=0)
+        self.use_inkSaver_var_bool = IntVar(value=0)
 
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
@@ -167,11 +168,14 @@ class App:
         file_submenu.add_command(label="Future Implement 3")
         filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", underline=0, command=self.on_exit)
+        filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
         miscmenu.add_checkbutton(label="Add Time", onvalue=1, offvalue=0, variable=self.add_timestamp_var_bool)
         miscmenu.add_checkbutton(label="Show Image after ScreenShot", onvalue=1, offvalue=0, variable=self.imshow_var_bool)
         miscmenu.add_checkbutton(label="Add Text overlay on ScreenShot", onvalue=1, offvalue=0, variable=self.addTextOverlay_var_bool)
+        miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
+                                 variable=self.use_inkSaver_var_bool)
+        miscmenu.add_checkbutton(label="My Scope use External(USB) Storage", onvalue=1, offvalue=0, variable=self.scopeUseExtDrv_var_bool)
 
         scope_submenu = Menu(scopemenu)
 
@@ -210,13 +214,18 @@ class App:
         menubar.add_cascade(label="Help", underline=0, menu=helpmenu)
 
         self.read_user_pref()
+        atexit.register(self.at_exit)
 
-    def on_exit(self):
+    def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.write_user_pref()
-            self.frame.destroy()
-            self.frame.quit()
+            self.frame.after(100, self.frame.destroy())
             exit()
+
+    def at_exit(self):
+        try:
+            self.write_user_pref()
+        except:
+            pass
 
     def onKey(self, event):
         print("On key")
@@ -240,6 +249,8 @@ class App:
             self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
             self.path_var.set(config['path_var'])
             self.filename_var.set(config['filename_var'])
+            self.scopeUseExtDrv_var_bool.set(config["use_externalDrv_var_bool"])
+            self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
         else:
             self.write_user_pref()
 
@@ -249,7 +260,9 @@ class App:
                       "add_timestamp_var_bool": self.add_timestamp_var_bool.get(),
                       "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
                       "path_var": self.path_var.get(),
-                      "filename_var": self.filename_var.get()
+                      "filename_var": self.filename_var.get(),
+                      "use_externalDrv_var_bool": self.scopeUseExtDrv_var_bool.get(),
+                      "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get()
                       }
             json.dump(config, f)
 
@@ -285,20 +298,19 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                idn_text = ("  Found : " + scope.query('*IDN?'))[:-1]
-                print(idn_text)
-                self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
-                self.IDN_of_scope.set(idn_text)
-                # print("IDN VAR get", self.IDN_of_scope.get())
-                idn_text_title = idn_text.split(",")[0] + " " + idn_text.split(",")[1]
-                self.appTitleText = self.appTitleText + " " + idn_text_title
+                idn_query = scope.query('*IDN?')[:-1]
+                self.IDN_of_scope.set(idn_query)
+                idn_model_name = idn_query.split(",")[1]
+                self.appTitleText = self.appTitleText + " Found:" + idn_model_name
                 self.master.title(self.appTitleText)
                 scope.close()
             rm.close()
         except ValueError:
-            self.appTitleText = self.appTitleText + "No Device Found on GPIB Bus"
+            self.appTitleText = self.appTitleText + "  [No Device Found]!"
             self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
+        print(idn_text)
+        self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
 
     def get_default_filename(self):
         # Generate a filename based on the current Date & Time
@@ -318,25 +330,37 @@ class App:
     def get_shot_scope(self):
         self.status_var.set("Try Talking to Scope")
         self.get_default_filename()
+        img_data = 127*np.ones(800, 600)
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                self.IDN_of_scope.set(scope.query('*IDN?'))
-                self.status_var.set(self.IDN_of_scope.get()[:-1])
-                scope.write("HARDCopy:PORT FILE")
-                scope.write("HARDCOPY:PALETTE COLOR")
-                scope.write("SAVe:IMAGe:FILEFormat PNG")
-                scope.write("SAVe:IMAGe:INKSaver OFF")
-                # Notice: CANNOT access C Drive root directly
-                scope.write('FILESystem:READFile \'C:\Temp\KWScrShot.png\'')
-                scope.write('HARDCopy:FILEName  \'C:\Temp\KWScrShot.png\'')
-                scope.write("HARDCopy STARt")
-                scope.write('*OPC?')
-                scope.write('FILES:READF \'C:\Temp\KWScrShot.png\'')
-                img_data = scope.read_raw()
-                scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
-
+                if self.scopeUseExtDrv_var_bool:
+                    scope.write("SAVe:IMAGe:FILEFormat PNG")
+                    if self.use_inkSaver_var_bool:
+                        scope.write("SAVe:IMAGe:INKSaver ON")
+                    else:
+                        scope.write("SAVe:IMAGe:INKSaver OFF")
+                    scope.write('SAVE:IMAGe \"E:/KWScrShotTemp.png\"')
+                    scope.write('*OPC?')
+                    scope.write('FILESystem:READFile \"E:/KWScrShotTemp.png\"')
+                    img_data = scope.read_raw()
+                    scope.write('FILESystem:DELEte \"E:/KWScrShotTemp.png\"')
+                else:
+                    scope.write("HARDCopy:PORT FILE")
+                    scope.write("SAVe:IMAGe:FILEFormat PNG")
+                    if self.use_inkSaver_var_bool:
+                        scope.write("HARDCopy:PALETTE INKSaver")
+                    else:
+                        scope.write("HARDCopy:PALETTE COLOR")
+                    # Notice: CANNOT access C Drive root directly
+                    # scope.write('FILESystem:READFile \'C:\Temp\KWScrShot.png\'')
+                    scope.write('HARDCopy:FILEName  \'C:\Temp\KWScrShot.png\'')
+                    scope.write("HARDCopy STARt")
+                    scope.write('*OPC?')
+                    scope.write('FILESystem:READFile \'C:\Temp\KWScrShot.png\'')
+                    img_data = scope.read_raw()
+                    scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
 
                 file_png_data = BytesIO(img_data)
                 dt = Image.open(file_png_data)
@@ -543,7 +567,7 @@ class App:
             else:
                 isCModel = False
         except IndexError:
-            print("var \"self.IDN_of_scope[1][-1]\" did not exist.")
+            print("var \"self.IDN_of_scope[1][-1]\" does not exist.")
         print("Clear Btn clicked")
         try:
             rm = visa.ResourceManager()
@@ -607,12 +631,12 @@ class App:
                     if self.closest_index < (len(self.scaleList)-1):
                         self.target_index = self.closest_index + 1
                         scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
-                        scope.write('HORizontal:RESOlution 5e5')
+                        scope.write('HORizontal:RESOlution 2e5')
                 elif event.keysym == 'Right':
                     if self.closest_index > 1:
                         self.target_index = self.closest_index - 1
                         scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
-                        scope.write('HORizontal:RESOlution 5e5')
+                        scope.write('HORizontal:RESOlution 2e5')
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
@@ -681,7 +705,7 @@ def mainApp():
     root.bind("<Control-Left>", app.horizontal_scale)
     root.bind("<Control-Right>", app.horizontal_scale)
     center(root)
-    root.protocol("WM_DELETE_WINDOW", app.on_exit)
+    root.protocol("WM_DELETE_WINDOW", app.ask_quit)
     root.mainloop()
 
 
