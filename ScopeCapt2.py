@@ -18,6 +18,27 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 import json
 
 
+class WindowGPIBScanner:
+    def __init__(self, master, found_gpib_list):
+        self.master = master
+        self.frame = tk.Frame(self.master)
+        self.master.title(" Hello GPIB SCANNER")
+        self.master.geometry('300x100')
+        self.scanButton = tk.Button(self.frame, text='Scan', width=25, command=self.start_scan_gpib)
+        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_window)
+        self.scanButton.pack()
+        self.quitButton.pack()
+        self.frame.pack()
+        print("list in New Class", self.found_gpib_list)
+
+    def close_window(self):
+        self.master.destroy()
+
+    def start_scan_gpib(self, list):
+        App.scan_gpib
+        print("list in New Class", list)
+
+
 class App:
     # Define settings upon initialization.
     def __init__(self, master):
@@ -33,6 +54,8 @@ class App:
         print("self.user_pref_filename=", self.user_pref_filename)
         self.target_gpib_address = tk.StringVar()
         self.target_gpib_address.set('GPIB::6::INSTR')
+        # self.target_gpib_address.set('TCPIP::192.168.34.5::INSTR')
+        self.found_gpib_list = []
         self.status_var = tk.StringVar()
         self.status_var.set("Waiting for User")
         self.filename_var = tk.StringVar()
@@ -196,6 +219,8 @@ class App:
         scopemenu.add_command(label="Exec. AutoSet", command=self.scope_execute_autoset)
         scopemenu.add_command(label="Recall Default Settings", command=self.scope_factory_reset)
 
+        toolmenu.add_command(label="GPIB Scanner", command=self.create_frame_gpib_scanner)
+
         helpmenu.add_command(label="tips", underline=0, command=lambda: self.status_var.set(
             " tip: Use <Control> key + <Left> or <Right> arrow key to scale time division"))
 
@@ -244,13 +269,17 @@ class App:
             with open(self.user_pref_filename, 'r') as f:
                 config = json.load(f)
             # edit the data
-            self.imshow_var_bool.set(config['imshow_var_bool'])
-            self.add_timestamp_var_bool.set(config['add_timestamp_var_bool'])
-            self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
-            self.path_var.set(config['path_var'])
-            self.filename_var.set(config['filename_var'])
-            self.scopeUseExtDrv_var_bool.set(config["use_externalDrv_var_bool"])
-            self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
+            try:
+                self.imshow_var_bool.set(config['imshow_var_bool'])
+                self.add_timestamp_var_bool.set(config['add_timestamp_var_bool'])
+                self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
+                self.path_var.set(config['path_var'])
+                self.filename_var.set(config['filename_var'])
+                self.scopeUseExtDrv_var_bool.set(config["use_externalDrv_var_bool"])
+                self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
+                self.target_gpib_address.set(config["target_gpib_address"])
+            except:
+                return self.write_user_pref()
         else:
             self.write_user_pref()
 
@@ -262,9 +291,45 @@ class App:
                       "path_var": self.path_var.get(),
                       "filename_var": self.filename_var.get(),
                       "use_externalDrv_var_bool": self.scopeUseExtDrv_var_bool.get(),
-                      "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get()
+                      "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get(),
+                      "target_gpib_address": self.target_gpib_address.get()
                       }
             json.dump(config, f)
+
+
+    def create_frame_gpib_scanner(self):
+        self.newwindow = tk.Toplevel(self.master)
+        self.gbipScannerMasterObj = WindowGPIBScanner(self.newwindow, self.found_gpib_list)
+
+    @classmethod
+    def scan_gpib(cls):
+        """
+        list name & address of found GPIB devices, get user prompt device
+        """
+        found_device_with_name = list()
+        try:
+            rm = visa.ResourceManager()
+            ls_res = rm.list_resources(query='?*')
+            for addr in ls_res:
+                idn = ''
+                try:
+                    with rm.open_resource(addr) as de:
+                        idn_temp = de.query("*IDN?").rstrip()
+                        if idn_temp == "":
+                            idn = "Unknown"
+                        else:
+                            idn = idn_temp
+                        found_device_with_name.append((idn, addr))
+                        de.close()
+                except visa.VisaIOError:
+                    idn = "Unknown_TimeOut"
+                    found_device_with_name.append((idn, addr))
+                except Exception as e:
+                    logging.warning("cannot open device %s, exception=%s", addr, e)
+                    pass
+            App.found_gpib_list = found_device_with_name
+        except ValueError:
+            App.status_var.set("Cannot get scope info-VISA driver Error")
 
     def get_acq_state(self):
         try:
@@ -276,7 +341,7 @@ class App:
                 self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
                 self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
-                print(acq_state)
+                print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
                 if self.acq_state_var_bool.get() == True:
                     self.btn_RunStop.configure(fg="green")
@@ -309,7 +374,6 @@ class App:
             self.appTitleText = self.appTitleText + "  [No Device Found]!"
             self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
-        print(idn_text)
         self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
 
     def get_default_filename(self):
@@ -330,37 +394,33 @@ class App:
     def get_shot_scope(self):
         self.status_var.set("Try Talking to Scope")
         self.get_default_filename()
-        img_data = 127*np.ones(800, 600)
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                if self.scopeUseExtDrv_var_bool:
-                    scope.write("SAVe:IMAGe:FILEFormat PNG")
-                    if self.use_inkSaver_var_bool:
+                scope.write("SAVe:IMAGe:FILEFormat PNG")
+                if self.scopeUseExtDrv_var_bool.get():
+                    if self.use_inkSaver_var_bool.get():
                         scope.write("SAVe:IMAGe:INKSaver ON")
                     else:
                         scope.write("SAVe:IMAGe:INKSaver OFF")
-                    scope.write('SAVE:IMAGe \"E:/KWScrShotTemp.png\"')
+                    scope.write('FILESystem:MKDir \'E:\TempScrShot\'')
+                    scope.write('SAVE:IMAGe \"E:\TempScrShot\KWScrShotTemp.png\"')
                     scope.write('*OPC?')
-                    scope.write('FILESystem:READFile \"E:/KWScrShotTemp.png\"')
+                    scope.write('FILESystem:READFile \"E:\TempScrShot\KWScrShotTemp.png\"')
                     img_data = scope.read_raw()
-                    scope.write('FILESystem:DELEte \"E:/KWScrShotTemp.png\"')
+                    scope.write('FILESystem:DELEte \"E:\TempScrShot\KWScrShotTemp.png\"')
                 else:
                     scope.write("HARDCopy:PORT FILE")
-                    scope.write("SAVe:IMAGe:FILEFormat PNG")
-                    if self.use_inkSaver_var_bool:
-                        scope.write("HARDCopy:PALETTE INKSaver")
-                    else:
-                        scope.write("HARDCopy:PALETTE COLOR")
                     # Notice: CANNOT access C Drive root directly
-                    # scope.write('FILESystem:READFile \'C:\Temp\KWScrShot.png\'')
-                    scope.write('HARDCopy:FILEName  \'C:\Temp\KWScrShot.png\'')
+                    scope.write('FILESystem:MKDir \'C:\TempScrShot(could be Deleted)\'')
+                    scope.write('HARDCopy:FILEName  \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
                     scope.write("HARDCopy STARt")
-                    scope.write('*OPC?')
-                    scope.write('FILESystem:READFile \'C:\Temp\KWScrShot.png\'')
+                    scope.query('*OPC?')
+                    scope.write('FILESystem:READFile \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
                     img_data = scope.read_raw()
-                    scope.write('FILESystem:DELEte \'C:\Temp\KWScrShot.png\'')
+                    scope.write('FILESystem:DELEte \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
+                    # print(img_data)
 
                 file_png_data = BytesIO(img_data)
                 dt = Image.open(file_png_data)
