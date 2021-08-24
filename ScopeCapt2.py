@@ -83,7 +83,7 @@ class App:
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
         self.dt = datetime.now()
-        self.visa_timeout_duration = 5000  # in ms
+        self.visa_timeout_duration = 10000  # in ms
 
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
@@ -194,11 +194,14 @@ class App:
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
         miscmenu.add_checkbutton(label="Add Time", onvalue=1, offvalue=0, variable=self.add_timestamp_var_bool)
-        miscmenu.add_checkbutton(label="Show Image after ScreenShot", onvalue=1, offvalue=0, variable=self.imshow_var_bool)
-        miscmenu.add_checkbutton(label="Add Text overlay on ScreenShot", onvalue=1, offvalue=0, variable=self.addTextOverlay_var_bool)
+        miscmenu.add_checkbutton(label="Show Image after ScreenShot", onvalue=1, offvalue=0,
+                                 variable=self.imshow_var_bool)
+        miscmenu.add_checkbutton(label="Add Text overlay on ScreenShot", onvalue=1, offvalue=0,
+                                 variable=self.addTextOverlay_var_bool)
         miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
-        miscmenu.add_checkbutton(label="My Scope use External(USB) Storage", onvalue=1, offvalue=0, variable=self.scopeUseExtDrv_var_bool)
+        miscmenu.add_checkbutton(label="My Scope use USB Storage (2/3 Series)", onvalue=1, offvalue=0,
+                                 variable=self.scopeUseExtDrv_var_bool)
 
         scope_submenu = Menu(scopemenu)
 
@@ -398,21 +401,22 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                scope.write("SAVe:IMAGe:FILEFormat PNG")
                 if self.scopeUseExtDrv_var_bool.get():
                     if self.use_inkSaver_var_bool.get():
                         scope.write("SAVe:IMAGe:INKSaver ON")
                     else:
                         scope.write("SAVe:IMAGe:INKSaver OFF")
-                    scope.write('FILESystem:MKDir \'E:\TempScrShot\'')
-                    scope.write('SAVE:IMAGe \"E:\TempScrShot\KWScrShotTemp.png\"')
-                    scope.write('*OPC?')
-                    scope.write('FILESystem:READFile \"E:\TempScrShot\KWScrShotTemp.png\"')
+                    scope.write("SAVe:IMAGe:FILEFormat PNG")
+                    # scope.write('FILESystem:MKDir \'E:\TempScrShot\'')
+                    # scope.write('SAVE:IMAGe \"E:\TempScrShot\KWScrShotTemp.png\"')
+                    scope.write("HARDCopy STARt")
+                    scope.query('*OPC?')
+                    # scope.write('FILESystem:READFile \"E:\TempScrShot\KWScrShotTemp.png\"')
                     img_data = scope.read_raw()
-                    scope.write('FILESystem:DELEte \"E:\TempScrShot\KWScrShotTemp.png\"')
+                    # scope.write('FILESystem:DELEte \"E:\TempScrShot\KWScrShotTemp.png\"')
                 else:
                     scope.write("HARDCopy:PORT FILE")
-                    # Notice: CANNOT access C Drive root directly
+                    # Notice: CANNOT access C Drive root directly if scope use win10
                     scope.write('FILESystem:MKDir \'C:\TempScrShot(could be Deleted)\'')
                     scope.write('HARDCopy:FILEName  \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
                     scope.write("HARDCopy STARt")
