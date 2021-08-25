@@ -685,11 +685,11 @@ class App:
 
     def btn_clear_clicked(self, *args):
         self.update_addr_inApp()
-        # self.get_scope_info()
+        self.get_scope_info()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ScopeModel = scope.query('*IDN?').split(",")[1]
+                ScopeModel = self.IDN_of_scope.get().split(',')
                 print(ScopeModel)
                 isCModel = False
                 try:
