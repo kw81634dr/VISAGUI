@@ -19,43 +19,101 @@ import json
 
 
 class WindowGPIBScanner:
-    def __init__(self, master, found_gpib_list):
+    def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
-        self.master.title(" Hello GPIB SCANNER")
-        self.master.geometry('300x100')
-        self.scanButton = tk.Button(self.frame, text='Scan', width=25, command=self.start_scan_gpib)
-        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_window)
+        self.master.title("GPIB Scanner")
+        self.master.geometry('440x300')
+        self.listbox = tk.Listbox(self.frame)
+
+        # Inserting the listbox items
+        self.listbox.insert(0, "Click on [Scan] button, this usually takes about 30 seconds...")
+        self.scanButton = tk.Button(self.frame, text='Scan', width=25, command=self.scan_gpib)
+        self.btn = tk.Button(self.frame, text='Set Selected as target device', width=25, command=self.selected_item)
+        # self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_window)
         self.scanButton.pack()
-        self.quitButton.pack()
-        self.frame.pack()
-        print("list in New Class", self.found_gpib_list)
+        # self.quitButton.pack()
+
+        self.btn.pack(side='bottom', pady=3)
+        self.listbox.pack(fill=tk.BOTH, expand=True, pady=3)
+        self.frame.pack(fill=tk.BOTH, expand=True, pady=3)
+        self.found_device_with_name = []
+        self.selected_device_addr = ""
+        atexit.register(self.close_window)
+
+    def selected_item(self):
+        # Traverse the tuple returned by
+        # curselection method and print
+        # corresponding value(s) in the listbox
+        for i in self.listbox.curselection():
+            selected_item = self.listbox.get(i)
+            self.selected_device_addr = self.found_device_with_name[i][1]
+            # print("Selected", i, selected_item)
+            # print("selected Device Addr=", selected_device_addr)
+            # print("")
+        App.cls_var = self.selected_device_addr
+        return self.close_window()
 
     def close_window(self):
+        self.frame.destroy()
         self.master.destroy()
 
-    def start_scan_gpib(self, list):
-        App.scan_gpib
-        print("list in New Class", list)
+    def scan_gpib(self):
+        """
+        list name & address of found GPIB devices, get user prompt device
+        """
+        self.listbox.delete('0', 'end')
+        self.found_device_with_name = []
+        try:
+            rm = visa.ResourceManager()
+            ls_res = rm.list_resources(query='?*')
+            for addr in ls_res:
+                idn = ''
+                try:
+                    with rm.open_resource(addr) as de:
+                        idn_temp = de.query("*IDN?").rstrip()
+                        if idn_temp == "":
+                            idn = "Unknown"
+                        else:
+                            idn = idn_temp
+                        self.found_device_with_name.append((idn, addr))
+                        de.close()
+                except visa.VisaIOError:
+                    idn = "Unknown_TimeOut"
+                    self.found_device_with_name.append((idn, addr))
+                except Exception as e:
+                    logging.warning("cannot open device %s, exception=%s", addr, e)
+                    pass
+            self.listbox.delete('0', 'end')
+            for i in range(0, len(self.found_device_with_name)):
+                try:
+                    vendor = self.found_device_with_name[i][0].split(',')[0]
+                    model_name = self.found_device_with_name[i][0].split(',')[1]
+                    addr = self.found_device_with_name[i][1]
+                except:
+                    vendor = "Unknown"
+                    model_name = "Unknown"
+                list_item_text = (vendor + ", " + model_name + ", address: " + addr)
+                self.listbox.insert(i, list_item_text)
+        except ValueError:
+            print("Scan gpib Error")
 
 
 class App:
+    cls_var = ""
     # Define settings upon initialization.
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = " V1.4"
+        self.app_version = " V1.5"
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + self.app_version
         self.master.title(self.appTitleText)
 
         self.user_pref_filename = Path(os.getcwd()) / Path('user_pref.json')
         print("self.user_pref_filename=", self.user_pref_filename)
-        self.target_gpib_address = tk.StringVar()
-        self.target_gpib_address.set('GPIB::6::INSTR')
-        # self.target_gpib_address.set('TCPIP::192.168.34.5::INSTR')
-        self.found_gpib_list = []
+
         self.status_var = tk.StringVar()
         self.status_var.set("Waiting for User")
         self.filename_var = tk.StringVar()
@@ -95,8 +153,6 @@ class App:
         # self.frame.rowconfigure(2, pad=3)
         # self.frame.rowconfigure(3, pad=3)
         # self.frame.rowconfigure(4, pad=3)
-
-        self.GPIB_list = []
 
         # row 0
         # label_GPIB_address = tk.Label(self.frame, text="Target")
@@ -156,12 +212,6 @@ class App:
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
         status_bar.grid(row=5, column=0, columnspan=7, sticky='we')
 
-        self.frame.pack()
-
-        self.get_acq_state()
-
-        self.get_scope_info()
-        # self.get_default_filename()
         self.closest_index = 0
         self.scaleList = [1e-9, 2e-9, 5e-9,
                           1e-8, 2e-8, 5e-8,
@@ -200,7 +250,7 @@ class App:
                                  variable=self.addTextOverlay_var_bool)
         miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
-        miscmenu.add_checkbutton(label="My Scope use USB Storage (2/3 Series)", onvalue=1, offvalue=0,
+        miscmenu.add_checkbutton(label="Alt way to get Shot", onvalue=1, offvalue=0,
                                  variable=self.scopeUseExtDrv_var_bool)
 
         scope_submenu = Menu(scopemenu)
@@ -241,8 +291,26 @@ class App:
         menubar.add_cascade(label="Tool", underline=0, menu=toolmenu)
         menubar.add_cascade(label="Help", underline=0, menu=helpmenu)
 
-        self.read_user_pref()
         atexit.register(self.at_exit)
+        self.frame.pack()
+
+        self.target_gpib_address = tk.StringVar()
+        self.read_user_pref()
+        self.update_addr_inApp()
+
+        if len(self.target_gpib_address.get()) > 3:
+            self.update_addr_inApp()
+            print("ReadOut_target-addr=", self.target_gpib_address.get())
+            self.get_scope_info()
+            # self.get_acq_state()
+        else:
+            messagebox.showinfo("First time Huh?",
+                                "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
+            self.create_frame_gpib_scanner()
+
+    def update_addr_inApp(self):
+        print(self.__class__.cls_var)
+        self.target_gpib_address.set(self.__class__.cls_var)
 
     def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
@@ -258,6 +326,7 @@ class App:
     def onKey(self, event):
         print("On key")
 
+
     # def scan_gpib(self):
     #     self.GPIB_list = ['a','b','c']
     #     try:
@@ -268,6 +337,7 @@ class App:
     #         self.status_var.set("VISA driver Error")
 
     def read_user_pref(self):
+        self.update_addr_inApp()
         if self.user_pref_filename.exists():
             with open(self.user_pref_filename, 'r') as f:
                 config = json.load(f)
@@ -280,13 +350,15 @@ class App:
                 self.filename_var.set(config['filename_var'])
                 self.scopeUseExtDrv_var_bool.set(config["use_externalDrv_var_bool"])
                 self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
-                self.target_gpib_address.set(config["target_gpib_address"])
+                App.cls_var = config["target_gpib_address"]
+                # self.target_gpib_address.set(config["target_gpib_address"])
             except:
                 return self.write_user_pref()
         else:
             self.write_user_pref()
 
     def write_user_pref(self):
+        self.update_addr_inApp()
         with open(self.user_pref_filename, 'w') as f:
             config = {"imshow_var_bool": self.imshow_var_bool.get(),
                       "add_timestamp_var_bool": self.add_timestamp_var_bool.get(),
@@ -299,42 +371,12 @@ class App:
                       }
             json.dump(config, f)
 
-
     def create_frame_gpib_scanner(self):
         self.newwindow = tk.Toplevel(self.master)
-        self.gbipScannerMasterObj = WindowGPIBScanner(self.newwindow, self.found_gpib_list)
-
-    @classmethod
-    def scan_gpib(cls):
-        """
-        list name & address of found GPIB devices, get user prompt device
-        """
-        found_device_with_name = list()
-        try:
-            rm = visa.ResourceManager()
-            ls_res = rm.list_resources(query='?*')
-            for addr in ls_res:
-                idn = ''
-                try:
-                    with rm.open_resource(addr) as de:
-                        idn_temp = de.query("*IDN?").rstrip()
-                        if idn_temp == "":
-                            idn = "Unknown"
-                        else:
-                            idn = idn_temp
-                        found_device_with_name.append((idn, addr))
-                        de.close()
-                except visa.VisaIOError:
-                    idn = "Unknown_TimeOut"
-                    found_device_with_name.append((idn, addr))
-                except Exception as e:
-                    logging.warning("cannot open device %s, exception=%s", addr, e)
-                    pass
-            App.found_gpib_list = found_device_with_name
-        except ValueError:
-            App.status_var.set("Cannot get scope info-VISA driver Error")
+        self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def get_acq_state(self):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             try:
@@ -363,23 +405,35 @@ class App:
             print("Cannot get Acq status-VISA driver Error")
 
     def get_scope_info(self):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                idn_query = scope.query('*IDN?')[:-1]
-                self.IDN_of_scope.set(idn_query)
-                idn_model_name = idn_query.split(",")[1]
-                self.appTitleText = self.appTitleText + " Found:" + idn_model_name
-                self.master.title(self.appTitleText)
-                scope.close()
-            rm.close()
-        except ValueError:
-            self.appTitleText = self.appTitleText + "  [No Device Found]!"
+            try:
+                with rm.open_resource(self.target_gpib_address.get()) as scope:
+                    idn_query = scope.query('*IDN?')[:-1]
+                    self.IDN_of_scope.set(idn_query)
+                    idn_model_name = idn_query.split(",")[1]
+                    self.appTitleText = self.appTitleText + " Found:" + idn_model_name
+                    self.master.title(self.appTitleText)
+                    scope.close()
+                rm.close()
+                self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
+            except:
+                pass
+                messagebox.showinfo("Oops! Something changed!",
+                                    "Unable to connect the device used last time.\n"
+                                    "You could check:\n"
+                                    "1. connection between the target device & your PC.\n"
+                                    "2. Any change of GPIB address? \n"
+                                    "Then use Tool>GPIB Scanner to Set New target Device.")
+                self.create_frame_gpib_scanner()
+        except:
+            self.appTitleText = self.appTitleText + "  [VISA driver Error]!"
             self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
-        self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
 
     def get_default_filename(self):
+        self.update_addr_inApp()
         # Generate a filename based on the current Date & Time
         self.dt = datetime.now()
         time_now = self.dt.strftime("%H%M%S")
@@ -395,6 +449,8 @@ class App:
         # self.status_var.set("Time Stamp Applied")
 
     def get_shot_scope(self):
+        self.update_addr_inApp()
+        self.get_scope_info()
         self.status_var.set("Try Talking to Scope")
         self.get_default_filename()
         try:
@@ -515,7 +571,7 @@ class App:
                     self.status_var.set("Cannot save file, check folder and filename")
                 scope.close()
                 rm.close()
-        except ValueError:
+        except:
             print("Cannot get scope shot-VISA driver Error")
             self.status_var.set("VISA driver Error")
         self.get_default_filename()
@@ -532,6 +588,7 @@ class App:
             self.status_var.set(status_text_temp)
 
     def scope_execute_autoset(self):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -543,6 +600,7 @@ class App:
             self.status_var.set("AutoSet Failed, VISA ERROR")
 
     def scope_factory_reset(self):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -554,6 +612,7 @@ class App:
             self.status_var.set("Factory Reset, VISA ERROR")
 
     def scope_channel_select(self):
+        self.update_addr_inApp()
         print("Into --scope_channel_select--")
         try:
             rm = visa.ResourceManager()
@@ -581,6 +640,7 @@ class App:
             self.status_var.set("Sel CH Failed, VISA ERROR")
 
     def trigger_fstacq(self):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -595,6 +655,7 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def set_persistence(self):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -604,11 +665,13 @@ class App:
                     scope.write('DISplay:PERSistence OFF')
                 scope.close()
             rm.close()
-        except ValueError:
+        except:
             print("cannot set Persistence")
             self.status_var.set("VISA driver Error")
 
     def btn_single_clicked(self):
+        self.update_addr_inApp()
+        self.get_scope_info()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -616,26 +679,29 @@ class App:
                 scope.write('ACQ:STATE ON')
             scope.close()
             rm.close()
-        except ValueError:
+        except:
             print("cannot do Single shot")
             self.status_var.set("VISA driver Error")
 
     def btn_clear_clicked(self, *args):
-        ScopeModel = self.IDN_of_scope.get().split(",")
-        # print(ScopeModel)
-        isCModel = False
-        try:
-            if ScopeModel[1][-1] == 'C':
-                isCModel = True
-                print('isCModel=', isCModel)
-            else:
-                isCModel = False
-        except IndexError:
-            print("var \"self.IDN_of_scope[1][-1]\" does not exist.")
-        print("Clear Btn clicked")
+        self.update_addr_inApp()
+        # self.get_scope_info()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ScopeModel = scope.query('*IDN?').split(",")[1]
+                print(ScopeModel)
+                isCModel = False
+                try:
+                    if ScopeModel[1][-1] == 'C':
+                        isCModel = True
+                        print('isCModel=', isCModel)
+                    else:
+                        isCModel = False
+                except IndexError:
+                    print("var \"self.IDN_of_scope[1][-1]\" does not exist.")
+                print("Clear Btn clicked")
+
                 if isCModel:
                     scope.write('CLEAR ALL')
                     print("Send \"CLEAR ALL\"")
@@ -649,12 +715,15 @@ class App:
                     self.status_var.set("Cleared")
                 scope.close()
             rm.close()
-        except ValueError:
+        except:
             print("cannot clear scope-VISA driver Error")
             self.status_var.set("VISA driver Error")
 
     def btn_runstop_clicked(self, *args):
+        self.update_addr_inApp()
+        self.get_scope_info()
         print("Run/Stop Btn clicked")
+        # print("obj_[selected_device_addr]->", self.gpibScannerObj.selected_device_addr)
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -672,6 +741,8 @@ class App:
         self.get_acq_state()
 
     def btn_capture_clicked(self, *args):
+        self.update_addr_inApp()
+        self.get_scope_info()
         folder = self.path_var.get()
         print("Capture Btn clicked, save folder", folder)
         self.get_shot_scope()
@@ -682,6 +753,7 @@ class App:
     #     self.get_shot_scope()
 
     def horizontal_scale(self, event):
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
