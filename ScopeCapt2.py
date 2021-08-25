@@ -460,17 +460,16 @@ class App:
                 if self.scopeUseExtDrv_var_bool.get():
                     # test DPO2024B, DPO4104 OK
                     print("Alt way Scrshot")
-                    # if self.use_inkSaver_var_bool.get():
-                    #     scope.write("SAVe:IMAGe:INKSaver ON")
-                    # else:
-                    #     scope.write("SAVe:IMAGe:INKSaver OFF")
+                    if self.use_inkSaver_var_bool.get():
+                        scope.write("SAVe:IMAGe:INKSaver ON")
+                    else:
+                        scope.write("SAVe:IMAGe:INKSaver OFF")
                     scope.write("SAVe:IMAGe:FILEFormat PNG")
                     # scope.write('FILESystem:MKDir \'E:\TempScrShot\'')
                     # scope.write('SAVE:IMAGe \"E:\TempScrShot\KWScrShotTemp.png\"')
                     scope.write("HARDCopy STARt")
                     # scope.write('*OPC?')
                     # scope.write('FILESystem:READFile \"E:\TempScrShot\KWScrShotTemp.png\"')
-
                     img_data = scope.read_raw()
                     # print(img_data)
                     # scope.write('FILESystem:DELEte \"E:\TempScrShot\KWScrShotTemp.png\"')
