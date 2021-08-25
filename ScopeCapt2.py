@@ -413,7 +413,7 @@ class App:
                     idn_query = scope.query('*IDN?')[:-1]
                     self.IDN_of_scope.set(idn_query)
                     idn_model_name = idn_query.split(",")[1]
-                    self.appTitleText = self.appTitleText + " Found:" + idn_model_name
+                    self.appTitleText = "KW Scope Capture" + self.app_version + " Found:" + idn_model_name
                     self.master.title(self.appTitleText)
                     scope.close()
                 rm.close()
@@ -458,17 +458,21 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
                 if self.scopeUseExtDrv_var_bool.get():
-                    if self.use_inkSaver_var_bool.get():
-                        scope.write("SAVe:IMAGe:INKSaver ON")
-                    else:
-                        scope.write("SAVe:IMAGe:INKSaver OFF")
+                    # test DPO2024B, DPO4104 OK
+                    print("Alt way Scrshot")
+                    # if self.use_inkSaver_var_bool.get():
+                    #     scope.write("SAVe:IMAGe:INKSaver ON")
+                    # else:
+                    #     scope.write("SAVe:IMAGe:INKSaver OFF")
                     scope.write("SAVe:IMAGe:FILEFormat PNG")
                     # scope.write('FILESystem:MKDir \'E:\TempScrShot\'')
                     # scope.write('SAVE:IMAGe \"E:\TempScrShot\KWScrShotTemp.png\"')
                     scope.write("HARDCopy STARt")
-                    scope.query('*OPC?')
+                    # scope.write('*OPC?')
                     # scope.write('FILESystem:READFile \"E:\TempScrShot\KWScrShotTemp.png\"')
+
                     img_data = scope.read_raw()
+                    # print(img_data)
                     # scope.write('FILESystem:DELEte \"E:\TempScrShot\KWScrShotTemp.png\"')
                 else:
                     scope.write("HARDCopy:PORT FILE")
