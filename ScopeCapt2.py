@@ -319,6 +319,8 @@ class App:
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
             self.create_frame_gpib_scanner()
 
+        self.checkForGroupUpdates()
+
     def update_addr_inApp(self):
         print(self.__class__.cls_var)
         self.target_gpib_address.set(self.__class__.cls_var)
@@ -385,6 +387,11 @@ class App:
     def create_frame_gpib_scanner(self):
         self.newwindow = tk.Toplevel(self.master)
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
+
+    def checkForGroupUpdates(self):
+        self.get_acq_state()
+        self.master.update_idletasks()
+        self.master.after(1000, self.checkForGroupUpdates)
 
     def get_acq_state(self):
         self.update_addr_inApp()
