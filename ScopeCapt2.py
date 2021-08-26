@@ -176,7 +176,7 @@ class App:
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
         self.E_dir.grid(row=1, column=1, columnspan=4, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=6, padx=10)
+        btn_prompt_dir.grid(row=1, column=6, padx=10, pady=2)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
         # --------------row 2
@@ -184,15 +184,26 @@ class App:
         label_entry_filename.grid(row=2, column=0, sticky='W')
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
         self.E_filename.grid(row=2, column=1, columnspan=4, sticky='we')
+        self.btn_capture = tk.Button(self.frame, text="Trig 50%", command=None)
+        self.btn_capture.grid(row=2, column=6, padx=10, pady=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
-        # chkbox_addTimeStamp = tk.Checkbutton(self.frame, text='Add Time', variable=self.add_timestamp_var_bool,
-        #                                      onvalue=1, offvalue=0,
-        #                                      command=None)
-        # chkbox_addTimeStamp.grid(row=2, column=6)
+        #
 
         # --------------row3
+        self.chkbox_persistence = tk.Checkbutton(self.frame, text='Persistence',
+                                                 variable=self.persistence_var_bool,
+                                                 onvalue=1, offvalue=0, command=self.set_persistence)
+        self.chkbox_persistence.grid(row=3, column=1, padx=2, pady=2)
+        self.chkbox_fastacq = tk.Checkbutton(self.frame, text='FastAcq',
+                                                 variable=self.fastacq_var_bool,
+                                                 onvalue=1, offvalue=0, command=self.trigger_fstacq)
+        self.chkbox_fastacq.grid(row=3, column=2, padx=2, pady=2)
+        # self.chkbox_Cursors = tk.Checkbutton(self.frame, text='Cursors ',
+        #                                      variable=None,
+        #                                      onvalue=1, offvalue=0, command=None)
+        # self.chkbox_Cursors.grid(row=3, column=3, padx=2, pady=2)
 
 
         # --------------row 4
