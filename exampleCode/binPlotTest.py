@@ -42,7 +42,7 @@ else:
     # font = ImageFont.truetype("/Users/kevin/Downloads/Space_Mono/SpaceMono-Bold.ttf", 16)
     # draw.text((x, y),"Sample Text",(r,g,b))
     # draw.rectangle((0, 0, 1023, 31), fill=(84, 104, 168))   #Tek Blue
-    draw.rectangle((0, 0, 1023, 32), fill=(37, 37, 37))
+    draw.rectangle((0, 0, 900, 32), fill=(37, 37, 37))
     text_to_overlay = "Kp=44 Kd=50 Jitter Ontime CPU1 2 VDDQ ABCD2 Default 20%Load"
     draw.text((11, 4), text_to_overlay, fill=(255, 165, 55), font=font)
     img.show()
