@@ -15,11 +15,11 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 import threading
-from queue import Queue
 import json
 
 
 class WindowGPIBScanner:
+    isOktoUpdateState = False
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
@@ -44,8 +44,6 @@ class WindowGPIBScanner:
         self.selected_device_addr = ""
         atexit.register(self.close_window)
 
-        self.q = Queue()
-
     def selected_item(self):
         # Traverse the tuple returned by
         # curselection method and print
@@ -60,16 +58,13 @@ class WindowGPIBScanner:
         return self.close_window()
 
     def close_window(self):
-        self.frame.destroy()
+        # self.worker.join()
+        # self.frame.destroy()
         self.master.destroy()
-        exit()
 
     def btn_scan_click(self):
-        worker = threading.Thread(target=self.scan_gpib, args=(self.q, 1,), daemon=True)
-        worker.start()
-        self.q.put(1)
-        # self.scanthread = threading.Thread(target=self.scan_gpib)
-        # self.scanthread.start()
+        self.scanthread = threading.Thread(target=self.scan_gpib)
+        self.scanthread.start()
 
     def update_device_listbox(self):
         print("update_device_listbox")
@@ -84,13 +79,13 @@ class WindowGPIBScanner:
             except:
                 vendor = "Unknown"
                 model_name = "Unknown"
-            if len(addr)>1:
+            if len(addr) > 1:
                 list_item_text = (vendor + ", " + model_name + ", address: " + addr)
                 self.listbox.insert(i, list_item_text)
 
-    def scan_gpib(self, q, thread_no):
+    def scan_gpib(self):
+        WindowGPIBScanner.isOktoUpdateState = False
         self.scanButton["state"] = "disabled"
-        task = q.get()
         print("scan_gpib")
         """
         list name & address of found GPIB devices, get user prompt device
@@ -98,14 +93,14 @@ class WindowGPIBScanner:
         self.found_device_with_name = []
         try:
             rm = visa.ResourceManager()
-            ls_res = rm.list_resources(query='?*')    # 000
+            ls_res = rm.list_resources()    # query='?*'
             for addr in ls_res:
                 title = "Scanning: " + str(int(((ls_res.index(addr)+1) / (len(ls_res)))*100)) + "%"
                 title = title + "  Please Wait..."
                 self.master.title(title)
                 idn = ''
                 try:
-                    with rm.open_resource(addr, open_timeout=1) as de:
+                    with rm.open_resource(addr, open_timeout=2) as de:
                         idn_temp = de.query("*IDN?").rstrip()
                         if idn_temp == "":
                             idn = "Unknown"
@@ -122,10 +117,9 @@ class WindowGPIBScanner:
                 self.update_device_listbox()
         except ValueError:
             print("Scan gpib Error")
-        q.task_done()
         self.scanButton["state"] = "normal"
         self.master.title("GPIB Scanner [finished!]")
-        print(f'Thread #{thread_no} is doing task #{task} in the queue.')
+        WindowGPIBScanner.isOktoUpdateState = True
 
 
 class App:
@@ -348,15 +342,28 @@ class App:
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
             # self.create_frame_gpib_scanner()
 
-        updatehread = threading.Thread(target=self.checkForGroupUpdates)
+        updatehread = threading.Thread(target=self.task_update_device_state)
         updatehread.start()
 
+    def task_update_device_state(self):
+        while 1:
+            if WindowGPIBScanner.isOktoUpdateState:
+                try:
+                    print("check for upfates")
+                    self.update_addr_inApp()
+                    self.get_acq_state()
+                    self.master.update_idletasks()
+                    time.sleep(0.1)
+                except:
+                    pass
+
     def update_addr_inApp(self):
-        # print(self.__class__.cls_var)
+        print(self.__class__.cls_var)
         self.target_gpib_address.set(self.__class__.cls_var)
 
     def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            # self.updatehread.join()
             self.frame.destroy()
             self.master.destroy()
             exit()
@@ -371,7 +378,7 @@ class App:
         print("On key")
 
     def read_user_pref(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         if self.user_pref_filename.exists():
             with open(self.user_pref_filename, 'r') as f:
                 config = json.load(f)
@@ -409,18 +416,6 @@ class App:
         self.newwindow = tk.Toplevel(self.master)
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
-    def checkForGroupUpdates(self):
-        while 1:
-            try:
-                # print("check for upfates")
-                self.update_addr_inApp()
-                self.get_acq_state()
-                # self.master.update_idletasks()
-                time.sleep(0.5)
-            except:
-                pass
-
-        # self.master.after(1000, self.checkForGroupUpdates)
 
     def get_acq_state(self):
         self.update_addr_inApp()
@@ -433,7 +428,7 @@ class App:
                 self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
                 self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
-                # print("scope acq state=", acq_state)
+                print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
                 self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                 # orig_color = self.chkbox_fastacq.cget("background")
@@ -460,7 +455,7 @@ class App:
             print("Cannot get Acq status-VISA driver Error")
 
     def get_scope_info(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             try:
@@ -488,7 +483,7 @@ class App:
             print("Cannot get scope info-VISA driver Error")
 
     def get_default_filename(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         # Generate a filename based on the current Date & Time
         self.dt = datetime.now()
         time_now = self.dt.strftime("%H%M%S")
@@ -504,7 +499,7 @@ class App:
         # self.status_var.set("Time Stamp Applied")
 
     def get_shot_scope(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         self.get_scope_info()
         self.status_var.set("Try Talking to Scope")
         self.get_default_filename()
@@ -648,7 +643,7 @@ class App:
             self.status_var.set(status_text_temp)
 
     def scope_execute_autoset(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -660,7 +655,7 @@ class App:
             self.status_var.set("AutoSet Failed, VISA ERROR")
 
     def scope_factory_reset(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -672,7 +667,7 @@ class App:
             self.status_var.set("Factory Reset, VISA ERROR")
 
     def scope_set_trigger_a(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         print("Into --scope_channel_select--")
         try:
             rm = visa.ResourceManager()
@@ -686,7 +681,7 @@ class App:
             self.status_var.set("Set Trig A failed, VISA ERROR")
 
     def scope_channel_select(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         print("Into --scope_channel_select--")
         try:
             rm = visa.ResourceManager()
@@ -714,7 +709,7 @@ class App:
             self.status_var.set("Sel CH Failed, VISA ERROR")
 
     def trigger_fstacq(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -729,7 +724,7 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def set_persistence(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -744,7 +739,7 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def btn_single_clicked(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         self.get_scope_info()
         try:
             rm = visa.ResourceManager()
@@ -758,7 +753,7 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def btn_clear_clicked(self, *args):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         self.get_scope_info()
         try:
             rm = visa.ResourceManager()
@@ -794,7 +789,7 @@ class App:
             self.status_var.set("VISA driver Error")
 
     def btn_runstop_clicked(self, *args):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         self.get_scope_info()
         print("Run/Stop Btn clicked")
         # print("obj_[selected_device_addr]->", self.gpibScannerObj.selected_device_addr)
@@ -815,7 +810,7 @@ class App:
         self.get_acq_state()
 
     def btn_capture_clicked(self, *args):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         self.get_scope_info()
         folder = self.path_var.get()
         print("Capture Btn clicked, save folder", folder)
@@ -827,7 +822,7 @@ class App:
     #     self.get_shot_scope()
 
     def horizontal_scale(self, event):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
