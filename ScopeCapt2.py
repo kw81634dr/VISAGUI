@@ -19,7 +19,7 @@ import json
 
 
 class WindowGPIBScanner:
-    isOktoUpdateState = False
+    isOktoUpdateState = True
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
@@ -32,12 +32,13 @@ class WindowGPIBScanner:
         self.listbox.insert(0, "Click on [Scan] button, this usually takes about 30 seconds...")
         self.scanButton = tk.Button(self.frame, text=self.btn_scan_text_var.get(), width=25,
                                     command=self.btn_scan_click)
-        self.btn = tk.Button(self.frame, text='Set Selected as target device', width=25, command=self.selected_item)
+        self.sel_btn = tk.Button(self.frame, text='Set Selected as target device', width=25, command=self.selected_item)
         # self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_window)
         self.scanButton.pack()
         # self.quitButton.pack()
 
-        self.btn.pack(side='bottom', pady=3)
+        self.sel_btn.pack(side='bottom', pady=3)
+        self.sel_btn["state"] = "disabled"
         self.listbox.pack(fill=tk.BOTH, expand=True, pady=3)
         self.frame.pack(fill=tk.BOTH, expand=True, pady=3)
         self.found_device_with_name = []
@@ -51,15 +52,15 @@ class WindowGPIBScanner:
         for i in self.listbox.curselection():
             selected_item = self.listbox.get(i)
             self.selected_device_addr = self.found_device_with_name[i][1]
-            # print("Selected", i, selected_item)
-            # print("selected Device Addr=", selected_device_addr)
+            print("Selected", i, selected_item)
+            print("selected Device Addr=",i , self.selected_device_addr)
             # print("")
-        App.cls_var = self.selected_device_addr
+            App.cls_var = self.selected_device_addr
         return self.close_window()
 
     def close_window(self):
-        # self.worker.join()
-        # self.frame.destroy()
+        self.scanthread.join()
+        self.frame.destroy()
         self.master.destroy()
 
     def btn_scan_click(self):
@@ -79,12 +80,13 @@ class WindowGPIBScanner:
             except:
                 vendor = "Unknown"
                 model_name = "Unknown"
-            if len(addr) > 1:
-                list_item_text = (vendor + ", " + model_name + ", address: " + addr)
-                self.listbox.insert(i, list_item_text)
+                addr=""
+            list_item_text = (vendor + ", " + model_name + ", address: " + addr)
+            self.listbox.insert(i, list_item_text)
 
     def scan_gpib(self):
         WindowGPIBScanner.isOktoUpdateState = False
+        self.sel_btn["state"] = "disabled"
         self.scanButton["state"] = "disabled"
         print("scan_gpib")
         """
@@ -106,11 +108,11 @@ class WindowGPIBScanner:
                             idn = "Unknown"
                         else:
                             idn = idn_temp
-                        self.found_device_with_name.append((idn, addr))
+                            self.found_device_with_name.append((idn, addr))
                         de.close()
                 except visa.VisaIOError:
                     idn = "Unknown_TimeOut"
-                    self.found_device_with_name.append((idn, addr))
+                    # self.found_device_with_name.append((idn, addr))
                 except Exception as e:
                     pass
                 print("gotoupdate")
@@ -118,6 +120,7 @@ class WindowGPIBScanner:
         except ValueError:
             print("Scan gpib Error")
         self.scanButton["state"] = "normal"
+        self.sel_btn["state"] = "normal"
         self.master.title("GPIB Scanner [finished!]")
         WindowGPIBScanner.isOktoUpdateState = True
 
@@ -330,30 +333,31 @@ class App:
 
         self.target_gpib_address = tk.StringVar()
         self.read_user_pref()
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
 
-        if len(self.target_gpib_address.get()) > 3:
+        if len(self.target_gpib_address.get()) > 1:
             self.update_addr_inApp()
             print("ReadOut_target-addr=", self.target_gpib_address.get())
             self.get_scope_info()
-            # self.get_acq_state()
+            self.get_acq_state()
         else:
             messagebox.showinfo("First time Huh?",
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
             # self.create_frame_gpib_scanner()
 
-        updatehread = threading.Thread(target=self.task_update_device_state)
+        # !!! add parameter:[daemon=True] to prevent ghost thread!!!
+        updatehread = threading.Thread(target=self.task_update_device_state, daemon=True)
         updatehread.start()
 
     def task_update_device_state(self):
         while 1:
             if WindowGPIBScanner.isOktoUpdateState:
                 try:
-                    print("check for upfates")
+                    print("Thread: check for updates")
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
-                    time.sleep(0.1)
+                    time.sleep(0.2)
                 except:
                     pass
 
@@ -365,7 +369,7 @@ class App:
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             # self.updatehread.join()
             self.frame.destroy()
-            self.master.destroy()
+            # self.master.destroy()
             exit()
 
     def at_exit(self):
@@ -392,7 +396,7 @@ class App:
                 self.scopeUseExtDrv_var_bool.set(config["use_externalDrv_var_bool"])
                 self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
                 App.cls_var = config["target_gpib_address"]
-                # self.target_gpib_address.set(config["target_gpib_address"])
+                self.target_gpib_address.set(config["target_gpib_address"])
             except:
                 return self.write_user_pref()
         else:
@@ -428,7 +432,7 @@ class App:
                 self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
                 self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
-                print("scope acq state=", acq_state)
+                # print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
                 self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                 # orig_color = self.chkbox_fastacq.cget("background")
