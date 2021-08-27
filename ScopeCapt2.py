@@ -9,12 +9,13 @@ import numpy as np
 import cv2
 import base64
 import imgBase64 as myIcon
-
+import time
 import tkinter as tk
 from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
-
+import threading
+from queue import Queue
 import json
 
 
@@ -25,10 +26,12 @@ class WindowGPIBScanner:
         self.master.title("GPIB Scanner")
         self.master.geometry('440x300')
         self.listbox = tk.Listbox(self.frame)
-
+        self.btn_scan_text_var = tk.StringVar()
+        self.btn_scan_text_var.set("Scan")
         # Inserting the listbox items
         self.listbox.insert(0, "Click on [Scan] button, this usually takes about 30 seconds...")
-        self.scanButton = tk.Button(self.frame, text='Scan', width=25, command=self.scan_gpib)
+        self.scanButton = tk.Button(self.frame, text=self.btn_scan_text_var.get(), width=25,
+                                    command=self.btn_scan_click)
         self.btn = tk.Button(self.frame, text='Set Selected as target device', width=25, command=self.selected_item)
         # self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_window)
         self.scanButton.pack()
@@ -40,6 +43,8 @@ class WindowGPIBScanner:
         self.found_device_with_name = []
         self.selected_device_addr = ""
         atexit.register(self.close_window)
+
+        self.q = Queue()
 
     def selected_item(self):
         # Traverse the tuple returned by
@@ -57,20 +62,50 @@ class WindowGPIBScanner:
     def close_window(self):
         self.frame.destroy()
         self.master.destroy()
+        exit()
 
-    def scan_gpib(self):
+    def btn_scan_click(self):
+        worker = threading.Thread(target=self.scan_gpib, args=(self.q, 1,), daemon=True)
+        worker.start()
+        self.q.put(1)
+        # self.scanthread = threading.Thread(target=self.scan_gpib)
+        # self.scanthread.start()
+
+    def update_device_listbox(self):
+        print("update_device_listbox")
+        self.listbox.delete('0', 'end')
+        print(self.found_device_with_name)
+        for i in range(0, len(self.found_device_with_name)):
+            addr = ''
+            try:
+                vendor = self.found_device_with_name[i][0].split(',')[0]
+                model_name = self.found_device_with_name[i][0].split(',')[1]
+                addr = self.found_device_with_name[i][1]
+            except:
+                vendor = "Unknown"
+                model_name = "Unknown"
+            if len(addr)>1:
+                list_item_text = (vendor + ", " + model_name + ", address: " + addr)
+                self.listbox.insert(i, list_item_text)
+
+    def scan_gpib(self, q, thread_no):
+        self.scanButton["state"] = "disabled"
+        task = q.get()
+        print("scan_gpib")
         """
         list name & address of found GPIB devices, get user prompt device
         """
-        self.listbox.delete('0', 'end')
         self.found_device_with_name = []
         try:
             rm = visa.ResourceManager()
-            ls_res = rm.list_resources(query='?*')
+            ls_res = rm.list_resources(query='?*')    # 000
             for addr in ls_res:
+                title = "Scanning: " + str(int(((ls_res.index(addr)+1) / (len(ls_res)))*100)) + "%"
+                title = title + "  Please Wait..."
+                self.master.title(title)
                 idn = ''
                 try:
-                    with rm.open_resource(addr) as de:
+                    with rm.open_resource(addr, open_timeout=1) as de:
                         idn_temp = de.query("*IDN?").rstrip()
                         if idn_temp == "":
                             idn = "Unknown"
@@ -82,21 +117,15 @@ class WindowGPIBScanner:
                     idn = "Unknown_TimeOut"
                     self.found_device_with_name.append((idn, addr))
                 except Exception as e:
-                    logging.warning("cannot open device %s, exception=%s", addr, e)
                     pass
-            self.listbox.delete('0', 'end')
-            for i in range(0, len(self.found_device_with_name)):
-                try:
-                    vendor = self.found_device_with_name[i][0].split(',')[0]
-                    model_name = self.found_device_with_name[i][0].split(',')[1]
-                    addr = self.found_device_with_name[i][1]
-                except:
-                    vendor = "Unknown"
-                    model_name = "Unknown"
-                list_item_text = (vendor + ", " + model_name + ", address: " + addr)
-                self.listbox.insert(i, list_item_text)
+                print("gotoupdate")
+                self.update_device_listbox()
         except ValueError:
             print("Scan gpib Error")
+        q.task_done()
+        self.scanButton["state"] = "normal"
+        self.master.title("GPIB Scanner [finished!]")
+        print(f'Thread #{thread_no} is doing task #{task} in the queue.')
 
 
 class App:
@@ -175,7 +204,7 @@ class App:
         label_entry_dir.grid(row=1, column=0, sticky='W')
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
         self.E_dir.grid(row=1, column=1, columnspan=4, sticky='we')
-        btn_prompt_dir = tk.Button(self.frame, text="Prompt", command=self.prompt_path)
+        btn_prompt_dir = tk.Button(self.frame, text="Prompt ", command=self.prompt_path)
         btn_prompt_dir.grid(row=1, column=6, padx=10, pady=2)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
@@ -184,7 +213,7 @@ class App:
         label_entry_filename.grid(row=2, column=0, sticky='W')
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
         self.E_filename.grid(row=2, column=1, columnspan=4, sticky='we')
-        self.btn_capture = tk.Button(self.frame, text="Trig 50%", command=None)
+        self.btn_capture = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
         self.btn_capture.grid(row=2, column=6, padx=10, pady=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
@@ -200,10 +229,10 @@ class App:
                                                  variable=self.fastacq_var_bool,
                                                  onvalue=1, offvalue=0, command=self.trigger_fstacq)
         self.chkbox_fastacq.grid(row=3, column=2, padx=2, pady=2)
-        # self.chkbox_Cursors = tk.Checkbutton(self.frame, text='Cursors ',
-        #                                      variable=None,
-        #                                      onvalue=1, offvalue=0, command=None)
-        # self.chkbox_Cursors.grid(row=3, column=3, padx=2, pady=2)
+        # self.l = tk.Button(self.frame, text="(<-)", command=self.horizontal_scale(direction='Left'))
+        # self.l.grid(row=3, column=3, padx=2)
+        # self.r = tk.Button(self.frame, text="(->)", command=None)
+        # self.r.grid(row=3, column=4, padx=2)
 
 
         # --------------row 4
@@ -261,7 +290,7 @@ class App:
                                  variable=self.addTextOverlay_var_bool)
         miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
-        miscmenu.add_checkbutton(label="Alt way to get Shot", onvalue=1, offvalue=0,
+        miscmenu.add_checkbutton(label="2,3,4 series ScreenShot", onvalue=1, offvalue=0,
                                  variable=self.scopeUseExtDrv_var_bool)
 
         scope_submenu = Menu(scopemenu)
@@ -276,7 +305,7 @@ class App:
                                       command=self.scope_channel_select)
 
         scopemenu.add_cascade(label='Enable CH', menu=scope_submenu, underline=0)
-        scopemenu.add_checkbutton(label="Use DPX", onvalue=1, offvalue=0, variable=self.fastacq_var_bool,
+        scopemenu.add_checkbutton(label="Use FastAcq", onvalue=1, offvalue=0, variable=self.fastacq_var_bool,
                                   command=self.trigger_fstacq)
         scopemenu.add_checkbutton(label="Use Persistence", onvalue=1, offvalue=0, variable=self.persistence_var_bool,
                                   command=self.set_persistence)
@@ -317,17 +346,19 @@ class App:
         else:
             messagebox.showinfo("First time Huh?",
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
-            self.create_frame_gpib_scanner()
+            # self.create_frame_gpib_scanner()
 
-        self.checkForGroupUpdates()
+        updatehread = threading.Thread(target=self.checkForGroupUpdates)
+        updatehread.start()
 
     def update_addr_inApp(self):
-        print(self.__class__.cls_var)
+        # print(self.__class__.cls_var)
         self.target_gpib_address.set(self.__class__.cls_var)
 
     def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.frame.after(100, self.frame.destroy())
+            self.frame.destroy()
+            self.master.destroy()
             exit()
 
     def at_exit(self):
@@ -338,16 +369,6 @@ class App:
 
     def onKey(self, event):
         print("On key")
-
-
-    # def scan_gpib(self):
-    #     self.GPIB_list = ['a','b','c']
-    #     try:
-    #         rm = visa.ResourceManager()
-    #         self.GPIB_list = rm.list_resources()
-    #
-    #     except ValueError:
-    #         self.status_var.set("VISA driver Error")
 
     def read_user_pref(self):
         self.update_addr_inApp()
@@ -389,9 +410,17 @@ class App:
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def checkForGroupUpdates(self):
-        self.get_acq_state()
-        self.master.update_idletasks()
-        self.master.after(1000, self.checkForGroupUpdates)
+        while 1:
+            try:
+                # print("check for upfates")
+                self.update_addr_inApp()
+                self.get_acq_state()
+                # self.master.update_idletasks()
+                time.sleep(0.5)
+            except:
+                pass
+
+        # self.master.after(1000, self.checkForGroupUpdates)
 
     def get_acq_state(self):
         self.update_addr_inApp()
@@ -404,21 +433,29 @@ class App:
                 self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
                 self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
-                print("scope acq state=", acq_state)
+                # print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
+                self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
+                # orig_color = self.chkbox_fastacq.cget("background")
+                if self.fastacq_var_bool.get():
+                    self.chkbox_fastacq.configure(fg="Purple2")
+                else:
+                    self.chkbox_fastacq.configure(fg="black")
+                # print("per", scope.query('DISplay:PERSistence?').rstrip())
+                if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
+                    self.persistence_var_bool.set(0)
+                else:
+                    self.persistence_var_bool.set(1)
                 if self.acq_state_var_bool.get() == True:
-                    self.btn_RunStop.configure(fg="green")
+                    self.btn_RunStop.configure(fg="green4")
                 elif self.acq_state_var_bool.get() == False:
                     self.btn_RunStop.configure(fg="black")
                 else:
-                    print("Cannot get Acq state")
+                    # print("Cannot get Acq state")
                     self.status_var.set("Cannot get Acq state")
                 scope.close()
             except Exception:
-                print("VISA IO Error")
-                self.status_var.set("ERROR: Oscilloscope Not Found, "
-                                    "Set GPIB address to 6 and \"Talk/Listen\" mode!")
-            rm.close()
+             rm.close()
         except ValueError:
             print("Cannot get Acq status-VISA driver Error")
 
@@ -444,7 +481,7 @@ class App:
                                     "1. connection between the target device & your PC.\n"
                                     "2. Any change of GPIB address? \n"
                                     "Then use Tool>GPIB Scanner to Set New target Device.")
-                self.create_frame_gpib_scanner()
+                # self.create_frame_gpib_scanner()
         except:
             self.appTitleText = self.appTitleText + "  [VISA driver Error]!"
             self.master.title(self.appTitleText)
@@ -502,6 +539,8 @@ class App:
                     img_data = scope.read_raw()
                     scope.write('FILESystem:DELEte \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
                     # print(img_data)
+
+
 
                 file_png_data = BytesIO(img_data)
                 dt = Image.open(file_png_data)
@@ -631,6 +670,20 @@ class App:
         except ValueError:
             print("Factory Reset Failed")
             self.status_var.set("Factory Reset, VISA ERROR")
+
+    def scope_set_trigger_a(self):
+        self.update_addr_inApp()
+        print("Into --scope_channel_select--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scope.write('TRIGger:A SETLevel')
+                scope.write('TRIGger:B SETLevel')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Set Trig A failed")
+            self.status_var.set("Set Trig A failed, VISA ERROR")
 
     def scope_channel_select(self):
         self.update_addr_inApp()
