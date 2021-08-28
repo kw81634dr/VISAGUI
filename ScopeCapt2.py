@@ -161,7 +161,7 @@ class App:
         self.path_var = tk.StringVar()
         self.path_var.set(os.getcwd())
         self.filename_var.set('DPO')
-        self.scopeUseExtDrv_var_bool = IntVar(value=0)
+        self.scope_is234series_var_bool = IntVar(value=0)
         self.use_inkSaver_var_bool = IntVar(value=0)
 
         self.overwrite_bool = True
@@ -288,7 +288,7 @@ class App:
         miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
         miscmenu.add_checkbutton(label="2,3,4 series ScreenShot", onvalue=1, offvalue=0,
-                                 variable=self.scopeUseExtDrv_var_bool)
+                                 variable=self.scope_is234series_var_bool)
 
         scope_submenu = Menu(scopemenu)
 
@@ -345,21 +345,24 @@ class App:
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
             # self.create_frame_gpib_scanner()
 
+        self.kill_update_thread = False
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
-        updatehread = threading.Thread(target=self.task_update_device_state, daemon=True)
-        updatehread.start()
+        self.updatehread = threading.Thread(target=self.task_update_device_state, daemon=True)
+        self.updatehread.start()
 
     def task_update_device_state(self):
-        while 1:
-            if WindowGPIBScanner.isOktoUpdateState:
-                try:
-                    print("Thread: check for updates")
-                    self.update_addr_inApp()
-                    self.get_acq_state()
-                    self.master.update_idletasks()
-                    time.sleep(0.2)
-                except:
-                    pass
+            while 1:
+                if WindowGPIBScanner.isOktoUpdateState:
+                    try:
+                        print("Thread: check for updates")
+                        self.update_addr_inApp()
+                        self.get_acq_state()
+                        self.master.update_idletasks()
+                        time.sleep(0.25)
+                    except:
+                        pass
+                if self.kill_update_thread:
+                    break
 
     def update_addr_inApp(self):
         print(self.__class__.cls_var)
@@ -367,14 +370,17 @@ class App:
 
     def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            # self.updatehread.join()
+            self.kill_update_thread = True
+            # file must be saved before destroy main frame.
+            self.write_user_pref()
+            self.master.destroy()
             self.frame.destroy()
-            # self.master.destroy()
-            exit()
+            # exit()
 
     def at_exit(self):
         try:
-            self.write_user_pref()
+            pass
+            # self.write_user_pref()
         except:
             pass
 
@@ -393,7 +399,7 @@ class App:
                 self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
                 self.path_var.set(config['path_var'])
                 self.filename_var.set(config['filename_var'])
-                self.scopeUseExtDrv_var_bool.set(config["use_externalDrv_var_bool"])
+                self.scope_is234series_var_bool.set(config["use_externalDrv_var_bool"])
                 self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
                 App.cls_var = config["target_gpib_address"]
                 self.target_gpib_address.set(config["target_gpib_address"])
@@ -410,7 +416,7 @@ class App:
                       "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
                       "path_var": self.path_var.get(),
                       "filename_var": self.filename_var.get(),
-                      "use_externalDrv_var_bool": self.scopeUseExtDrv_var_bool.get(),
+                      "use_externalDrv_var_bool": self.scope_is234series_var_bool.get(),
                       "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get(),
                       "target_gpib_address": self.target_gpib_address.get()
                       }
@@ -511,7 +517,9 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                if self.scopeUseExtDrv_var_bool.get():
+                scope_series = self.IDN_of_scope.get().split(',')[1][3]
+                print("IDN===", scope_series)
+                if self.scope_is234series_var_bool.get():
                     # test DPO2024B, DPO4104 OK
                     print("Alt way Scrshot")
                     if self.use_inkSaver_var_bool.get():
@@ -538,8 +546,6 @@ class App:
                     img_data = scope.read_raw()
                     scope.write('FILESystem:DELEte \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
                     # print(img_data)
-
-
 
                 file_png_data = BytesIO(img_data)
                 dt = Image.open(file_png_data)
