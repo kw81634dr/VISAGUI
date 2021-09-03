@@ -127,12 +127,12 @@ class WindowGPIBScanner:
 
 class App:
     cls_var = ""
-    # Define settings upon initialization.
+
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = " V1.5"
+        self.app_version = " V1.6"
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + self.app_version
         self.master.title(self.appTitleText)
@@ -163,6 +163,7 @@ class App:
         self.filename_var.set('DPO')
         self.scope_is234series_var_bool = IntVar(value=0)
         self.use_inkSaver_var_bool = IntVar(value=0)
+        self.cursor_mode = IntVar(value=0)
 
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
@@ -196,22 +197,23 @@ class App:
         # btn_connect_scope = tk.Button(self.frame, text="Get Scope info", command=self.get_scope_info)
         # btn_connect_scope.grid(row=0, column=4)
 
+
         # --------------row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
         label_entry_dir.grid(row=1, column=0, sticky='W')
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
-        self.E_dir.grid(row=1, column=1, columnspan=4, sticky='we')
+        self.E_dir.grid(row=1, column=1, columnspan=12, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt ", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=6, padx=10, pady=2)
+        btn_prompt_dir.grid(row=1, column=13, padx=2, pady=2)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
         # --------------row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
         label_entry_filename.grid(row=2, column=0, sticky='W')
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
-        self.E_filename.grid(row=2, column=1, columnspan=4, sticky='we')
-        self.btn_capture = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
-        self.btn_capture.grid(row=2, column=6, padx=10, pady=2)
+        self.E_filename.grid(row=2, column=1, columnspan=12, sticky='we')
+        self.btn_trig50 = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
+        self.btn_trig50.grid(row=2, column=13, padx=2, pady=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
@@ -221,36 +223,85 @@ class App:
         self.chkbox_persistence = tk.Checkbutton(self.frame, text='Persistence',
                                                  variable=self.persistence_var_bool,
                                                  onvalue=1, offvalue=0, command=self.set_persistence)
-        self.chkbox_persistence.grid(row=3, column=1, padx=2, pady=2)
+        self.chkbox_persistence.grid(row=3, column=1, columnspan=2,  padx=0, pady=1)
         self.chkbox_fastacq = tk.Checkbutton(self.frame, text='FastAcq',
                                                  variable=self.fastacq_var_bool,
                                                  onvalue=1, offvalue=0, command=self.trigger_fstacq)
-        self.chkbox_fastacq.grid(row=3, column=2, padx=2, pady=2)
-        # self.l = tk.Button(self.frame, text="(<-)", command=self.horizontal_scale(direction='Left'))
-        # self.l.grid(row=3, column=3, padx=2)
-        # self.r = tk.Button(self.frame, text="(->)", command=None)
-        # self.r.grid(row=3, column=4, padx=2)
+        self.chkbox_fastacq.grid(row=3, column=3, columnspan=3, padx=0, pady=1)
 
+        self.l = tk.Button(self.frame, text="⯇ZoomOut", command=self.horizontal_zoom_out)
+        self.l.grid(row=3, column=8, padx=0, columnspan=3)
+        self.r = tk.Button(self.frame, text="ZoomIn⯈", command=self.horizontal_zoom_in)
+        self.r.grid(row=3, column=11, padx=0, columnspan=2)
 
         # --------------row 4
-        self.btn_capture = tk.Button(self.frame, text="ScreenShot(↵)", command=self.btn_capture_clicked)
-        self.btn_capture.grid(row=4, column=1, padx=2)
-        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl+↵)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=4, column=2, padx=2)
-        btn_Single = tk.Button(self.frame, text="Single", command=self.btn_single_clicked)
-        btn_Single.grid(row=4, column=3, padx=2)
-        btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
-        btn_Clear.grid(row=4, column=4, padx=2)
+        self.label_ch1 = tk.Label(self.frame, text="CH1", fg='black', bg='#F7F700')
+        self.label_ch1.grid(row=4, column=1, columnspan=1, padx=3)
+        self.label_ch2 = tk.Label(self.frame, text="CH2", fg='black', bg='#00F7F8')
+        self.label_ch2.grid(row=4, column=4, columnspan=1, padx=3)
+        self.label_ch3 = tk.Label(self.frame, text="CH3", fg='black', bg='#FF33FF')
+        self.label_ch3.grid(row=4, column=7, columnspan=1, padx=3)
+        self.label_ch4 = tk.Label(self.frame, text="CH4", fg='black', bg='#00F700')
+        self.label_ch4.grid(row=4, column=10, columnspan=1, padx=3)
+
+        # --------------row 4
+        self.btn_ch1_down = tk.Button(self.frame, text="▼", command=self.scope_ch1_scale_down)
+        self.btn_ch1_down.grid(row=4, column=2, padx=0, pady=3)
+        self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
+        self.btn_ch1_up.grid(row=4, column=3, padx=3, pady=3)
+
+        self.btn_ch2_down = tk.Button(self.frame, text="▼", command=self.scope_ch2_scale_down)
+        self.btn_ch2_down.grid(row=4, column=5, padx=0, pady=3)
+        self.btn_ch2_up = tk.Button(self.frame, text="▲", command=self.scope_ch2_scale_up)
+        self.btn_ch2_up.grid(row=4, column=6, padx=3, pady=3)
+        #
+        self.btn_ch3_down = tk.Button(self.frame, text="▼", command=self.scope_ch3_scale_down)
+        self.btn_ch3_down.grid(row=4, column=8, padx=0, pady=3)
+        self.btn_ch3_up = tk.Button(self.frame, text="▲", command=self.scope_ch3_scale_up)
+        self.btn_ch3_up.grid(row=4, column=9, padx=3, pady=3)
+        #
+        self.btn_ch4_down = tk.Button(self.frame, text="▼", command=self.scope_ch4_scale_down)
+        self.btn_ch4_down.grid(row=4, column=11, padx=0, pady=3)
+        self.btn_ch4_up = tk.Button(self.frame, text="▲", command=self.scope_ch4_scale_up)
+        self.btn_ch4_up.grid(row=4, column=12, padx=0, pady=3)
+
+        # --------------row 5
+        # self.chkbox_cursor = tk.Checkbutton(self.frame, text='Cursor',
+        #                                          variable=None,
+        #                                          onvalue=1, offvalue=0, command=None)
+        # self.chkbox_cursor.grid(row=5, column=1)
+        #
+        # self.btn_cur_hbar = tk.Radiobutton(self.frame, text="HBar", padx=0, variable=self.cursor_mode, value=1)
+        # self.btn_cur_hbar.grid(row=5, column=2, padx=0, pady=2, columnspan=2)
+        #
+        # self.radiobtn_cur_vbar = tk.Radiobutton(self.frame, text="VBar", padx=0, variable=self.cursor_mode, value=2)
+        # self.radiobtn_cur_vbar.grid(row=5, column=4, padx=0, pady=2, columnspan=2)
+        #
+        # self.radiobtn_cur_wave = tk.Radiobutton(self.frame, text="Wave", padx=0, variable=self.cursor_mode, value=3)
+        # self.radiobtn_cur_wave.grid(row=5, column=6, padx=0, pady=2, columnspan=2)
+        #
+        # self.radiobtn_cur_screen = tk.Radiobutton(self.frame, text="Screen", padx=0, variable=self.cursor_mode, value=4)
+        # self.radiobtn_cur_screen.grid(row=5, column=8, padx=0, pady=2, columnspan=2)
+
+        # --------------row 6
+        self.btn_capture = tk.Button(self.frame, text="ScreenShot(⮐)", command=self.btn_capture_clicked)
+        self.btn_capture.grid(row=6, column=1,  padx=3, pady=2, columnspan=3)
+        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⮐)", command=self.btn_runstop_clicked)
+        self.btn_RunStop.grid(row=6, column=4,  padx=3, pady=2, columnspan=3)
+        self.btn_Single = tk.Button(self.frame, text="  Single Acq  ", command=self.btn_single_clicked)
+        self.btn_Single.grid(row=6, column=7,  padx=3, pady=2, columnspan=3)
+        self.btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
+        self.btn_Clear.grid(row=6, column=10, padx=3, pady=2, columnspan=3)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
 
-        # --------------row 5, status bar
+        # --------------row 7, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.grid(row=5, column=0, columnspan=7, sticky='we')
+        status_bar.grid(row=7, column=0, columnspan=14, sticky='we')
 
         self.closest_index = 0
-        self.scaleList = [1e-9, 2e-9, 5e-9,
+        self.time_scaleList = [1e-9, 2e-9, 5e-9,
                           1e-8, 2e-8, 5e-8,
                           1e-7, 2e-7, 5e-7,
                           1e-6, 2e-6, 5e-6,
@@ -261,6 +312,14 @@ class App:
                           1e-1, 2e-1, 5e-1,
                           1e0, 2e0, 5e0,
                           1e1, 2e1, 5e1]
+
+        self.vertical_scaleList = [1e-2, 2e-2, 3e-2,
+                                   4e-2, 5e-2, 6e-2,
+                                   7e-2, 8e-2, 9e-2,
+                                   1e-1, 2e-1, 3e-1,
+                                   4e-1, 5e-1, 6e-1,
+                                   7e-1, 8e-1, 9e-1,
+                                   1, 2, 3, 4, 5, 6, 7, 8, 9]
 
         # --------------MenuBar
         menubar = Menu(self.master)
@@ -354,7 +413,7 @@ class App:
             while 1:
                 if WindowGPIBScanner.isOktoUpdateState:
                     try:
-                        print("Thread: check for updates")
+                        # print("Thread: check for updates")
                         self.update_addr_inApp()
                         self.get_acq_state()
                         self.master.update_idletasks()
@@ -365,7 +424,7 @@ class App:
                     break
 
     def update_addr_inApp(self):
-        print(self.__class__.cls_var)
+        # print("APP __class__.cls_var=", self.__class__.cls_var)
         self.target_gpib_address.set(self.__class__.cls_var)
 
     def ask_quit(self):
@@ -511,7 +570,7 @@ class App:
     def get_shot_scope(self):
         # self.update_addr_inApp()
         self.get_scope_info()
-        self.status_var.set("Try Talking to Scope")
+        # self.status_var.set("Try Talking to Scope")
         self.get_default_filename()
         try:
             rm = visa.ResourceManager()
@@ -690,6 +749,213 @@ class App:
             print("Set Trig A failed")
             self.status_var.set("Set Trig A failed, VISA ERROR")
 
+    def horizontal_zoom_out(self, *args):
+        # self.update_addr_inApp()
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
+                print("Scale = ", time_scale)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.time_scaleList)),
+                                         key=lambda i: abs(self.time_scaleList[i] - time_scale))
+                print("closetstIndex=", self.closest_index)
+                self.target_index = self.closest_index
+                if self.closest_index < (len(self.time_scaleList))-1:
+                    self.target_index = self.closest_index + 1
+                    scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
+                    scope.write('HORizontal:RESOlution 2e5')
+                else:
+                    pass
+                scope.write('HORizontal:MODE AUTO')
+            rm.close()
+        except ValueError:
+            self.status_var.set("VISA driver Error")
+            self.btn_RunStop.configure(fg="red")
+
+    def horizontal_zoom_in(self, *args):
+        # self.update_addr_inApp()
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
+                print("Scale = ", time_scale)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.time_scaleList)), key=lambda i: abs(self.time_scaleList[i]-time_scale))
+                print("closetstIndex=", self.closest_index)
+                self.target_index = self.closest_index
+                if self.closest_index > 1:
+                    self.target_index = self.closest_index - 1
+                    scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
+                    scope.write('HORizontal:RESOlution 2e5')
+                else:
+                    pass
+                scope.write('HORizontal:MODE AUTO')
+            rm.close()
+        except ValueError:
+            self.status_var.set("VISA driver Error")
+            self.btn_RunStop.configure(fg="red")
+
+    def scope_ch1_scale_up(self):
+        print("Into --scope_ch1_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH1:SCALe?'))
+                print("CH1 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index < (len(self.vertical_scaleList))-1:
+                    self.target_index = self.closest_index + 1
+                    scope.write('CH1:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH1 Failed")
+            self.status_var.set("Scale CH1 Failed, VISA ERROR")
+
+    def scope_ch1_scale_down(self):
+        print("Into --scope_ch1_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH1:SCALe?'))
+                print("CH1 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index > 0:
+                    self.target_index = self.closest_index - 1
+                    scope.write('CH1:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH1 Failed")
+            self.status_var.set("Scale CH1 Failed, VISA ERROR")
+
+    def scope_ch2_scale_up(self):
+        print("Into --scope_ch2_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH2:SCALe?'))
+                print("CH2 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index < (len(self.vertical_scaleList))-1:
+                    self.target_index = self.closest_index + 1
+                    scope.write('CH2:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH2 Failed")
+            self.status_var.set("Scale CH2 Failed, VISA ERROR")
+
+    def scope_ch2_scale_down(self):
+        print("Into --scope_ch2_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH2:SCALe?'))
+                print("CH2 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index > 0:
+                    self.target_index = self.closest_index - 1
+                    scope.write('CH2:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH2 Failed")
+            self.status_var.set("Scale CH2 Failed, VISA ERROR")
+
+    def scope_ch3_scale_up(self):
+        print("Into --scope_ch3_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH3:SCALe?'))
+                print("CH3 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index < (len(self.vertical_scaleList))-1:
+                    self.target_index = self.closest_index + 1
+                    scope.write('CH3:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH3 Failed")
+            self.status_var.set("Scale CH3 Failed, VISA ERROR")
+
+    def scope_ch3_scale_down(self):
+        print("Into --scope_ch3_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH3:SCALe?'))
+                print("CH3 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index > 0:
+                    self.target_index = self.closest_index - 1
+                    scope.write('CH3:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH3 Failed")
+            self.status_var.set("Scale CH3 Failed, VISA ERROR")
+
+    def scope_ch4_scale_up(self):
+        print("Into --scope_ch4_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH4:SCALe?'))
+                print("CH4 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index < (len(self.vertical_scaleList))-1:
+                    self.target_index = self.closest_index + 1
+                    scope.write('CH4:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH4 Failed")
+            self.status_var.set("Scale CH4 Failed, VISA ERROR")
+
+    def scope_ch4_scale_down(self):
+        print("Into --scope_ch4_scale Up--")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                scale_current = float(scope.query('CH4:SCALe?'))
+                print("CH4 Scale=", scale_current)
+                # get the index of closest value
+                self.closest_index = min(range(len(self.vertical_scaleList)),
+                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                print("closetstIndex=", self.closest_index)
+                if self.closest_index > 0:
+                    self.target_index = self.closest_index - 1
+                    scope.write('CH4:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("Scale CH4 Failed")
+            self.status_var.set("Scale CH4 Failed, VISA ERROR")
+
     def scope_channel_select(self):
         # self.update_addr_inApp()
         print("Into --scope_channel_select--")
@@ -831,34 +1097,7 @@ class App:
     #     print("Capture Btn clicked, save folder", folder)
     #     self.get_shot_scope()
 
-    def horizontal_scale(self, event):
-        # self.update_addr_inApp()
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale = float(scope.query('HORizontal:MAIn:SCAle?'))
-                print("Scale = ", scale)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.scaleList)), key=lambda i: abs(self.scaleList[i]-scale))
-                print("closetstIndex=", self.closest_index)
-                self.target_index = self.closest_index
-                if event.keysym == 'Left':
-                    if self.closest_index < (len(self.scaleList)-1):
-                        self.target_index = self.closest_index + 1
-                        scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
-                        scope.write('HORizontal:RESOlution 2e5')
-                elif event.keysym == 'Right':
-                    if self.closest_index > 1:
-                        self.target_index = self.closest_index - 1
-                        scope.write('HORizontal:MAIn:SCAle ' + str(self.scaleList[self.target_index]))
-                        scope.write('HORizontal:RESOlution 2e5')
-                else:
-                    pass
-                scope.write('HORizontal:MODE AUTO')
-            rm.close()
-        except ValueError:
-            self.status_var.set("VISA driver Error")
-            self.btn_RunStop.configure(fg="red")
+
 
     # scope.write('CURSOR: FUNCTION SCREEN')
 
@@ -917,8 +1156,8 @@ def mainApp():
     root.bind("<Return>", app.btn_capture_clicked)
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
-    root.bind("<Control-Left>", app.horizontal_scale)
-    root.bind("<Control-Right>", app.horizontal_scale)
+    root.bind("<Control-Left>", app.horizontal_zoom_out)
+    root.bind("<Control-Right>", app.horizontal_zoom_in)
     center(root)
     root.protocol("WM_DELETE_WINDOW", app.ask_quit)
     root.mainloop()
