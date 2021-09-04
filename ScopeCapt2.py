@@ -204,7 +204,7 @@ class App:
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
         self.E_dir.grid(row=1, column=1, columnspan=12, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt ", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=13, padx=2, pady=2)
+        btn_prompt_dir.grid(row=1, column=13, padx=3, pady=2)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
         # --------------row 2
@@ -213,7 +213,7 @@ class App:
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
         self.E_filename.grid(row=2, column=1, columnspan=12, sticky='we')
         self.btn_trig50 = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
-        self.btn_trig50.grid(row=2, column=13, padx=2, pady=2)
+        self.btn_trig50.grid(row=2, column=13, padx=3, pady=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
@@ -235,13 +235,14 @@ class App:
         self.r.grid(row=3, column=11, padx=0, columnspan=2)
 
         # --------------row 4
-        self.label_ch1 = tk.Label(self.frame, text="CH1", fg='black', bg='#F7F700')
+        #color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
+        self.label_ch1 = tk.Label(self.frame, text="CH1")
         self.label_ch1.grid(row=4, column=1, columnspan=1, padx=3)
-        self.label_ch2 = tk.Label(self.frame, text="CH2", fg='black', bg='#00F7F8')
+        self.label_ch2 = tk.Label(self.frame, text="CH2")
         self.label_ch2.grid(row=4, column=4, columnspan=1, padx=3)
-        self.label_ch3 = tk.Label(self.frame, text="CH3", fg='black', bg='#FF33FF')
+        self.label_ch3 = tk.Label(self.frame, text="CH3")
         self.label_ch3.grid(row=4, column=7, columnspan=1, padx=3)
-        self.label_ch4 = tk.Label(self.frame, text="CH4", fg='black', bg='#00F700')
+        self.label_ch4 = tk.Label(self.frame, text="CH4")
         self.label_ch4.grid(row=4, column=10, columnspan=1, padx=3)
 
         # --------------row 4
@@ -284,11 +285,11 @@ class App:
         # self.radiobtn_cur_screen.grid(row=5, column=8, padx=0, pady=2, columnspan=2)
 
         # --------------row 6
-        self.btn_capture = tk.Button(self.frame, text="ScreenShot(⮐)", command=self.btn_capture_clicked)
+        self.btn_capture = tk.Button(self.frame, text=" ScreenShot(⮐) ", command=self.btn_capture_clicked)
         self.btn_capture.grid(row=6, column=1,  padx=3, pady=2, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⮐)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=6, column=4,  padx=3, pady=2, columnspan=3)
-        self.btn_Single = tk.Button(self.frame, text="  Single Acq  ", command=self.btn_single_clicked)
+        self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
         self.btn_Single.grid(row=6, column=7,  padx=3, pady=2, columnspan=3)
         self.btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
         self.btn_Clear.grid(row=6, column=10, padx=3, pady=2, columnspan=3)
@@ -374,12 +375,17 @@ class App:
             " tip: Use <Control> key + <Left> or <Right> arrow key to scale time division"))
 
         helpmenu.add_command(label="About", underline=0, command=lambda:
-            messagebox.showinfo("KW ScopeCapt", "Version:" + self.app_version
-                                +"\nIcons made by [smashicons.com]"
+            messagebox.showinfo("About this program", "KW ScopeCapt "+" Version:" + self.app_version
+                                +"\n\nIcons made by [smashicons.com]."
                                 +"\n'OpenCV' is licensed under the [Apache 2 License]."
                                 +"\n'numpy' is licensed under the [NumPy license]."
                                 +"\n'pyvisa' is licensed under the [MIT License]."
-                                +"\n'PIL' is licensed under open the [source HPND License]."))
+                                +"\n'PIL' is licensed under open the [source HPND License]."
+                                +"\n\nTHE APPLICATIONS IS PROVIDED “AS IS” WITHOUT ANY WARRANTIES."
+                                +"\n\nYOUR USAGE OF THE APPLICATIONS IS AT YOUR OWN RISK. OWNER AND ANY OF ITS CONTRACTORS,"
+                                +"\nWHO PARTICIPATED IN PROVIDING THE FUNCTIONALITY OF THE APPLICATIONS EXPRESSLY DISCLAIM ANY WARRANTY."
+                                +"\n\n**Some of functions of the Applications can be temporarily unavailable."
+                                ))
 
         menubar.add_cascade(label="File", underline=0, menu=filemenu)
         menubar.add_cascade(label="Scope", underline=0, menu=scopemenu)
@@ -433,7 +439,7 @@ class App:
             # file must be saved before destroy main frame.
             self.write_user_pref()
             self.master.destroy()
-            self.frame.destroy()
+            # self.frame.destroy()
             # exit()
 
     def at_exit(self):
