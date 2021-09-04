@@ -237,34 +237,34 @@ class App:
         # --------------row 4
         #color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
         self.label_ch1 = tk.Label(self.frame, text="CH1")
-        self.label_ch1.grid(row=4, column=1, columnspan=1, padx=3)
+        self.label_ch1.grid(row=4, column=1,  padx=3)
         self.label_ch2 = tk.Label(self.frame, text="CH2")
-        self.label_ch2.grid(row=4, column=4, columnspan=1, padx=3)
+        self.label_ch2.grid(row=4, column=4,  padx=3)
         self.label_ch3 = tk.Label(self.frame, text="CH3")
-        self.label_ch3.grid(row=4, column=7, columnspan=1, padx=3)
+        self.label_ch3.grid(row=4, column=7,  padx=3)
         self.label_ch4 = tk.Label(self.frame, text="CH4")
-        self.label_ch4.grid(row=4, column=10, columnspan=1, padx=3)
+        self.label_ch4.grid(row=4, column=10,  padx=3)
 
         # --------------row 4
-        self.btn_ch1_down = tk.Button(self.frame, text="▼", command=self.scope_ch1_scale_down)
-        self.btn_ch1_down.grid(row=4, column=2, padx=0, pady=3)
-        self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
-        self.btn_ch1_up.grid(row=4, column=3, padx=3, pady=3)
+        self.btn_ch1_up = tk.Button(self.frame, text="⯇", command=self.scope_ch1_scale_up)
+        self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=3)
+        self.btn_ch1_down = tk.Button(self.frame, text="⯈", command=self.scope_ch1_scale_down)
+        self.btn_ch1_down.grid(row=4, column=3, padx=0, pady=3)
 
-        self.btn_ch2_down = tk.Button(self.frame, text="▼", command=self.scope_ch2_scale_down)
-        self.btn_ch2_down.grid(row=4, column=5, padx=0, pady=3)
-        self.btn_ch2_up = tk.Button(self.frame, text="▲", command=self.scope_ch2_scale_up)
-        self.btn_ch2_up.grid(row=4, column=6, padx=3, pady=3)
+        self.btn_ch2_up = tk.Button(self.frame, text="⯇", command=self.scope_ch2_scale_up)
+        self.btn_ch2_up.grid(row=4, column=5, padx=0, pady=3)
+        self.btn_ch2_down = tk.Button(self.frame, text="⯈", command=self.scope_ch2_scale_down)
+        self.btn_ch2_down.grid(row=4, column=6, padx=0, pady=3)
         #
-        self.btn_ch3_down = tk.Button(self.frame, text="▼", command=self.scope_ch3_scale_down)
-        self.btn_ch3_down.grid(row=4, column=8, padx=0, pady=3)
-        self.btn_ch3_up = tk.Button(self.frame, text="▲", command=self.scope_ch3_scale_up)
-        self.btn_ch3_up.grid(row=4, column=9, padx=3, pady=3)
-        #
-        self.btn_ch4_down = tk.Button(self.frame, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=4, column=11, padx=0, pady=3)
-        self.btn_ch4_up = tk.Button(self.frame, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=4, column=12, padx=0, pady=3)
+        self.btn_ch3_up = tk.Button(self.frame, text="⯇", command=self.scope_ch3_scale_up)
+        self.btn_ch3_up.grid(row=4, column=8, padx=0, pady=3)
+        self.btn_ch3_down = tk.Button(self.frame, text="⯈", command=self.scope_ch3_scale_down)
+        self.btn_ch3_down.grid(row=4, column=9, padx=0, pady=3)
+        #▼▲⯇⯈⭮⭯⭮⭯↶⤾⟲
+        self.btn_ch4_up = tk.Button(self.frame, text="⯇", command=self.scope_ch4_scale_up)
+        self.btn_ch4_up.grid(row=4, column=11, padx=0, pady=3)
+        self.btn_ch4_down = tk.Button(self.frame, text="⯈", command=self.scope_ch4_scale_down)
+        self.btn_ch4_down.grid(row=4, column=12, padx=0, pady=3)
 
         # --------------row 5
         # self.chkbox_cursor = tk.Checkbutton(self.frame, text='Cursor',
