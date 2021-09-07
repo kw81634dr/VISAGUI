@@ -204,7 +204,7 @@ class App:
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
         self.E_dir.grid(row=1, column=1, columnspan=12, sticky='we')
         btn_prompt_dir = tk.Button(self.frame, text="Prompt ", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=13, padx=3, pady=2)
+        btn_prompt_dir.grid(row=1, column=13, padx=5, pady=1)
         # self.frame.bind('p', lambda event: self.prompt_path())
 
         # --------------row 2
@@ -213,7 +213,7 @@ class App:
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
         self.E_filename.grid(row=2, column=1, columnspan=12, sticky='we')
         self.btn_trig50 = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
-        self.btn_trig50.grid(row=2, column=13, padx=3, pady=2)
+        self.btn_trig50.grid(row=2, column=13, padx=5, pady=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
@@ -229,10 +229,12 @@ class App:
                                                  onvalue=1, offvalue=0, command=self.trigger_fstacq)
         self.chkbox_fastacq.grid(row=3, column=3, columnspan=3, padx=0, pady=1)
 
+        self.label_time_scale = tk.Label(self.frame, text="Time/div")
+        self.label_time_scale.grid(row=3, column=6, padx=0, columnspan=3, pady=1)
         self.l = tk.Button(self.frame, text="⯇ZoomOut", command=self.horizontal_zoom_out)
-        self.l.grid(row=3, column=8, padx=0, columnspan=3)
+        self.l.grid(row=3, column=8, padx=0, columnspan=3, pady=1)
         self.r = tk.Button(self.frame, text="ZoomIn⯈", command=self.horizontal_zoom_in)
-        self.r.grid(row=3, column=11, padx=0, columnspan=2)
+        self.r.grid(row=3, column=11, padx=0, columnspan=2, pady=1)
 
         # --------------row 4
         #color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
@@ -247,24 +249,24 @@ class App:
 
         # --------------row 4
         self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
-        self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=3)
+        self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=2)
         self.btn_ch1_down = tk.Button(self.frame, text="▼", command=self.scope_ch1_scale_down)
-        self.btn_ch1_down.grid(row=4, column=3, padx=0, pady=3)
+        self.btn_ch1_down.grid(row=4, column=3, padx=0, pady=2)
 
         self.btn_ch2_up = tk.Button(self.frame, text="▲", command=self.scope_ch2_scale_up)
-        self.btn_ch2_up.grid(row=4, column=5, padx=0, pady=3)
+        self.btn_ch2_up.grid(row=4, column=5, padx=0, pady=2)
         self.btn_ch2_down = tk.Button(self.frame, text="▼", command=self.scope_ch2_scale_down)
-        self.btn_ch2_down.grid(row=4, column=6, padx=0, pady=3)
+        self.btn_ch2_down.grid(row=4, column=6, padx=0, pady=2)
         #
         self.btn_ch3_up = tk.Button(self.frame, text="▲", command=self.scope_ch3_scale_up)
-        self.btn_ch3_up.grid(row=4, column=8, padx=0, pady=3)
+        self.btn_ch3_up.grid(row=4, column=8, padx=0, pady=2)
         self.btn_ch3_down = tk.Button(self.frame, text="▼", command=self.scope_ch3_scale_down)
-        self.btn_ch3_down.grid(row=4, column=9, padx=0, pady=3)
+        self.btn_ch3_down.grid(row=4, column=9, padx=0, pady=2)
         #▼▲⯇⯈⭮⭯⭮⭯↶⤾⟲
         self.btn_ch4_up = tk.Button(self.frame, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=4, column=11, padx=0, pady=3)
+        self.btn_ch4_up.grid(row=4, column=11, padx=0, pady=2)
         self.btn_ch4_down = tk.Button(self.frame, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=4, column=12, padx=0, pady=3)
+        self.btn_ch4_down.grid(row=4, column=12, padx=0, pady=2)
 
         # --------------row 5
         # self.chkbox_cursor = tk.Checkbutton(self.frame, text='Cursor',
@@ -286,13 +288,13 @@ class App:
 
         # --------------row 6
         self.btn_capture = tk.Button(self.frame, text=" ScreenShot(⮐) ", command=self.btn_capture_clicked)
-        self.btn_capture.grid(row=6, column=1,  padx=3, pady=2, columnspan=3)
+        self.btn_capture.grid(row=6, column=1,  padx=3, pady=6, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⮐)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=6, column=4,  padx=3, pady=2, columnspan=3)
+        self.btn_RunStop.grid(row=6, column=4,  padx=3, pady=6, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
-        self.btn_Single.grid(row=6, column=7,  padx=3, pady=2, columnspan=3)
+        self.btn_Single.grid(row=6, column=7,  padx=3, pady=6, columnspan=3)
         self.btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
-        self.btn_Clear.grid(row=6, column=10, padx=3, pady=2, columnspan=3)
+        self.btn_Clear.grid(row=6, column=10, padx=3, pady=6, columnspan=3)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
