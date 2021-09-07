@@ -246,24 +246,24 @@ class App:
         self.label_ch4.grid(row=4, column=10,  padx=3)
 
         # --------------row 4
-        self.btn_ch1_up = tk.Button(self.frame, text="⯇", command=self.scope_ch1_scale_up)
+        self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
         self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=3)
-        self.btn_ch1_down = tk.Button(self.frame, text="⯈", command=self.scope_ch1_scale_down)
+        self.btn_ch1_down = tk.Button(self.frame, text="▼", command=self.scope_ch1_scale_down)
         self.btn_ch1_down.grid(row=4, column=3, padx=0, pady=3)
 
-        self.btn_ch2_up = tk.Button(self.frame, text="⯇", command=self.scope_ch2_scale_up)
+        self.btn_ch2_up = tk.Button(self.frame, text="▲", command=self.scope_ch2_scale_up)
         self.btn_ch2_up.grid(row=4, column=5, padx=0, pady=3)
-        self.btn_ch2_down = tk.Button(self.frame, text="⯈", command=self.scope_ch2_scale_down)
+        self.btn_ch2_down = tk.Button(self.frame, text="▼", command=self.scope_ch2_scale_down)
         self.btn_ch2_down.grid(row=4, column=6, padx=0, pady=3)
         #
-        self.btn_ch3_up = tk.Button(self.frame, text="⯇", command=self.scope_ch3_scale_up)
+        self.btn_ch3_up = tk.Button(self.frame, text="▲", command=self.scope_ch3_scale_up)
         self.btn_ch3_up.grid(row=4, column=8, padx=0, pady=3)
-        self.btn_ch3_down = tk.Button(self.frame, text="⯈", command=self.scope_ch3_scale_down)
+        self.btn_ch3_down = tk.Button(self.frame, text="▼", command=self.scope_ch3_scale_down)
         self.btn_ch3_down.grid(row=4, column=9, padx=0, pady=3)
         #▼▲⯇⯈⭮⭯⭮⭯↶⤾⟲
-        self.btn_ch4_up = tk.Button(self.frame, text="⯇", command=self.scope_ch4_scale_up)
+        self.btn_ch4_up = tk.Button(self.frame, text="▲", command=self.scope_ch4_scale_up)
         self.btn_ch4_up.grid(row=4, column=11, padx=0, pady=3)
-        self.btn_ch4_down = tk.Button(self.frame, text="⯈", command=self.scope_ch4_scale_down)
+        self.btn_ch4_down = tk.Button(self.frame, text="▼", command=self.scope_ch4_scale_down)
         self.btn_ch4_down.grid(row=4, column=12, padx=0, pady=3)
 
         # --------------row 5
