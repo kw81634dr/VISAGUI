@@ -466,7 +466,7 @@ class App:
         # latest_release_float = float((response.json()["name"])[1:])
 
         response = requests.get("https://gitlab.supermicro.com/api/v4/projects/1127/releases",
-                                headers={"PRIVATE-TOKEN": "xh_EVXCbc_gsQHAVu-bS"})
+                                headers={"PRIVATE-TOKEN": ""})
         print("Response=", response.json())
         print("GitLab-Version=", response.json()[0]['name'])
 
