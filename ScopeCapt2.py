@@ -160,13 +160,14 @@ class App:
         self.addTextOverlay_var_bool = IntVar(value=0)
         self.path_var = tk.StringVar()
         self.path_var.set(os.getcwd())
-        self.filename_var.set('DPO')
-        self.scope_is234series_var_bool = IntVar(value=0)
+        self.filename_var.set('ScrShot')
+        # self.scope_is234series_var_bool = IntVar(value=0)
         self.use_inkSaver_var_bool = IntVar(value=0)
         self.cursor_mode = IntVar(value=0)
 
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
+        self.is_scope_234_series = True
         self.dt = datetime.now()
         self.visa_timeout_duration = 10000  # in ms
 
@@ -349,8 +350,8 @@ class App:
                                  variable=self.addTextOverlay_var_bool)
         miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
-        miscmenu.add_checkbutton(label="2,3,4 series ScreenShot", onvalue=1, offvalue=0,
-                                 variable=self.scope_is234series_var_bool)
+        # miscmenu.add_checkbutton(label="2,3,4 series ScreenShot", onvalue=1, offvalue=0,
+        #                          variable=self.scope_is234series_var_bool)
 
         scope_submenu = Menu(scopemenu)
 
@@ -364,12 +365,13 @@ class App:
                                       command=self.scope_channel_select)
 
         scopemenu.add_cascade(label='Enable CH', menu=scope_submenu, underline=0)
-        scopemenu.add_checkbutton(label="Use FastAcq", onvalue=1, offvalue=0, variable=self.fastacq_var_bool,
-                                  command=self.trigger_fstacq)
-        scopemenu.add_checkbutton(label="Use Persistence", onvalue=1, offvalue=0, variable=self.persistence_var_bool,
-                                  command=self.set_persistence)
+        # scopemenu.add_checkbutton(label="Use FastAcq", onvalue=1, offvalue=0, variable=self.fastacq_var_bool,
+        #                           command=self.trigger_fstacq)
+        # scopemenu.add_checkbutton(label="Use Persistence", onvalue=1, offvalue=0, variable=self.persistence_var_bool,
+        #                           command=self.set_persistence)
         scopemenu.add_command(label="Exec. AutoSet", command=self.scope_execute_autoset)
-        scopemenu.add_command(label="Recall Default Settings", command=self.scope_factory_reset)
+        scopemenu.add_command(label="Exec. SPC", command=self.scope_execute_spc)
+        scopemenu.add_command(label="Recall Factory Settings", command=self.scope_factory_reset)
 
         toolmenu.add_command(label="GPIB Scanner", command=self.create_frame_gpib_scanner)
 
@@ -425,7 +427,7 @@ class App:
                         self.update_addr_inApp()
                         self.get_acq_state()
                         self.master.update_idletasks()
-                        time.sleep(0.25)
+                        time.sleep(0.3)
                     except:
                         pass
                 if self.kill_update_thread:
@@ -466,7 +468,7 @@ class App:
                 self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
                 self.path_var.set(config['path_var'])
                 self.filename_var.set(config['filename_var'])
-                self.scope_is234series_var_bool.set(config["use_externalDrv_var_bool"])
+                # self.scope_is234series_var_bool.set(config["use_externalDrv_var_bool"])
                 self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
                 App.cls_var = config["target_gpib_address"]
                 self.target_gpib_address.set(config["target_gpib_address"])
@@ -483,7 +485,7 @@ class App:
                       "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
                       "path_var": self.path_var.get(),
                       "filename_var": self.filename_var.get(),
-                      "use_externalDrv_var_bool": self.scope_is234series_var_bool.get(),
+                      # "use_externalDrv_var_bool": self.scope_is234series_var_bool.get(),
                       "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get(),
                       "target_gpib_address": self.target_gpib_address.get()
                       }
@@ -493,13 +495,23 @@ class App:
         self.newwindow = tk.Toplevel(self.master)
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
-
     def get_acq_state(self):
         self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             try:
                 scope = rm.open_resource(self.target_gpib_address.get())
+                scope_series = int(self.IDN_of_scope.get().split(',')[1][3])
+                # print("IDN===", scope_series)
+                if scope_series >= 5:
+                    self.is_scope_234_series = False
+                else:
+                    self.is_scope_234_series = True
+
+                if scope_series == 1:
+                    self.chkbox_fastacq["state"] = "disabled"
+                else:
+                    self.chkbox_fastacq["state"] = "normal"
                 self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?')[:-1]))
                 self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?')[:-1]))
                 self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
@@ -577,36 +589,35 @@ class App:
 
     def get_shot_scope(self):
         # self.update_addr_inApp()
-        self.get_scope_info()
+        # self.get_scope_info()
         # self.status_var.set("Try Talking to Scope")
         self.get_default_filename()
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                scope_series = self.IDN_of_scope.get().split(',')[1][3]
-                print("IDN===", scope_series)
-                if self.scope_is234series_var_bool.get():
+                if self.is_scope_234_series:
                     # test DPO2024B, DPO4104 OK
                     print("Alt way Scrshot")
-                    if self.use_inkSaver_var_bool.get():
-                        scope.write("SAVe:IMAGe:INKSaver ON")
-                    else:
-                        scope.write("SAVe:IMAGe:INKSaver OFF")
                     scope.write("SAVe:IMAGe:FILEFormat PNG")
-                    # scope.write('FILESystem:MKDir \'E:\TempScrShot\'')
-                    # scope.write('SAVE:IMAGe \"E:\TempScrShot\KWScrShotTemp.png\"')
+                    if self.use_inkSaver_var_bool.get():
+                        scope.write("HARDCopy:INKSaver ON")
+                    else:
+                        # scope.write("SAVe:IMAGe:INKSaver OFF")
+                        scope.write("HARDCopy:INKSaver OFF")
                     scope.write("HARDCopy STARt")
                     # scope.write('*OPC?')
-                    # scope.write('FILESystem:READFile \"E:\TempScrShot\KWScrShotTemp.png\"')
                     img_data = scope.read_raw()
                     # print(img_data)
-                    # scope.write('FILESystem:DELEte \"E:\TempScrShot\KWScrShotTemp.png\"')
                 else:
                     scope.write("HARDCopy:PORT FILE")
                     # Notice: CANNOT access C Drive root directly if scope use win10
                     scope.write('FILESystem:MKDir \'C:\TempScrShot(could be Deleted)\'')
                     scope.write('HARDCopy:FILEName  \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
+                    if self.use_inkSaver_var_bool.get():
+                        scope.write("EXPort:PALEtte INKS")
+                    else:
+                        scope.write("EXPort:PALEtte COLO")
                     scope.write("HARDCopy STARt")
                     scope.query('*OPC?')
                     scope.write('FILESystem:READFile \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
@@ -706,8 +717,11 @@ class App:
         except:
             print("Cannot get scope shot-VISA driver Error")
             self.status_var.set("VISA driver Error")
+            messagebox.showerror("Oops! Error occurred!",
+                                 "Please check the model of your scope.\n"
+                                 + "If your scope is a part of 2 / 3 / 4 series,\n"
+                                 + "please enable such option in \'Misc.\' Menu, and vice versa.")
         self.get_default_filename()
-
 
     def prompt_path(self):
         folder_prompted = filedialog.askdirectory()
@@ -730,6 +744,25 @@ class App:
         except ValueError:
             print("Autoset Failed")
             self.status_var.set("AutoSet Failed, VISA ERROR")
+
+    def scope_execute_spc(self):
+        answer = messagebox.askokcancel("Are you sure?",
+                                        "[SPC] Signal Path Compensation\n\n"
+                                        + "This operation takes about 5~10 minutes,\n"
+                                        + "Scope will stop responding during execution.")
+        self.overwrite_bool = answer
+        if answer:
+            try:
+                rm = visa.ResourceManager()
+                with rm.open_resource(self.target_gpib_address.get()) as scope:
+                    scope.query('*CAL?')
+                    scope.close()
+                rm.close()
+            except ValueError:
+                print("SPC Failed")
+                self.status_var.set("Factory Reset, VISA ERROR")
+        else:
+            print("SPC abort.")
 
     def scope_factory_reset(self):
         # self.update_addr_inApp()
@@ -1013,9 +1046,14 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.persistence_var_bool.get():
-                    scope.write('DISplay:PERSistence INFPersist')
+                    scope.write('DISplay:PERSistence INF')
                 else:
-                    scope.write('DISplay:PERSistence OFF')
+                    if self.is_scope_234_series:
+                        scope.write('DISplay:PERSistence MINImum')
+                        scope.write('DISplay:PERSistence CLEAR')
+                        scope.write('DISplay:PERSistence OFF')
+                    else:
+                        scope.write('DISplay:PERSistence OFF')
                 scope.close()
             rm.close()
         except:
