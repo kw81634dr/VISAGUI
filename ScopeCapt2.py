@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import atexit
 from PIL import Image
-from io import BytesIO
+from io import BytesIO, StringIO
 import numpy as np
 import cv2
 import base64
@@ -16,7 +16,7 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 import threading
 import json
-from update_check import isUpToDate
+import requests
 
 class WindowGPIBScanner:
     isOktoUpdateState = True
@@ -54,7 +54,7 @@ class WindowGPIBScanner:
             selected_item = self.listbox.get(i)
             self.selected_device_addr = self.found_device_with_name[i][1]
             print("Selected", i, selected_item)
-            print("selected Device Addr=",i , self.selected_device_addr)
+            print("selected Device Addr=", i , self.selected_device_addr)
             # print("")
             App.cls_var = self.selected_device_addr
         return self.close_window()
@@ -133,9 +133,9 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = " V1.6"
+        self.app_version = 1.6
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
-        self.appTitleText = "KW Scope Capture" + self.app_version
+        self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
 
         self.user_pref_filename = Path(os.getcwd()) / Path('user_pref.json')
@@ -218,8 +218,6 @@ class App:
         self.btn_trig50.grid(row=2, column=13, padx=5, pady=2)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
-
-        #
 
         # --------------row3
         self.chkbox_persistence = tk.Checkbutton(self.frame, text='Persistence',
@@ -337,10 +335,11 @@ class App:
         helpmenu = Menu(menubar, tearoff=False)
 
         file_submenu = Menu(filemenu)
-        file_submenu.add_command(label="Future Implement 1")
-        file_submenu.add_command(label="Future Implement 2")
-        file_submenu.add_command(label="Future Implement 3")
+        file_submenu.add_command(label="Future Implementation 1")
+        file_submenu.add_command(label="Future Implementation 2")
+        file_submenu.add_command(label="Future Implementation 3")
         filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
+        filemenu.add_command(label="Check App Updates", underline=0, command=self.check_update)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
@@ -380,7 +379,7 @@ class App:
             " tip: Use <Control> key + <Left> or <Right> arrow key to scale time division"))
 
         helpmenu.add_command(label="About", underline=0, command=lambda:
-            messagebox.showinfo("About this program", "KW ScopeCapt "+" Version:" + self.app_version
+            messagebox.showinfo("About this program", "KW ScopeCapt "+" Version:" + str(self.app_version)
                                 +"\n\nIcons made by [smashicons.com]."
                                 +"\n'OpenCV' is licensed under the [Apache 2 License]."
                                 +"\n'numpy' is licensed under the [NumPy license]."
@@ -416,12 +415,6 @@ class App:
             # self.create_frame_gpib_scanner()
 
         self.kill_update_thread = False
-
-        if not isUpToDate('./AppVersion.txt', "https://raw.githubusercontent.com/kw81634dr/VISAGUI/main/ScopeCapt2.py"):
-            print("there's an Update")
-            messagebox.showinfo("Update!!!",
-                                "there's an Update!")
-
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
         self.updatehread = threading.Thread(target=self.task_update_device_state, daemon=True)
         self.updatehread.start()
@@ -462,6 +455,27 @@ class App:
 
     def onKey(self, event):
         print("On key")
+
+    #https://gitlab.supermicro.com/api/v4/projects/1127/releases
+    #https://api.github.com/repos/kw81634dr/VISAGUI/releases/latest
+
+    def check_update(self):
+        url = 'https://gitlab.supermicro.com/'
+        token = 'Bu_neiXFR4QJrr4oHmeS'
+        # response = requests.get("ttps://api.github.com/repos/kw81634dr/VISAGUI/releases/latest")
+        # latest_release_float = float((response.json()["name"])[1:])
+
+        response = requests.get("https://gitlab.supermicro.com/api/v4/projects/1127/releases",
+                                headers={"PRIVATE-TOKEN": "xh_EVXCbc_gsQHAVu-bS"})
+        print("Response=", response.json())
+        print("GitLab-Version=", response.json()[0]['name'])
+
+
+        # if latest_release_float > self.app_version:
+        #     print("there's an Update")
+        #     messagebox.showinfo("Version check", "There's a new release!")
+        # else:
+        #     messagebox.showinfo("Version check", "You are using the latest version.")
 
     def read_user_pref(self):
         # self.update_addr_inApp()
