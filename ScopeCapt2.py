@@ -16,10 +16,11 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 import threading
 import json
-
+from update_check import isUpToDate
 
 class WindowGPIBScanner:
     isOktoUpdateState = True
+
     def __init__(self, master):
         self.master = master
         self.frame = tk.Frame(self.master)
@@ -415,6 +416,12 @@ class App:
             # self.create_frame_gpib_scanner()
 
         self.kill_update_thread = False
+
+        if not isUpToDate('./AppVersion.txt', "https://raw.githubusercontent.com/kw81634dr/VISAGUI/main/ScopeCapt2.py"):
+            print("there's an Update")
+            messagebox.showinfo("Update!!!",
+                                "there's an Update!")
+
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
         self.updatehread = threading.Thread(target=self.task_update_device_state, daemon=True)
         self.updatehread.start()
