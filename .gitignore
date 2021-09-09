@@ -11,7 +11,7 @@ user_pref.json
 
 # C extensions
 *.so
-
+localKey.py
 # Distribution / packaging
 .Python
 build/

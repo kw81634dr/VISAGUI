@@ -18,7 +18,7 @@ import threading
 import json
 import requests
 import webbrowser
-from localtoken import token, url_repo
+
 
 class WindowGPIBScanner:
     isOktoUpdateState = True
@@ -233,12 +233,13 @@ class App:
 
         self.label_time_scale = tk.Label(self.frame, text="Time/div")
         self.label_time_scale.grid(row=3, column=6, padx=0, columnspan=3, pady=1)
-        self.l = tk.Button(self.frame, text="⯇ZoomOut", command=self.horizontal_zoom_out)
+        self.l = tk.Button(self.frame, text="◀ZoomOut", command=self.horizontal_zoom_out)
         self.l.grid(row=3, column=8, padx=0, columnspan=3, pady=1)
-        self.r = tk.Button(self.frame, text="ZoomIn⯈", command=self.horizontal_zoom_in)
+        self.r = tk.Button(self.frame, text="ZoomIn▶", command=self.horizontal_zoom_in)
         self.r.grid(row=3, column=11, padx=0, columnspan=2, pady=1)
 
         # --------------row 4
+        # ▼▲▶◀↶⤾⟲
         #color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
         self.label_ch1 = tk.Label(self.frame, text="CH1")
         self.label_ch1.grid(row=4, column=1,  padx=3)
@@ -249,7 +250,6 @@ class App:
         self.label_ch4 = tk.Label(self.frame, text="CH4")
         self.label_ch4.grid(row=4, column=10,  padx=3)
 
-        # --------------row 4
         self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
         self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=2)
         self.btn_ch1_down = tk.Button(self.frame, text="▼", command=self.scope_ch1_scale_down)
@@ -259,12 +259,12 @@ class App:
         self.btn_ch2_up.grid(row=4, column=5, padx=0, pady=2)
         self.btn_ch2_down = tk.Button(self.frame, text="▼", command=self.scope_ch2_scale_down)
         self.btn_ch2_down.grid(row=4, column=6, padx=0, pady=2)
-        #
+
         self.btn_ch3_up = tk.Button(self.frame, text="▲", command=self.scope_ch3_scale_up)
         self.btn_ch3_up.grid(row=4, column=8, padx=0, pady=2)
         self.btn_ch3_down = tk.Button(self.frame, text="▼", command=self.scope_ch3_scale_down)
         self.btn_ch3_down.grid(row=4, column=9, padx=0, pady=2)
-        #▼▲⯇⯈⭮⭯⭮⭯↶⤾⟲
+
         self.btn_ch4_up = tk.Button(self.frame, text="▲", command=self.scope_ch4_scale_up)
         self.btn_ch4_up.grid(row=4, column=11, padx=0, pady=2)
         self.btn_ch4_down = tk.Button(self.frame, text="▼", command=self.scope_ch4_scale_down)
@@ -341,7 +341,7 @@ class App:
         file_submenu.add_command(label="Future Implementation 2")
         file_submenu.add_command(label="Future Implementation 3")
         filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
-        filemenu.add_command(label="Check App Updates", underline=0, command=self.check_update)
+        filemenu.add_command(label="Check App Updates", underline=0, command=self.check_app_update)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
@@ -371,6 +371,7 @@ class App:
         #                           command=self.trigger_fstacq)
         # scopemenu.add_checkbutton(label="Use Persistence", onvalue=1, offvalue=0, variable=self.persistence_var_bool,
         #                           command=self.set_persistence)
+        scopemenu.add_separator()
         scopemenu.add_command(label="Exec. AutoSet", command=self.scope_execute_autoset)
         scopemenu.add_command(label="Exec. SPC", command=self.scope_execute_spc)
         scopemenu.add_command(label="Recall Factory Settings", command=self.scope_factory_reset)
@@ -404,7 +405,7 @@ class App:
 
         self.target_gpib_address = tk.StringVar()
         self.read_user_pref()
-        # self.update_addr_inApp()
+        self.update_addr_inApp()
 
         if len(self.target_gpib_address.get()) > 1:
             self.update_addr_inApp()
@@ -416,10 +417,9 @@ class App:
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
             # self.create_frame_gpib_scanner()
 
-        self.kill_update_thread = False
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
-        self.updatehread = threading.Thread(target=self.task_update_device_state, daemon=True)
-        self.updatehread.start()
+        self.update_scope_thread = threading.Thread(target=self.task_update_device_state, daemon=True)
+        self.update_scope_thread.start()
 
     def task_update_device_state(self):
             while 1:
@@ -429,11 +429,9 @@ class App:
                         self.update_addr_inApp()
                         self.get_acq_state()
                         self.master.update_idletasks()
-                        time.sleep(0.3)
+                        time.sleep(0.5)
                     except:
                         pass
-                if self.kill_update_thread:
-                    break
 
     def update_addr_inApp(self):
         # print("APP __class__.cls_var=", self.__class__.cls_var)
@@ -441,7 +439,6 @@ class App:
 
     def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.kill_update_thread = True
             # file must be saved before destroy main frame.
             self.write_user_pref()
             self.master.destroy()
@@ -458,29 +455,29 @@ class App:
     def onKey(self, event):
         print("On key")
 
-    def check_update(self):
-        self.check_app_update_thread = threading.Thread(target=self.check_update_workflow, daemon=True)
+    def check_app_update(self):
+        self.check_app_update_thread = threading.Thread(target=self.task_check_app_update, daemon=True)
         self.check_app_update_thread.start()
         # self.check_app_update_thread.join()
 
-    def check_update_workflow(self):
-        response = requests.get(url_repo,
-                                headers={"PRIVATE-TOKEN": token})
-        print("Response=", response.json())
+    def task_check_app_update(self):
+        url_api = 'https://api.github.com/repos/kw81634dr/VISAGUI/releases/latest'
+        url_release = 'https://github.com/kw81634dr/VISAGUI/releases/latest'
+        response = requests.get(url_api)
+        latest_release_float = float((response.json()["name"])[1:])
+        print(response.json())
+        # response = requests.get("",
+        #                         headers={"PRIVATE-TOKEN": ""})
         # print("GitLab-Version=", response.json()[0]['name'])
-        latest_release_float = float(response.json()[0]['name'][1:])
-        print("version float=", latest_release_float)
-        if latest_release_float > self.app_version:
+        if latest_release_float > 1.5:
             print("there's an Update")
-            answer = messagebox.askokcancel("Version check",
-                                            "There's a new release!"
-                                            +"\nNew version could be download on repository,"
-                                            +"\nWould you like to take a look?")
-            if answer:
-                webbrowser.open('https://gitlab.supermicro.com/Kevin.Wang/scopecapt/-/releases')
+            messagebox.askokcancel("Version check", "New version available,"
+                                   + "\nWould you like to take a look?"
+                                   + "\n** click [OK] will direct you to repository)")
+            webbrowser.open(url_release)
         else:
-            messagebox.showinfo("Version check", "You are using the latest version. "
-                                + "v" + str(latest_release_float))
+            messagebox.showinfo("Version check", "You are using the latest version."
+                                + " v" + str(self.app_version))
         exit()
 
     def read_user_pref(self):
@@ -571,7 +568,7 @@ class App:
             print("Cannot get Acq status-VISA driver Error")
 
     def get_scope_info(self):
-        # self.update_addr_inApp()
+        self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
             try:
@@ -579,13 +576,12 @@ class App:
                     idn_query = scope.query('*IDN?')[:-1]
                     self.IDN_of_scope.set(idn_query)
                     idn_model_name = idn_query.split(",")[1]
-                    self.appTitleText = "KW Scope Capture" + self.app_version + " Found:" + idn_model_name
+                    self.appTitleText = "KW Scope Capture" + str(self.app_version) + " Found:" + idn_model_name
                     self.master.title(self.appTitleText)
                     scope.close()
                 rm.close()
-                self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
+                # self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
             except:
-                pass
                 messagebox.showinfo("Oops! Something changed!",
                                     "Unable to connect the device used last time.\n"
                                     "You could check:\n"
@@ -594,7 +590,7 @@ class App:
                                     "Then use Tool>GPIB Scanner to Set New target Device.")
                 # self.create_frame_gpib_scanner()
         except:
-            self.appTitleText = self.appTitleText + "  [VISA driver Error]!"
+            self.appTitleText = "KW Scope Capture" + str(self.app_version) + "  [VISA driver Error]!"
             self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
 
@@ -761,23 +757,26 @@ class App:
             self.status_var.set(status_text_temp)
 
     def scope_execute_autoset(self):
-        # self.update_addr_inApp()
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scope.write('AUTOSet EXECute')
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Autoset Failed")
-            self.status_var.set("AutoSet Failed, VISA ERROR")
+        answer = messagebox.askokcancel("Are you sure?",
+                                        "Execute AutoSet?")
+        if answer:
+            try:
+                rm = visa.ResourceManager()
+                with rm.open_resource(self.target_gpib_address.get()) as scope:
+                    scope.write('AUTOSet EXECute')
+                    scope.close()
+                rm.close()
+            except ValueError:
+                print("Autoset Failed")
+                self.status_var.set("AutoSet Failed, VISA ERROR")
+        else:
+            print("AutoSet Aborted.")
 
     def scope_execute_spc(self):
         answer = messagebox.askokcancel("Are you sure?",
                                         "[SPC] Signal Path Compensation\n\n"
                                         + "This operation takes about 5~10 minutes,\n"
                                         + "Scope will stop responding during execution.")
-        self.overwrite_bool = answer
         if answer:
             try:
                 rm = visa.ResourceManager()
@@ -789,19 +788,23 @@ class App:
                 print("SPC Failed")
                 self.status_var.set("Factory Reset, VISA ERROR")
         else:
-            print("SPC abort.")
+            print("SPC Aborted.")
 
     def scope_factory_reset(self):
-        # self.update_addr_inApp()
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scope.write('*RST')
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Factory Reset Failed")
-            self.status_var.set("Factory Reset, VISA ERROR")
+        answer = messagebox.askokcancel("Are you sure?",
+                                        "Recall factory default settings?")
+        if answer:
+            try:
+                rm = visa.ResourceManager()
+                with rm.open_resource(self.target_gpib_address.get()) as scope:
+                    scope.write('*RST')
+                    scope.close()
+                rm.close()
+            except ValueError:
+                print("Factory Reset Failed")
+                self.status_var.set("Factory Reset, VISA ERROR")
+        else:
+            print("Factory Default Aborted.")
 
     def scope_set_trigger_a(self):
         # self.update_addr_inApp()
