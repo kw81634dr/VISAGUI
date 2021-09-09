@@ -345,12 +345,12 @@ class App:
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
-        miscmenu.add_checkbutton(label="Add Time", onvalue=1, offvalue=0, variable=self.add_timestamp_var_bool)
+        miscmenu.add_checkbutton(label="Add TimeStamp postfix to filename", onvalue=1, offvalue=0, variable=self.add_timestamp_var_bool)
         miscmenu.add_checkbutton(label="Show Image after ScreenShot", onvalue=1, offvalue=0,
                                  variable=self.imshow_var_bool)
         miscmenu.add_checkbutton(label="Add Text overlay on ScreenShot", onvalue=1, offvalue=0,
                                  variable=self.addTextOverlay_var_bool)
-        miscmenu.add_checkbutton(label="Use Ink Saver", onvalue=1, offvalue=0,
+        miscmenu.add_checkbutton(label="Enable Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
         # miscmenu.add_checkbutton(label="2,3,4 series ScreenShot", onvalue=1, offvalue=0,
         #                          variable=self.scope_is234series_var_bool)
@@ -469,7 +469,7 @@ class App:
         # response = requests.get("",
         #                         headers={"PRIVATE-TOKEN": ""})
         # print("GitLab-Version=", response.json()[0]['name'])
-        if latest_release_float > 1.5:
+        if latest_release_float > self.app_version:
             print("there's an Update")
             messagebox.askokcancel("Version check", "New version available,"
                                    + "\nWould you like to take a look?"
