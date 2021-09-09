@@ -56,7 +56,7 @@ class WindowGPIBScanner:
             selected_item = self.listbox.get(i)
             self.selected_device_addr = self.found_device_with_name[i][1]
             print("Selected", i, selected_item)
-            print("selected Device Addr=", i , self.selected_device_addr)
+            print("selected Device Addr=", i, self.selected_device_addr)
             # print("")
             App.cls_var = self.selected_device_addr
         return self.close_window()
@@ -135,7 +135,7 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = 1.6
+        self.app_version = 1.7
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
@@ -164,13 +164,13 @@ class App:
         self.path_var = tk.StringVar()
         self.path_var.set(os.getcwd())
         self.filename_var.set('ScrShot')
-        # self.scope_is234series_var_bool = IntVar(value=0)
+
         self.use_inkSaver_var_bool = IntVar(value=0)
         self.cursor_mode = IntVar(value=0)
 
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
-        self.is_scope_234_series = True
+        self.scope_series = 0
         self.dt = datetime.now()
         self.visa_timeout_duration = 10000  # in ms
 
@@ -352,8 +352,6 @@ class App:
                                  variable=self.addTextOverlay_var_bool)
         miscmenu.add_checkbutton(label="Enable Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
-        # miscmenu.add_checkbutton(label="2,3,4 series ScreenShot", onvalue=1, offvalue=0,
-        #                          variable=self.scope_is234series_var_bool)
 
         scope_submenu = Menu(scopemenu)
 
@@ -492,7 +490,6 @@ class App:
                 self.addTextOverlay_var_bool.set(config['addTextOverlay_var_bool'])
                 self.path_var.set(config['path_var'])
                 self.filename_var.set(config['filename_var'])
-                # self.scope_is234series_var_bool.set(config["use_externalDrv_var_bool"])
                 self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
                 App.cls_var = config["target_gpib_address"]
                 self.target_gpib_address.set(config["target_gpib_address"])
@@ -509,7 +506,6 @@ class App:
                       "addTextOverlay_var_bool": self.addTextOverlay_var_bool.get(),
                       "path_var": self.path_var.get(),
                       "filename_var": self.filename_var.get(),
-                      # "use_externalDrv_var_bool": self.scope_is234series_var_bool.get(),
                       "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get(),
                       "target_gpib_address": self.target_gpib_address.get()
                       }
@@ -525,14 +521,9 @@ class App:
             rm = visa.ResourceManager()
             try:
                 scope = rm.open_resource(self.target_gpib_address.get())
-                scope_series = int(self.IDN_of_scope.get().split(',')[1][3])
+                self.scope_series = int(self.IDN_of_scope.get().split(',')[1][3])
                 # print("IDN===", scope_series)
-                if scope_series >= 5:
-                    self.is_scope_234_series = False
-                else:
-                    self.is_scope_234_series = True
-
-                if scope_series == 1:
+                if self.scope_series == 1:
                     self.chkbox_fastacq["state"] = "disabled"
                 else:
                     self.chkbox_fastacq["state"] = "normal"
@@ -619,7 +610,7 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                if self.is_scope_234_series:
+                if self.scope_series < 5:
                     # test DPO2024B, DPO4104 OK
                     print("Alt way Scrshot")
                     scope.write("SAVe:IMAGe:FILEFormat PNG")
@@ -1076,12 +1067,24 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.persistence_var_bool.get():
-                    scope.write('DISplay:PERSistence INF')
+                    # TBS1000 series
+                    if self.scope_series == 1:
+                        scope.write('DISplay:PERSistence INF')
+                    # 234 series
+                    elif (self.scope_series > 1) and (self.scope_series < 5):
+                        scope.write('DISplay:PERSistence INFInite')
+                    # 5000,7000 series
+                    else:
+                        scope.write('DISplay:PERSistence INFPersist')
                 else:
-                    if self.is_scope_234_series:
+                    # TBS1000 series
+                    if self.scope_series == 1:
+                        scope.write('DISplay:PERSistence OFF')
+                    # 234 series
+                    elif (self.scope_series > 1) and (self.scope_series < 5):
                         scope.write('DISplay:PERSistence MINImum')
                         scope.write('DISplay:PERSistence CLEAR')
-                        scope.write('DISplay:PERSistence OFF')
+                    # 5000,7000 series
                     else:
                         scope.write('DISplay:PERSistence OFF')
                 scope.close()
