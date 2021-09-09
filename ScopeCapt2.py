@@ -17,6 +17,8 @@ from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
 import threading
 import json
 import requests
+import webbrowser
+from localtoken import token, url_repo
 
 class WindowGPIBScanner:
     isOktoUpdateState = True
@@ -456,26 +458,30 @@ class App:
     def onKey(self, event):
         print("On key")
 
-    #https://gitlab.supermicro.com/api/v4/projects/1127/releases
-    #https://api.github.com/repos/kw81634dr/VISAGUI/releases/latest
-
     def check_update(self):
-        url = 'https://gitlab.supermicro.com/'
-        token = 'Bu_neiXFR4QJrr4oHmeS'
-        # response = requests.get("ttps://api.github.com/repos/kw81634dr/VISAGUI/releases/latest")
-        # latest_release_float = float((response.json()["name"])[1:])
+        self.check_app_update_thread = threading.Thread(target=self.check_update_workflow, daemon=True)
+        self.check_app_update_thread.start()
+        # self.check_app_update_thread.join()
 
-        response = requests.get("https://gitlab.supermicro.com/api/v4/projects/1127/releases",
-                                headers={"PRIVATE-TOKEN": ""})
+    def check_update_workflow(self):
+        response = requests.get(url_repo,
+                                headers={"PRIVATE-TOKEN": token})
         print("Response=", response.json())
-        print("GitLab-Version=", response.json()[0]['name'])
-
-
-        # if latest_release_float > self.app_version:
-        #     print("there's an Update")
-        #     messagebox.showinfo("Version check", "There's a new release!")
-        # else:
-        #     messagebox.showinfo("Version check", "You are using the latest version.")
+        # print("GitLab-Version=", response.json()[0]['name'])
+        latest_release_float = float(response.json()[0]['name'][1:])
+        print("version float=", latest_release_float)
+        if latest_release_float > self.app_version:
+            print("there's an Update")
+            answer = messagebox.askokcancel("Version check",
+                                            "There's a new release!"
+                                            +"\nNew version could be download on repository,"
+                                            +"\nWould you like to take a look?")
+            if answer:
+                webbrowser.open('https://gitlab.supermicro.com/Kevin.Wang/scopecapt/-/releases')
+        else:
+            messagebox.showinfo("Version check", "You are using the latest version. "
+                                + "v" + str(latest_release_float))
+        exit()
 
     def read_user_pref(self):
         # self.update_addr_inApp()
