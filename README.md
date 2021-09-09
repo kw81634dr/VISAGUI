@@ -1,34 +1,48 @@
 # VISA GUI
-##### Manipulate your Oscilloscope with keyboard & mouse
+**Manipulate your Oscilloscope with keyboard & mouse**
+
+---
+
+App preview
 
 ![mac_GUI screen shot](img/scrshot/macGUI.png)
 ![win_GUI screen shot](img/scrshot/v1.7scrshot.PNG)
 
 ## Features
-With the latest version, you're able to access:
 
 #### Screen Shot
-* Capture ScreenShot without USB flash drive.
+* Capture ScreenShot without USB flash drive.(shortcut: `Enter`)
 * Add text overlay
 * Enable Ink Saver
 
 #### Channels
 * Turn ON/OFF individually
 * Adjust vertical scale individually.
-* Adjust time scale.
+* Adjust horizontal scale. (shortcut: `Ctrl` + `←`/`→`)
 
 #### Acquisition
-* Set Run/Stop Acq
-* Trigger FastAcq
+* Set Run/Stop Acq (shortcut: `Ctrl` + `Enter`)
+* Clear (shortcut: `Ctrl` + `Del`)
+* Trigger FastAcq*
 * Trigger Infinite Persistence
 
-####Handy Tool
+#### Scope
+* execute AutoSet
+* execute Signal Path Compensation (SPC)*
+* Recall factory default setting
+
+#### Handy Tool
 * GPIB bus Scanner
+
+*availability of such features depends on your scope model.
 
 ##### Dependencies
 3rd party driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147)
 
-3rd party library : [pyvisa](pip install PyVISA), [openCV](https://pypi.org/project/opencv-python/), [PIL](https://pypi.org/project/Pillow/)
+3rd party library : [pyvisa](pip install PyVISA),
+[openCV](https://pypi.org/project/opencv-python/),
+[PIL](https://pypi.org/project/Pillow/),
+[requests](https://pypi.org/project/requests/)
 
 ## Compatible model:
 
@@ -41,12 +55,13 @@ With the latest version, you're able to access:
 |&check; | DPO7104       |   |
 |&check; | DPO7104C      |   |
 
-Captured ScreenShot Example from DPO4104
+Captured ScreenShot from DPO4104
 ![Scope screen shot](img/scrshot/DPO4104.png)
 
-Captured ScreenShot Example from DPO7104C
+Captured ScreenShot from DPO7104C
 ![Scope screen shot](img/scrshot/test.png)
 
 ## Todo
 - [ ] Support other brand's scope.
 - [ ] Customize Keyboard Shortcut.
+- [ ] Transform to MVC model and clean up messy code.
