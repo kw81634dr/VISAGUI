@@ -532,7 +532,10 @@ class App:
             try:
                 scope = rm.open_resource(self.target_gpib_address.get())
                 idn_query = scope.query('*IDN?').rstrip()
-                self.scope_series = int(idn_query.split(',')[1][3])
+                idn = self.scope_series = idn_query.split(',')[1]
+                self.scope_series = float(idn_query.split(',')[1][3])
+                Text = "KW Scope Capture" + " v" + str(self.app_version) + " Found:" + idn
+                self.master.title(Text)
                 # print("idn===", idn_query)
                 # print("scope_series===", self.scope_series)
                 if self.scope_series == 1:
