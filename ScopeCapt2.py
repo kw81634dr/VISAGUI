@@ -654,14 +654,17 @@ class App:
                     img_data = scope.read_raw()
                     # print(img_data)
                 else:
+                    print(">=5 series Scrshot")
                     scope.write("HARDCopy:PORT FILE")
                     # Notice: CANNOT access C Drive root directly if scope use win10
                     scope.write('FILESystem:MKDir \'C:\TempScrShot(could be Deleted)\'')
                     scope.write('HARDCopy:FILEName  \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
                     if self.use_inkSaver_var_bool.get():
                         scope.write("EXPort:PALEtte INKS")
+                        print("PALEtte->INKSaver")
                     else:
                         scope.write("EXPort:PALEtte COLO")
+                        print("PALEtte->COLOr")
                     scope.write("HARDCopy STARt")
                     scope.query('*OPC?')
                     scope.write('FILESystem:READFile \'C:\TempScrShot(could be Deleted)\KWScrShot.png\'')
