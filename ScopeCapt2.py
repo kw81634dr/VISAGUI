@@ -62,6 +62,7 @@ class WindowGPIBScanner:
         return self.close_window()
 
     def close_window(self):
+        WindowGPIBScanner.isOktoUpdateState = True
         self.scanthread.join()
         self.frame.destroy()
         self.master.destroy()
@@ -120,12 +121,13 @@ class WindowGPIBScanner:
                     pass
                 print("gotoupdate")
                 self.update_device_listbox()
+            rm.close()
         except ValueError:
             print("Scan gpib Error")
         self.scanButton["state"] = "normal"
         self.sel_btn["state"] = "normal"
         self.master.title("GPIB Scanner [finished!]")
-        WindowGPIBScanner.isOktoUpdateState = True
+
 
 
 class App:
@@ -421,25 +423,26 @@ class App:
         self.update_scope_thread.start()
 
     def task_update_device_state(self):
-        while self.visa_error_retry_counter < 10:
+        while 1:
             if WindowGPIBScanner.isOktoUpdateState:
                 try:
-                    print("Thread: check for updates")
+                    # print("Thread: check for updates")
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
                     time.sleep(0.5)
                 except:
                     pass
-
-        messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
-                                 + "\nCheck either NI-VISA driver installation or wiring."
-                                 + "\nThen restart this App.")
-        exit()
+        # messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
+        #                          + "\nCheck either NI-VISA driver installation or wiring."
+        #                          + "\nThen restart this App.")
 
     def update_addr_inApp(self):
-        # print("APP __class__.cls_var=", self.__class__.cls_var)
+        # print("APP __class__.cls_var=")
+        # print(self.__class__.cls_var)
         self.target_gpib_address.set(self.__class__.cls_var)
+        # print("self.target_gpib_address->get()=")
+        # print(self.target_gpib_address.get())
 
     def ask_quit(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
@@ -522,38 +525,47 @@ class App:
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def get_acq_state(self):
-        self.update_addr_inApp()
+        # self.update_addr_inApp()
         try:
             rm = visa.ResourceManager()
+            # print("try RM in [get_acq_state]")
             try:
                 scope = rm.open_resource(self.target_gpib_address.get())
-                self.scope_series = int(self.IDN_of_scope.get().split(',')[1][3])
-                # print("IDN===", scope_series)
+                idn_query = scope.query('*IDN?').rstrip()
+                self.scope_series = int(idn_query.split(',')[1][3])
+                # print("idn===", idn_query)
+                # print("scope_series===", self.scope_series)
                 if self.scope_series == 1:
                     self.chkbox_fastacq["state"] = "disabled"
                 else:
                     self.chkbox_fastacq["state"] = "normal"
                 self.visa_error_retry_counter = 0
-                self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?')[:-1]))
-                self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?')[:-1]))
-                self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
-                self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
-                acq_state = int(scope.query('ACQuire:STATE?')[:-1])
-                acq_num = int(scope.query("ACQ:NUMAC?")[:-1])
+                self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
+                self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
+                acq_state = int(scope.query('ACQuire:STATE?').rstrip())
+                acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
                 # print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
-                self.status_var.set("Acquisition #"+str(acq_num))
+                self.status_var.set("Acquisition#"+str(acq_num))
                 self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                 # orig_color = self.chkbox_fastacq.cget("background")
                 if self.fastacq_var_bool.get():
                     self.chkbox_fastacq.configure(fg="Purple2")
                 else:
                     self.chkbox_fastacq.configure(fg="black")
-                # print("per", scope.query('DISplay:PERSistence?').rstrip())
-                if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
-                    self.persistence_var_bool.set(0)
+                # Persistence---checked on DPO4104B
+                if (self.scope_series > 1) and (self.scope_series < 5):
+                    if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
+                        self.persistence_var_bool.set(0)
+                    else:
+                        self.persistence_var_bool.set(1)
                 else:
-                    self.persistence_var_bool.set(1)
+                    if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
+                        self.persistence_var_bool.set(0)
+                    else:
+                        self.persistence_var_bool.set(1)
                 if self.acq_state_var_bool.get() == True:
                     self.btn_RunStop.configure(fg="green4")
                 elif self.acq_state_var_bool.get() == False:
@@ -562,13 +574,13 @@ class App:
                     # print("Cannot get Acq state")
                     self.status_var.set("Cannot get Acq state")
                 scope.close()
-            except Exception:
-             self.status_var.set("Connection issue! Retrying...")
-             self.visa_error_retry_counter = self.visa_error_retry_counter + 1
-             rm.close()
+            except Exception as e:
+                print("get_acq_state->", e)
+            rm.close()
+            # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
         except Exception:
-            self.status_var.set("Connection issue! Retrying...")
-            self.visa_error_retry_counter = self.visa_error_retry_counter + 1
+            # self.status_var.set("Connection issue! Retrying...")
+            # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
             print("Cannot get Acq status-VISA driver Error")
 
     def get_scope_info(self):
@@ -587,12 +599,13 @@ class App:
                 # self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
             except:
                 messagebox.showinfo("Oops! Something changed!",
-                                    "Unable to connect the device used last time.\n"
+                                    "Unable to connect the device used last time.\n\n"
                                     "You could check:\n"
                                     "1. connection between the target device & your PC.\n"
-                                    "2. Any change of GPIB address? \n"
+                                    "2. Any change of GPIB address? \n\n"
                                     "Then use Tool>GPIB Scanner to Set New target Device.")
-                # self.create_frame_gpib_scanner()
+                self.create_frame_gpib_scanner()
+            rm.close()
         except:
             self.appTitleText = "KW Scope Capture" + str(self.app_version) + "  [VISA driver Error]!"
             self.master.title(self.appTitleText)
@@ -625,14 +638,18 @@ class App:
                 scope.timeout = self.visa_timeout_duration
                 if self.scope_series < 5:
                     # test DPO2024B, DPO4104 OK
-                    print("Alt way Scrshot")
-                    scope.write("SAVe:IMAGe:FILEFormat PNG")
+                    print("<5 series Scrshot")
+                    scope.write("HARDCOPY:FORMat PNG")
                     if self.use_inkSaver_var_bool.get():
-                        scope.write("HARDCopy:INKSaver ON")
+                        scope.write("HARDCOPY:INKSAVER ON")
+                        scope.write("SAV:IMAG:INKS ON")     #tested, worked on DPO4104B
+                        print("Enable Ink Saver")
                     else:
                         # scope.write("SAVe:IMAGe:INKSaver OFF")
-                        scope.write("HARDCopy:INKSaver OFF")
-                    scope.write("HARDCopy STARt")
+                        scope.write("HARDCOPY:INKSAVER OFF")
+                        scope.write("SAV:IMAG:INKS OFF")        #tested, worked on DPO4104B
+                        print("Disable Ink Saver")
+                    scope.write("HARDCOPY START")
                     # scope.write('*OPC?')
                     img_data = scope.read_raw()
                     # print(img_data)
