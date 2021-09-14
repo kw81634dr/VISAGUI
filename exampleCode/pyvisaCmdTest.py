@@ -36,9 +36,10 @@ try:
         # WORKS BUT AS Fallback
 
         #alter CLEAR ALL for non C model
-        scope.write('ACQuire:STOPAFTER SEQUENCE')
-        scope.write('ACQ:STATE ON')
-        scope.write('ACQ:STOPA RUNST')
+        # scope.write('ACQuire:STOPAFTER SEQUENCE')
+        # scope.write('ACQ:STATE ON')
+        # scope.write('ACQ:STOPA RUNST')
+        # print("acq#=", scope.query("ACQ:NUMAC?"))
 
         # equivalent to clear button
         # scope.write('CLEAR ALL')

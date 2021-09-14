@@ -173,6 +173,7 @@ class App:
         self.scope_series = 0
         self.dt = datetime.now()
         self.visa_timeout_duration = 10000  # in ms
+        self.visa_error_retry_counter = 0
 
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
@@ -420,16 +421,21 @@ class App:
         self.update_scope_thread.start()
 
     def task_update_device_state(self):
-            while 1:
-                if WindowGPIBScanner.isOktoUpdateState:
-                    try:
-                        # print("Thread: check for updates")
-                        self.update_addr_inApp()
-                        self.get_acq_state()
-                        self.master.update_idletasks()
-                        time.sleep(0.5)
-                    except:
-                        pass
+        while self.visa_error_retry_counter < 10:
+            if WindowGPIBScanner.isOktoUpdateState:
+                try:
+                    print("Thread: check for updates")
+                    self.update_addr_inApp()
+                    self.get_acq_state()
+                    self.master.update_idletasks()
+                    time.sleep(0.5)
+                except:
+                    pass
+
+        messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
+                                 + "\nCheck either NI-VISA driver installation or wiring."
+                                 + "\nThen restart this App.")
+        exit()
 
     def update_addr_inApp(self):
         # print("APP __class__.cls_var=", self.__class__.cls_var)
@@ -527,13 +533,16 @@ class App:
                     self.chkbox_fastacq["state"] = "disabled"
                 else:
                     self.chkbox_fastacq["state"] = "normal"
+                self.visa_error_retry_counter = 0
                 self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?')[:-1]))
                 self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?')[:-1]))
                 self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?')[:-1]))
                 self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?')[:-1]))
                 acq_state = int(scope.query('ACQuire:STATE?')[:-1])
+                acq_num = int(scope.query("ACQ:NUMAC?")[:-1])
                 # print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
+                self.status_var.set("Acquisition #"+str(acq_num))
                 self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                 # orig_color = self.chkbox_fastacq.cget("background")
                 if self.fastacq_var_bool.get():
@@ -554,8 +563,10 @@ class App:
                     self.status_var.set("Cannot get Acq state")
                 scope.close()
             except Exception:
+             self.visa_error_retry_counter = self.visa_error_retry_counter + 1
              rm.close()
-        except ValueError:
+        except Exception:
+            self.visa_error_retry_counter = self.visa_error_retry_counter + 1
             print("Cannot get Acq status-VISA driver Error")
 
     def get_scope_info(self):
