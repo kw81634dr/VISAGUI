@@ -563,9 +563,11 @@ class App:
                     self.status_var.set("Cannot get Acq state")
                 scope.close()
             except Exception:
+             self.status_var.set("Connection issue! Retrying...")
              self.visa_error_retry_counter = self.visa_error_retry_counter + 1
              rm.close()
         except Exception:
+            self.status_var.set("Connection issue! Retrying...")
             self.visa_error_retry_counter = self.visa_error_retry_counter + 1
             print("Cannot get Acq status-VISA driver Error")
 
