@@ -85,7 +85,7 @@ class WindowGPIBScanner:
             except:
                 vendor = "Unknown"
                 model_name = "Unknown"
-                addr=""
+                addr = ""
             list_item_text = (vendor + ", " + model_name + ", address: " + addr)
             self.listbox.insert(i, list_item_text)
 
@@ -100,9 +100,9 @@ class WindowGPIBScanner:
         self.found_device_with_name = []
         try:
             rm = visa.ResourceManager()
-            ls_res = rm.list_resources()    # query='?*'
+            ls_res = rm.list_resources()  # query='?*'
             for addr in ls_res:
-                title = "Scanning: " + str(int(((ls_res.index(addr)+1) / (len(ls_res)))*100)) + "%"
+                title = "Scanning: " + str(int(((ls_res.index(addr) + 1) / (len(ls_res))) * 100)) + "%"
                 title = title + "  Please Wait..."
                 self.master.title(title)
                 idn = ''
@@ -130,7 +130,6 @@ class WindowGPIBScanner:
         self.master.title("GPIB Scanner [finished!]")
 
 
-
 class App:
     cls_var = ""
 
@@ -138,7 +137,7 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = 1.8
+        self.app_version = 1.9
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
@@ -174,6 +173,7 @@ class App:
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
         self.scope_series = 0
+        self.ch_available = 1
         self.dt = datetime.now()
         self.visa_timeout_duration = 10000  # in ms
         self.visa_error_retry_counter = 0
@@ -205,7 +205,6 @@ class App:
         # btn_connect_scope = tk.Button(self.frame, text="Get Scope info", command=self.get_scope_info)
         # btn_connect_scope.grid(row=0, column=4)
 
-
         # --------------row 1
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
         label_entry_dir.grid(row=1, column=0, sticky='W')
@@ -229,10 +228,10 @@ class App:
         self.chkbox_persistence = tk.Checkbutton(self.frame, text='Persistence',
                                                  variable=self.persistence_var_bool,
                                                  onvalue=1, offvalue=0, command=self.set_persistence)
-        self.chkbox_persistence.grid(row=3, column=1, columnspan=2,  padx=0, pady=1)
+        self.chkbox_persistence.grid(row=3, column=1, columnspan=2, padx=0, pady=1)
         self.chkbox_fastacq = tk.Checkbutton(self.frame, text='FastAcq',
-                                                 variable=self.fastacq_var_bool,
-                                                 onvalue=1, offvalue=0, command=self.trigger_fstacq)
+                                             variable=self.fastacq_var_bool,
+                                             onvalue=1, offvalue=0, command=self.trigger_fstacq)
         self.chkbox_fastacq.grid(row=3, column=3, columnspan=3, padx=0, pady=1)
 
         self.label_time_scale = tk.Label(self.frame, text="Time/div")
@@ -244,15 +243,15 @@ class App:
 
         # --------------row 4
         # ▼▲▶◀↶⤾⟲
-        #color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
+        # color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
         self.label_ch1 = tk.Label(self.frame, text="CH1")
-        self.label_ch1.grid(row=4, column=1,  padx=3)
+        self.label_ch1.grid(row=4, column=1, padx=3)
         self.label_ch2 = tk.Label(self.frame, text="CH2")
-        self.label_ch2.grid(row=4, column=4,  padx=3)
+        self.label_ch2.grid(row=4, column=4, padx=3)
         self.label_ch3 = tk.Label(self.frame, text="CH3")
-        self.label_ch3.grid(row=4, column=7,  padx=3)
+        self.label_ch3.grid(row=4, column=7, padx=3)
         self.label_ch4 = tk.Label(self.frame, text="CH4")
-        self.label_ch4.grid(row=4, column=10,  padx=3)
+        self.label_ch4.grid(row=4, column=10, padx=3)
 
         self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
         self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=2)
@@ -294,11 +293,11 @@ class App:
 
         # --------------row 6
         self.btn_capture = tk.Button(self.frame, text=" ScreenShot(⮐) ", command=self.btn_capture_clicked)
-        self.btn_capture.grid(row=6, column=1,  padx=3, pady=6, columnspan=3)
+        self.btn_capture.grid(row=6, column=1, padx=3, pady=6, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⮐)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=6, column=4,  padx=3, pady=6, columnspan=3)
+        self.btn_RunStop.grid(row=6, column=4, padx=3, pady=6, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
-        self.btn_Single.grid(row=6, column=7,  padx=3, pady=6, columnspan=3)
+        self.btn_Single.grid(row=6, column=7, padx=3, pady=6, columnspan=3)
         self.btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
         self.btn_Clear.grid(row=6, column=10, padx=3, pady=6, columnspan=3)
 
@@ -311,24 +310,27 @@ class App:
 
         self.closest_index = 0
         self.time_scaleList = [1e-9, 2e-9, 5e-9,
-                          1e-8, 2e-8, 5e-8,
-                          1e-7, 2e-7, 5e-7,
-                          1e-6, 2e-6, 5e-6,
-                          1e-5, 2e-5, 5e-5,
-                          1e-4, 2e-4, 5e-4,
-                          1e-3, 2e-3, 5e-3,
-                          1e-2, 2e-2, 5e-2,
-                          1e-1, 2e-1, 5e-1,
-                          1e0, 2e0, 5e0,
-                          1e1, 2e1, 5e1]
+                               1e-8, 2e-8, 5e-8,
+                               1e-7, 2e-7, 5e-7,
+                               1e-6, 2e-6, 5e-6,
+                               1e-5, 2e-5, 5e-5,
+                               1e-4, 2e-4, 5e-4,
+                               1e-3, 2e-3, 5e-3,
+                               1e-2, 2e-2, 5e-2,
+                               1e-1, 2e-1, 5e-1,
+                               1e0, 2e0, 5e0,
+                               1e1, 2e1, 5e1]
 
-        self.vertical_scaleList = [1e-2, 2e-2, 3e-2,
+        self.vertical_scaleList = [1e-3, 2e-3, 3e-3,
+                                   4e-3, 5e-3, 6e-3,
+                                   7e-3, 8e-3, 9e-3,
+                                   1e-2, 2e-2, 3e-2,
                                    4e-2, 5e-2, 6e-2,
                                    7e-2, 8e-2, 9e-2,
                                    1e-1, 2e-1, 3e-1,
                                    4e-1, 5e-1, 6e-1,
                                    7e-1, 8e-1, 9e-1,
-                                   1, 2, 3, 4, 5, 6, 7, 8, 9]
+                                   1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         # --------------MenuBar
         menubar = Menu(self.master)
@@ -349,7 +351,8 @@ class App:
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
-        miscmenu.add_checkbutton(label="Add TimeStamp postfix to filename", onvalue=1, offvalue=0, variable=self.add_timestamp_var_bool)
+        miscmenu.add_checkbutton(label="Add TimeStamp postfix to filename", onvalue=1, offvalue=0,
+                                 variable=self.add_timestamp_var_bool)
         miscmenu.add_checkbutton(label="Show Image after ScreenShot", onvalue=1, offvalue=0,
                                  variable=self.imshow_var_bool)
         miscmenu.add_checkbutton(label="Add Text overlay on ScreenShot", onvalue=1, offvalue=0,
@@ -380,21 +383,21 @@ class App:
 
         toolmenu.add_command(label="GPIB Scanner", command=self.create_frame_gpib_scanner)
 
-        helpmenu.add_command(label="tips", underline=0, command=lambda: self.status_var.set(
-            " tip: Use <Control> key + <Left> or <Right> arrow key to scale time division"))
+        helpmenu.add_command(label="tips", underline=0, command=lambda: messagebox.showinfo("tips",
+                            "Use <Control>+<Left> & <Control>+<Right> arrow key to scale time division"))
 
         helpmenu.add_command(label="About", underline=0, command=lambda:
-            messagebox.showinfo("About this program", "KW ScopeCapt "+" Version:" + str(self.app_version)
-                                +"\n\nIcons made by [smashicons.com]."
-                                +"\n'OpenCV' is licensed under the [Apache 2 License]."
-                                +"\n'numpy' is licensed under the [NumPy license]."
-                                +"\n'pyvisa' is licensed under the [MIT License]."
-                                +"\n'PIL' is licensed under open the [source HPND License]."
-                                +"\n\nTHE APPLICATIONS IS PROVIDED “AS IS” WITHOUT ANY WARRANTIES."
-                                +"\n\nYOUR USAGE OF THE APPLICATIONS IS AT YOUR OWN RISK. OWNER AND ANY OF ITS CONTRACTORS,"
-                                +"\nWHO PARTICIPATED IN PROVIDING THE FUNCTIONALITY OF THE APPLICATIONS EXPRESSLY DISCLAIM ANY WARRANTY."
-                                +"\n\n**Some of functions of the Applications can be temporarily unavailable."
-                                ))
+        messagebox.showinfo("About this program", "KW ScopeCapt " + " Version:" + str(self.app_version)
+                            + "\n\nIcons made by [smashicons.com]."
+                            + "\n'OpenCV' is licensed under the [Apache 2 License]."
+                            + "\n'numpy' is licensed under the [NumPy license]."
+                            + "\n'pyvisa' is licensed under the [MIT License]."
+                            + "\n'PIL' is licensed under open the [source HPND License]."
+                            + "\n\nTHE APPLICATIONS IS PROVIDED “AS IS” WITHOUT ANY WARRANTIES."
+                            + "\n\nYOUR USAGE OF THE APPLICATIONS IS AT YOUR OWN RISK. OWNER AND ANY OF ITS CONTRACTORS,"
+                            + "\nWHO PARTICIPATED IN PROVIDING THE FUNCTIONALITY OF THE APPLICATIONS EXPRESSLY DISCLAIM ANY WARRANTY."
+                            + "\n\n**Some of functions of the Applications can be temporarily unavailable."
+                            ))
 
         menubar.add_cascade(label="File", underline=0, menu=filemenu)
         menubar.add_cascade(label="Scope", underline=0, menu=scopemenu)
@@ -536,8 +539,11 @@ class App:
                 series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
                 series = series.split(',')[1]
                 self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
-                idn = idn_query.split(',')[1]
-                Text = "KW Scope Capture" + " v" + str(self.app_version) + " Found:" + idn
+                self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
+                # print("self.ch_available->", self.ch_available)
+                idn_splited = idn_query.rstrip().split(',')
+                idn_title = idn_splited[0] + ", " + idn_splited[1]
+                Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
                 self.master.title(Text)
                 # print("idn===", idn_query)
                 # print("scope_series===", self.scope_series)
@@ -546,15 +552,25 @@ class App:
                 else:
                     self.chkbox_fastacq["state"] = "normal"
                 self.visa_error_retry_counter = 0
-                self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
-                self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
+                if self.ch_available == 2:
+                    self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                    self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                    self.sel_ch3_var_bool.set(value=0)
+                    self.sel_ch4_var_bool.set(value=0)
+                    self.btn_ch3_up["state"] = "disabled"
+                    self.btn_ch3_down["state"] = "disabled"
+                    self.btn_ch4_up["state"] = "disabled"
+                    self.btn_ch4_down["state"] = "disabled"
+                else:
+                    self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                    self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                    self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
+                    self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
                 acq_state = int(scope.query('ACQuire:STATE?').rstrip())
                 acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
                 # print("scope acq state=", acq_state)
                 self.acq_state_var_bool.set(acq_state)
-                self.status_var.set("Acquisition#"+str(acq_num))
+                self.status_var.set("Acquisition#" + str(acq_num))
                 self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                 # orig_color = self.chkbox_fastacq.cget("background")
                 if self.fastacq_var_bool.get():
@@ -595,11 +611,15 @@ class App:
             rm = visa.ResourceManager()
             try:
                 with rm.open_resource(self.target_gpib_address.get()) as scope:
-                    idn_query = scope.query('*IDN?')[:-1]
-                    self.IDN_of_scope.set(idn_query)
-                    idn_model_name = idn_query.split(",")[1]
-                    self.appTitleText = "KW Scope Capture" + str(self.app_version) + " Found:" + idn_model_name
-                    self.master.title(self.appTitleText)
+                    idn_query = scope.query('*IDN?')
+                    series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
+                    series = series.split(',')[1]
+                    self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
+                    self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
+                    idn_splited = idn_query.rstrip().split(',')
+                    idn_title = idn_splited[0] + ", " + idn_splited[1]
+                    Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
+                    self.master.title(Text)
                     scope.close()
                 rm.close()
                 # self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
@@ -648,12 +668,12 @@ class App:
                     scope.write("HARDCOPY:FORMat PNG")
                     if self.use_inkSaver_var_bool.get():
                         scope.write("HARDCOPY:INKSAVER ON")
-                        scope.write("SAV:IMAG:INKS ON")     #tested, worked on DPO4104B
+                        scope.write("SAV:IMAG:INKS ON")  # tested, worked on DPO4104B
                         print("Enable Ink Saver")
                     else:
                         # scope.write("SAVe:IMAGe:INKSaver OFF")
                         scope.write("HARDCOPY:INKSAVER OFF")
-                        scope.write("SAV:IMAG:INKS OFF")        #tested, worked on DPO4104B
+                        scope.write("SAV:IMAG:INKS OFF")  # tested, worked on DPO4104B
                         print("Disable Ink Saver")
                     scope.write("HARDCOPY START")
                     # scope.write('*OPC?')
@@ -741,7 +761,7 @@ class App:
                                 imgFile.write(img_data)
                                 imgFile.close()
                                 print("Saved!")
-                                self.status_var.set("Saved: "+self.savefilename+'.png')
+                                self.status_var.set("Saved: " + self.savefilename + '.png')
                     else:
                         files = [('PNG Image', '*.png')]
                         filepath = filedialog.asksaveasfilename(filetypes=files, defaultextension=files)
@@ -857,7 +877,7 @@ class App:
                                          key=lambda i: abs(self.time_scaleList[i] - time_scale))
                 print("closetstIndex=", self.closest_index)
                 self.target_index = self.closest_index
-                if self.closest_index < (len(self.time_scaleList))-1:
+                if self.closest_index < (len(self.time_scaleList)) - 1:
                     self.target_index = self.closest_index + 1
                     scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
                     scope.write('HORizontal:RESOlution 2e5')
@@ -877,7 +897,8 @@ class App:
                 time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
                 print("Scale = ", time_scale)
                 # get the index of closest value
-                self.closest_index = min(range(len(self.time_scaleList)), key=lambda i: abs(self.time_scaleList[i]-time_scale))
+                self.closest_index = min(range(len(self.time_scaleList)),
+                                         key=lambda i: abs(self.time_scaleList[i] - time_scale))
                 print("closetstIndex=", self.closest_index)
                 self.target_index = self.closest_index
                 if self.closest_index > 1:
@@ -903,7 +924,7 @@ class App:
                 self.closest_index = min(range(len(self.vertical_scaleList)),
                                          key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
                 print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList))-1:
+                if self.closest_index < (len(self.vertical_scaleList)) - 1:
                     self.target_index = self.closest_index + 1
                     scope.write('CH1:SCALe ' + str(self.vertical_scaleList[self.target_index]))
                 scope.close()
@@ -943,7 +964,7 @@ class App:
                 self.closest_index = min(range(len(self.vertical_scaleList)),
                                          key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
                 print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList))-1:
+                if self.closest_index < (len(self.vertical_scaleList)) - 1:
                     self.target_index = self.closest_index + 1
                     scope.write('CH2:SCALe ' + str(self.vertical_scaleList[self.target_index]))
                 scope.close()
@@ -983,7 +1004,7 @@ class App:
                 self.closest_index = min(range(len(self.vertical_scaleList)),
                                          key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
                 print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList))-1:
+                if self.closest_index < (len(self.vertical_scaleList)) - 1:
                     self.target_index = self.closest_index + 1
                     scope.write('CH3:SCALe ' + str(self.vertical_scaleList[self.target_index]))
                 scope.close()
@@ -1023,7 +1044,7 @@ class App:
                 self.closest_index = min(range(len(self.vertical_scaleList)),
                                          key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
                 print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList))-1:
+                if self.closest_index < (len(self.vertical_scaleList)) - 1:
                     self.target_index = self.closest_index + 1
                     scope.write('CH4:SCALe ' + str(self.vertical_scaleList[self.target_index]))
                 scope.close()
@@ -1066,11 +1087,11 @@ class App:
                     scope.write('SELect:CH2 ON')
                 else:
                     scope.write('SELect:CH2 OFF')
-                if self.sel_ch3_var_bool.get():
+                if (self.sel_ch3_var_bool.get()) and (self.ch_available > 2):
                     scope.write('SELect:CH3 ON')
                 else:
                     scope.write('SELect:CH3 OFF')
-                if self.sel_ch4_var_bool.get():
+                if (self.sel_ch4_var_bool.get()) and (self.ch_available > 2):
                     scope.write('SELect:CH4 ON')
                 else:
                     scope.write('SELect:CH4 OFF')
@@ -1147,15 +1168,16 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ScopeModel = self.IDN_of_scope.get().split(',')
-                print(ScopeModel)
+                ScopeModelLastChar = scope.query('*IDN?').rstrip().split(',')[1][-1]
+                print("ScopeModelLastChar:", ScopeModelLastChar)
                 isCModel = False
                 try:
-                    if ScopeModel[1][-1] == 'C':
+                    if ScopeModelLastChar == 'C':
                         isCModel = True
                         print('isCModel=', isCModel)
                     else:
                         isCModel = False
+                        print('isCModel=', isCModel)
                 except IndexError:
                     print("var \"self.IDN_of_scope[1][-1]\" does not exist.")
                 print("Clear Btn clicked")
@@ -1169,7 +1191,7 @@ class App:
                     scope.write('DISplay:PERSistence:RESET')
                     scope.write('ACQ:STATE ON')
                     scope.write('ACQ:STOPA RUNST')
-                    print("Send Alter Cmd for CLEAR ALL")
+                    print("Send [SINGLE, RUN, RUN] Cmd to CLEAR ALL")
                     self.status_var.set("Cleared")
                 scope.close()
             rm.close()
@@ -1209,8 +1231,6 @@ class App:
     #     folder = self.path_var.get()
     #     print("Capture Btn clicked, save folder", folder)
     #     self.get_shot_scope()
-
-
 
     # scope.write('CURSOR: FUNCTION SCREEN')
 
