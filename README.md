@@ -48,7 +48,7 @@ App preview
 
 |Verified| TeK           | remarks  |
 |--------|---------------|---|
-|Pending | TBS1202B-EDU  |   |
+|Pending | TBS1052B-EDU  |   |
 |&check; | MSO2024B      |   |
 |&check; | DPO4104       |   |
 |&check; | MDO4024C      |   |

@@ -1,6 +1,7 @@
 from datetime import datetime  # std library
 import pyvisa as visa  # https://pyvisa.readthedocs.org/en/stable/
 import os
+import re
 from pathlib import Path
 import atexit
 from PIL import Image
@@ -531,9 +532,11 @@ class App:
             # print("try RM in [get_acq_state]")
             try:
                 scope = rm.open_resource(self.target_gpib_address.get())
-                idn_query = scope.query('*IDN?').rstrip()
-                idn = self.scope_series = idn_query.split(',')[1]
-                self.scope_series = float(idn_query.split(',')[1][3])
+                idn_query = scope.query('*IDN?')
+                series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
+                series = series.split(',')[1]
+                self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
+                idn = idn_query.split(',')[1]
                 Text = "KW Scope Capture" + " v" + str(self.app_version) + " Found:" + idn
                 self.master.title(Text)
                 # print("idn===", idn_query)
@@ -759,18 +762,13 @@ class App:
                                     imgFile.close()
                                     print("Saved!")
                         self.status_var.set("Saved: " + str(Path(filepath).name))
-
-                except IOError:
-                    self.status_var.set("Cannot save file, check folder and filename")
+                except Exception as e:
+                    self.status_var.set(e)
                 scope.close()
                 rm.close()
-        except:
-            print("Cannot get scope shot-VISA driver Error")
-            self.status_var.set("VISA driver Error")
-            messagebox.showerror("Oops! Error occurred!",
-                                 "Please check the model of your scope.\n"
-                                 + "If your scope is a part of 2 / 3 / 4 series,\n"
-                                 + "please enable such option in \'Misc.\' Menu, and vice versa.")
+        except Exception as e:
+            print("Cannot get scope shot-VISA Error")
+            self.status_var.set(e)
         self.get_default_filename()
 
     def prompt_path(self):
