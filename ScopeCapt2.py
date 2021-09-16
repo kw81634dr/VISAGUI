@@ -482,10 +482,11 @@ class App:
         # print("GitLab-Version=", response.json()[0]['name'])
         if latest_release_float > self.app_version:
             print("there's an Update")
-            messagebox.askokcancel("Version check", "New version available,"
+            ans = messagebox.askokcancel("Version check", "New version available,"
                                    + "\nWould you like to take a look?"
                                    + "\n** click [OK] will direct you to repository)")
-            webbrowser.open(url_release)
+            if ans:
+                webbrowser.open(url_release)
         else:
             messagebox.showinfo("Version check", "You are using the latest version."
                                 + " v" + str(self.app_version))
