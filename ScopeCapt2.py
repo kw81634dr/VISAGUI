@@ -12,7 +12,7 @@ import base64
 import imgBase64 as myIcon
 import time
 import tkinter as tk
-from tkinter import ttk, Entry, messagebox, filedialog, IntVar, Menu, PhotoImage
+from tkinter import ttk, Entry, messagebox, filedialog, IntVar, DoubleVar, Menu, PhotoImage
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 import threading
@@ -20,6 +20,19 @@ import json
 import requests
 import webbrowser
 
+
+class mySpinbox(tk.Spinbox):
+    def __init__(self, *args, **kwargs):
+        tk.Spinbox.__init__(self, *args, **kwargs)
+        self.bind('<MouseWheel>', self.mouseWheel)
+        self.bind('<Button-4>', self.mouseWheel)
+        self.bind('<Button-5>', self.mouseWheel)
+
+    def mouseWheel(self, event):
+        if event.num == 5 or event.delta == -120:
+            self.invoke('buttondown')
+        elif event.num == 4 or event.delta == 120:
+            self.invoke('buttonup')
 
 class WindowGPIBScanner:
     isOktoUpdateState = True
@@ -178,6 +191,10 @@ class App:
         self.visa_timeout_duration = 10000  # in ms
         self.visa_error_retry_counter = 0
 
+        self.ch1_pos = DoubleVar(value=0.0)
+        self.ch1_offset = DoubleVar(value=0.0)
+        self.pause_get_status_thread = False
+
         # self.frame.columnconfigure(0, pad=3)
         # self.frame.columnconfigure(1, pad=3)
         # self.frame.columnconfigure(2, pad=3)
@@ -193,7 +210,7 @@ class App:
         # label_GPIB_address = tk.Label(self.frame, text="Target")
         # label_GPIB_address.grid(row=0, column=0)
         #
-        # Combo = ttk.Combobox(self.frame, values=self.GPIB_list)
+        # Combo = tk.Combobox(self.frame, values=self.GPIB_list)
         # Combo.set("Pick your device")
         # Combo.grid(row=0, column=1, columnspan=2)
         #
@@ -220,7 +237,7 @@ class App:
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
         self.E_filename.grid(row=2, column=1, columnspan=12, sticky='we')
         self.btn_trig50 = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
-        self.btn_trig50.grid(row=2, column=13, padx=5, pady=2)
+        self.btn_trig50.grid(row=2, column=13, padx=5, pady=1)
         # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
         # btn_use_time.grid(row=2, column=2)
 
@@ -228,50 +245,81 @@ class App:
         self.chkbox_persistence = tk.Checkbutton(self.frame, text='Persistence',
                                                  variable=self.persistence_var_bool,
                                                  onvalue=1, offvalue=0, command=self.set_persistence)
-        self.chkbox_persistence.grid(row=3, column=1, columnspan=2, padx=0, pady=1)
+        self.chkbox_persistence.grid(row=3, column=1, columnspan=2, padx=0, pady=1, sticky='w')
         self.chkbox_fastacq = tk.Checkbutton(self.frame, text='FastAcq',
                                              variable=self.fastacq_var_bool,
                                              onvalue=1, offvalue=0, command=self.trigger_fstacq)
-        self.chkbox_fastacq.grid(row=3, column=3, columnspan=3, padx=0, pady=1)
+        self.chkbox_fastacq.grid(row=3, column=3, columnspan=3, padx=0, pady=1, sticky='w')
 
-        self.label_time_scale = tk.Label(self.frame, text="Time/div")
-        self.label_time_scale.grid(row=3, column=6, padx=0, columnspan=3, pady=1)
-        self.l = tk.Button(self.frame, text="◀ZoomOut", command=self.horizontal_zoom_out)
-        self.l.grid(row=3, column=8, padx=0, columnspan=3, pady=1)
-        self.r = tk.Button(self.frame, text="ZoomIn▶", command=self.horizontal_zoom_in)
-        self.r.grid(row=3, column=11, padx=0, columnspan=2, pady=1)
+        self.labelFr_time_scale = tk.LabelFrame(self.frame, text="Time/div")
+        self.labelFr_time_scale.grid(row=3, column=6, padx=5, columnspan=7, pady=0, sticky='e')
+
+        self.l = tk.Button(self.labelFr_time_scale, text="◀ZoomOut", command=self.horizontal_zoom_out)
+        self.l.grid(row=3, column=6, columnspan=3,  padx=3, pady=1, sticky='w')
+        self.r = tk.Button(self.labelFr_time_scale, text="ZoomIn▶", command=self.horizontal_zoom_in)
+        self.r.grid(row=3, column=10, columnspan=3,  padx=3, pady=1, sticky='e')
 
         # --------------row 4
         # ▼▲▶◀↶⤾⟲
         # color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
-        self.label_ch1 = tk.Label(self.frame, text="CH1")
-        self.label_ch1.grid(row=4, column=1, padx=3)
-        self.label_ch2 = tk.Label(self.frame, text="CH2")
-        self.label_ch2.grid(row=4, column=4, padx=3)
-        self.label_ch3 = tk.Label(self.frame, text="CH3")
-        self.label_ch3.grid(row=4, column=7, padx=3)
-        self.label_ch4 = tk.Label(self.frame, text="CH4")
-        self.label_ch4.grid(row=4, column=10, padx=3)
+        self.labelFr_ch1 = tk.LabelFrame(self.frame, text="CH1 Scale")
+        self.labelFr_ch1.grid(row=4, column=1, padx=3)
+        self.labelFr_ch2 = tk.LabelFrame(self.frame, text="CH2 Scale")
+        self.labelFr_ch2.grid(row=4, column=4, padx=3)
+        self.labelFr_ch3 = tk.LabelFrame(self.frame, text="CH3 Scale")
+        self.labelFr_ch3.grid(row=4, column=7, padx=3)
+        self.labelFr_ch4 = tk.LabelFrame(self.frame, text="CH4 Scale")
+        self.labelFr_ch4.grid(row=4, column=10, padx=3)
 
-        self.btn_ch1_up = tk.Button(self.frame, text="▲", command=self.scope_ch1_scale_up)
+        self.label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Pos")
+        self.label_pos_ch1.grid(row=4, column=1, padx=0, pady=2, sticky='w')
+        self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, text="Pos:", from_=-5, to=5, increment=.04,
+                                         command=self.ch_adjust_pos, width=5, textvariable=None)
+        self.spinbox_pos_ch1.grid(row=4, column=1, padx=1, pady=2, sticky='e')
+        # self.label_pos_ch1.bind("<MouseWheel>", self.mouse_wheel_pos)
+        # self.label_pos_ch1.bind("<Button-4>", self.mouse_wheel_pos)
+        # self.label_pos_ch1.bind("<Button-5>", self.mouse_wheel_pos)
+
+        self.label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset: 900 mv", command=None)
+        self.label_offs_ch1.grid(row=5, column=1, padx=0, pady=2, sticky='w')
+        # self.label_offs_ch1.bind("<MouseWheel>", self.mouse_wheel_offset)
+        # self.label_offs_ch1.bind("<Button-4>", self.mouse_wheel_offset)
+        # self.label_offs_ch1.bind("<Button-5>", self.mouse_wheel_offset)
+
+        self.label_pos_ch2 = tk.Label(self.labelFr_ch2, text="Pos: 1.64 div", command=None)
+        self.label_pos_ch2.grid(row=4, column=5, padx=0, pady=2, sticky='w')
+        self.label_offs_ch2 = tk.Label(self.labelFr_ch2, text="Offset: 900 mv", command=None)
+        self.label_offs_ch2.grid(row=5, column=5, padx=0, pady=2, sticky='w')
+
+        self.label_pos_ch3 = tk.Label(self.labelFr_ch3, text="Pos: 1.64 div", command=None)
+        self.label_pos_ch3.grid(row=4, column=8, padx=0, pady=2, sticky='w')
+        self.label_offs_ch3 = tk.Label(self.labelFr_ch3, text="Offset: 900 mv", command=None)
+        self.label_offs_ch3.grid(row=5, column=8, padx=0, pady=2, sticky='w')
+
+        self.label_pos_ch4 = tk.Label(self.labelFr_ch4, text="Pos: 1.64 div", command=None)
+        self.label_pos_ch4.grid(row=4, column=11, padx=0, pady=2, sticky='w')
+        self.label_offs_ch4 = tk.Label(self.labelFr_ch4, text="Offset: 900 mv", command=None)
+        self.label_offs_ch4.grid(row=5, column=11, padx=0, pady=2, sticky='w')
+
+        self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=self.scope_ch1_scale_up)
         self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=2)
-        self.btn_ch1_down = tk.Button(self.frame, text="▼", command=self.scope_ch1_scale_down)
-        self.btn_ch1_down.grid(row=4, column=3, padx=0, pady=2)
+        self.btn_ch1_down = tk.Button(self.labelFr_ch1, text="▼", command=self.scope_ch1_scale_down)
+        self.btn_ch1_down.grid(row=5, column=2, padx=0, pady=2)
 
-        self.btn_ch2_up = tk.Button(self.frame, text="▲", command=self.scope_ch2_scale_up)
-        self.btn_ch2_up.grid(row=4, column=5, padx=0, pady=2)
-        self.btn_ch2_down = tk.Button(self.frame, text="▼", command=self.scope_ch2_scale_down)
-        self.btn_ch2_down.grid(row=4, column=6, padx=0, pady=2)
+        self.btn_ch2_up = tk.Button(self.labelFr_ch2, text="▲", command=self.scope_ch2_scale_up)
+        self.btn_ch2_up.grid(row=4, column=6, padx=0, pady=2)
+        self.btn_ch2_down = tk.Button(self.labelFr_ch2, text="▼", command=self.scope_ch2_scale_down)
+        self.btn_ch2_down.grid(row=5, column=6, padx=0, pady=2)
 
-        self.btn_ch3_up = tk.Button(self.frame, text="▲", command=self.scope_ch3_scale_up)
-        self.btn_ch3_up.grid(row=4, column=8, padx=0, pady=2)
-        self.btn_ch3_down = tk.Button(self.frame, text="▼", command=self.scope_ch3_scale_down)
-        self.btn_ch3_down.grid(row=4, column=9, padx=0, pady=2)
+        self.btn_ch3_up = tk.Button(self.labelFr_ch3, text="▲", command=self.scope_ch3_scale_up)
+        self.btn_ch3_up.grid(row=4, column=9, padx=0, pady=2)
+        self.btn_ch3_down = tk.Button(self.labelFr_ch3, text="▼", command=self.scope_ch3_scale_down)
+        self.btn_ch3_down.grid(row=5, column=9, padx=0, pady=2)
 
-        self.btn_ch4_up = tk.Button(self.frame, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=4, column=11, padx=0, pady=2)
-        self.btn_ch4_down = tk.Button(self.frame, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=4, column=12, padx=0, pady=2)
+        self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=self.scope_ch4_scale_up)
+        self.btn_ch4_up.grid(row=4, column=12, padx=0, pady=2)
+        self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=self.scope_ch4_scale_down)
+        self.btn_ch4_down.grid(row=5, column=12, padx=0, pady=2)
 
         # --------------row 5
         # self.chkbox_cursor = tk.Checkbutton(self.frame, text='Cursor',
@@ -295,11 +343,11 @@ class App:
         self.btn_capture = tk.Button(self.frame, text=" ScreenShot(⮐) ", command=self.btn_capture_clicked)
         self.btn_capture.grid(row=6, column=1, padx=3, pady=6, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⮐)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=6, column=4, padx=3, pady=6, columnspan=3)
+        self.btn_RunStop.grid(row=6, column=3, padx=3, pady=6, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
-        self.btn_Single.grid(row=6, column=7, padx=3, pady=6, columnspan=3)
+        self.btn_Single.grid(row=6, column=7, padx=3, pady=6, columnspan=2)
         self.btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
-        self.btn_Clear.grid(row=6, column=10, padx=3, pady=6, columnspan=3)
+        self.btn_Clear.grid(row=6, column=8, padx=3, pady=6, columnspan=3)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
@@ -343,10 +391,10 @@ class App:
         helpmenu = Menu(menubar, tearoff=False)
 
         file_submenu = Menu(filemenu)
-        file_submenu.add_command(label="Future Implementation 1")
-        file_submenu.add_command(label="Future Implementation 2")
-        file_submenu.add_command(label="Future Implementation 3")
-        filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
+        # file_submenu.add_command(label="Future Implementation 1")
+        # file_submenu.add_command(label="Future Implementation 2")
+        # file_submenu.add_command(label="Future Implementation 3")
+        # filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
         filemenu.add_command(label="Check App Updates", underline=0, command=self.check_app_update)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
@@ -530,81 +578,83 @@ class App:
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def get_acq_state(self):
-        # self.update_addr_inApp()
-        try:
-            rm = visa.ResourceManager()
-            # print("try RM in [get_acq_state]")
+        if self.pause_get_status_thread == False:
             try:
-                scope = rm.open_resource(self.target_gpib_address.get())
-                idn_query = scope.query('*IDN?')
-                series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
-                series = series.split(',')[1]
-                self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
-                self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
-                # print("self.ch_available->", self.ch_available)
-                idn_splited = idn_query.rstrip().split(',')
-                idn_title = idn_splited[0] + ", " + idn_splited[1]
-                Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
-                self.master.title(Text)
-                # print("idn===", idn_query)
-                # print("scope_series===", self.scope_series)
-                if self.scope_series == 1:
-                    self.chkbox_fastacq["state"] = "disabled"
-                else:
-                    self.chkbox_fastacq["state"] = "normal"
-                self.visa_error_retry_counter = 0
-                if self.ch_available == 2:
-                    self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                    self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                    self.sel_ch3_var_bool.set(value=0)
-                    self.sel_ch4_var_bool.set(value=0)
-                    self.btn_ch3_up["state"] = "disabled"
-                    self.btn_ch3_down["state"] = "disabled"
-                    self.btn_ch4_up["state"] = "disabled"
-                    self.btn_ch4_down["state"] = "disabled"
-                else:
-                    self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                    self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                    self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
-                    self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
-                acq_state = int(scope.query('ACQuire:STATE?').rstrip())
-                acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
-                # print("scope acq state=", acq_state)
-                self.acq_state_var_bool.set(acq_state)
-                self.status_var.set("Acquisition#" + str(acq_num))
-                self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
-                # orig_color = self.chkbox_fastacq.cget("background")
-                if self.fastacq_var_bool.get():
-                    self.chkbox_fastacq.configure(fg="Purple2")
-                else:
-                    self.chkbox_fastacq.configure(fg="black")
-                # Persistence---checked on DPO4104B
-                if (self.scope_series > 1) and (self.scope_series < 5):
-                    if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
-                        self.persistence_var_bool.set(0)
+                rm = visa.ResourceManager()
+                # print("try RM in [get_acq_state]")
+                try:
+                    scope = rm.open_resource(self.target_gpib_address.get())
+                    idn_query = scope.query('*IDN?')
+                    series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
+                    series = series.split(',')[1]
+                    self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
+                    self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
+                    # print("self.ch_available->", self.ch_available)
+                    idn_splited = idn_query.rstrip().split(',')
+                    idn_title = idn_splited[0] + ", " + idn_splited[1]
+                    Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
+                    self.master.title(Text)
+                    # print("idn===", idn_query)
+                    # print("scope_series===", self.scope_series)
+                    if self.scope_series == 1:
+                        self.chkbox_fastacq["state"] = "disabled"
                     else:
-                        self.persistence_var_bool.set(1)
-                else:
-                    if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
-                        self.persistence_var_bool.set(0)
+                        self.chkbox_fastacq["state"] = "normal"
+                    self.visa_error_retry_counter = 0
+                    if self.ch_available == 2:
+                        self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                        self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                        self.sel_ch3_var_bool.set(value=0)
+                        self.sel_ch4_var_bool.set(value=0)
+                        self.btn_ch3_up["state"] = "disabled"
+                        self.btn_ch3_down["state"] = "disabled"
+                        self.btn_ch4_up["state"] = "disabled"
+                        self.btn_ch4_down["state"] = "disabled"
                     else:
-                        self.persistence_var_bool.set(1)
-                if self.acq_state_var_bool.get() == True:
-                    self.btn_RunStop.configure(fg="green4")
-                elif self.acq_state_var_bool.get() == False:
-                    self.btn_RunStop.configure(fg="black")
-                else:
-                    # print("Cannot get Acq state")
-                    self.status_var.set("Cannot get Acq state")
-                scope.close()
-            except Exception as e:
-                print("get_acq_state->", e)
-            rm.close()
-            # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
-        except Exception:
-            # self.status_var.set("Connection issue! Retrying...")
-            # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
-            print("Cannot get Acq status-VISA driver Error")
+                        self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                        self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                        self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
+                        self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
+                    acq_state = int(scope.query('ACQuire:STATE?').rstrip())
+                    acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
+                    # print("scope acq state=", acq_state)
+                    self.acq_state_var_bool.set(acq_state)
+                    self.status_var.set("Acquisition#" + str(acq_num))
+                    self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
+                    # orig_color = self.chkbox_fastacq.cget("background")
+                    if self.fastacq_var_bool.get():
+                        self.chkbox_fastacq.configure(fg="Purple2")
+                    else:
+                        self.chkbox_fastacq.configure(fg="black")
+                    # Persistence---checked on DPO4104B
+                    if (self.scope_series > 1) and (self.scope_series < 5):
+                        if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
+                            self.persistence_var_bool.set(0)
+                        else:
+                            self.persistence_var_bool.set(1)
+                    else:
+                        if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
+                            self.persistence_var_bool.set(0)
+                        else:
+                            self.persistence_var_bool.set(1)
+                    if self.acq_state_var_bool.get() == True:
+                        self.btn_RunStop.configure(fg="green4")
+                    elif self.acq_state_var_bool.get() == False:
+                        self.btn_RunStop.configure(fg="black")
+                    else:
+                        # print("Cannot get Acq state")
+                        self.status_var.set("Cannot get Acq state")
+                    scope.close()
+                except Exception as e:
+                    print("get_acq_state->", e)
+                rm.close()
+                # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
+            except Exception:
+                # self.status_var.set("Connection issue! Retrying...")
+                # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
+                print("Cannot get Acq status-VISA driver Error")
+        else:
+            pass
 
     def get_scope_info(self):
         self.update_addr_inApp()
@@ -637,6 +687,54 @@ class App:
             self.appTitleText = "KW Scope Capture" + str(self.app_version) + "  [VISA driver Error]!"
             self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
+
+    # def mouse_wheel_pos(self, event):
+    #     self.pause_get_status_thread = True
+    #     # respond to Linux or Windows wheel event
+    #     if (event.num == 5 or event.delta == -120) and self.ch1_pos > -4.9:
+    #         self.ch1_pos -= 0.1
+    #     if (event.num == 4 or event.delta == 120) and self.ch1_pos < 4.9:
+    #         self.ch1_pos += 0.1
+    #     self.ch_adjust_pos(pos=self.ch1_pos)
+    #     self.label_pos_ch1['text'] = "Pos:" + str(float("{:.2f}".format(self.ch1_pos)))
+    #     print(self.ch1_pos)
+    #     self.pause_get_status_thread = False
+    #
+    # def mouse_wheel_offset(self, event):
+    #     self.pause_get_status_thread = True
+    #     # respond to Linux or Windows wheel event
+    #     if (event.num == 5 or event.delta == -120) and self.ch1_offset > -4.96:
+    #         self.ch1_offset -= 0.04
+    #     if (event.num == 4 or event.delta == 120) and self.ch1_offset < 4.96:
+    #         self.ch1_offset += 0.04
+    #     self.ch_adjust_offset(offset=self.ch1_offset)
+    #     self.label_offs_ch1['text'] = "Offset:" + str(float("{:.2f}".format(self.ch1_offset)))
+    #     print(self.ch1_offset)
+    #     self.pause_get_status_thread = False
+    #
+    def ch_adjust_pos(self):
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch1_pos_cmd = "CH1:POS " + str(self.spinbox_pos_ch1.get())
+                scope.write(ch1_pos_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+    #
+    # def ch_adjust_offset(self, offset=0.0):
+    #     try:
+    #         rm = visa.ResourceManager()
+    #         with rm.open_resource(self.target_gpib_address.get()) as scope:
+    #             ch1_offset_cmd = "CH1:OFFS " + str(offset)
+    #             scope.write(ch1_offset_cmd)
+    #         scope.close()
+    #         rm.close()
+    #     except Exception as e:
+    #         self.status_var.set(e)
+
+
 
     def get_default_filename(self):
         # self.update_addr_inApp()
