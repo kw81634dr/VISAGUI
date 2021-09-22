@@ -27,11 +27,17 @@ class mySpinbox(tk.Spinbox):
         self.bind('<MouseWheel>', self.mouseWheel)
         self.bind('<Button-4>', self.mouseWheel)
         self.bind('<Button-5>', self.mouseWheel)
+        self.bind('<Return>', self.returnKeyPressed)
+
+    def returnKeyPressed(self, event):
+        print("Return pressed in mySpinbox")
+        self.invoke('buttondown')
+        self.invoke('buttonup')
 
     def mouseWheel(self, event):
-        if event.num == 5 or event.delta == -120:
+        if event.num == 5 or event.delta < 0:
             self.invoke('buttondown')
-        elif event.num == 4 or event.delta == 120:
+        elif event.num == 4 or event.delta > 0:
             self.invoke('buttonup')
 
 class WindowGPIBScanner:
@@ -150,7 +156,7 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = 1.9
+        self.app_version = 2.0
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
@@ -185,7 +191,7 @@ class App:
 
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
-        self.scope_series = 0
+        self.scope_series_num = 0
         self.ch_available = 1
         self.dt = datetime.now()
         self.visa_timeout_duration = 10000  # in ms
@@ -193,6 +199,13 @@ class App:
 
         self.ch1_pos = DoubleVar(value=0.0)
         self.ch1_offset = DoubleVar(value=0.0)
+        self.ch2_pos = DoubleVar(value=0.0)
+        self.ch2_offset = DoubleVar(value=0.0)
+        self.ch3_pos = DoubleVar(value=0.0)
+        self.ch3_offset = DoubleVar(value=0.0)
+        self.ch4_pos = DoubleVar(value=0.0)
+        self.ch4_offset = DoubleVar(value=0.0)
+
         self.pause_get_status_thread = False
 
         # self.frame.columnconfigure(0, pad=3)
@@ -262,64 +275,90 @@ class App:
         # --------------row 4
         # ▼▲▶◀↶⤾⟲
         # color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
-        self.labelFr_ch1 = tk.LabelFrame(self.frame, text="CH1 Scale")
+        self.labelFr_ch1 = tk.LabelFrame(self.frame, text="CH1")
         self.labelFr_ch1.grid(row=4, column=1, padx=3)
-        self.labelFr_ch2 = tk.LabelFrame(self.frame, text="CH2 Scale")
+        self.labelFr_ch2 = tk.LabelFrame(self.frame, text="CH2")
         self.labelFr_ch2.grid(row=4, column=4, padx=3)
-        self.labelFr_ch3 = tk.LabelFrame(self.frame, text="CH3 Scale")
+        self.labelFr_ch3 = tk.LabelFrame(self.frame, text="CH3")
         self.labelFr_ch3.grid(row=4, column=7, padx=3)
-        self.labelFr_ch4 = tk.LabelFrame(self.frame, text="CH4 Scale")
+        self.labelFr_ch4 = tk.LabelFrame(self.frame, text="CH4")
         self.labelFr_ch4.grid(row=4, column=10, padx=3)
 
-        self.label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Pos")
-        self.label_pos_ch1.grid(row=4, column=1, padx=0, pady=2, sticky='w')
-        self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, text="Pos:", from_=-5, to=5, increment=.04,
-                                         command=self.ch_adjust_pos, width=5, textvariable=None)
-        self.spinbox_pos_ch1.grid(row=4, column=1, padx=1, pady=2, sticky='e')
-        # self.label_pos_ch1.bind("<MouseWheel>", self.mouse_wheel_pos)
-        # self.label_pos_ch1.bind("<Button-4>", self.mouse_wheel_pos)
-        # self.label_pos_ch1.bind("<Button-5>", self.mouse_wheel_pos)
+        #ch1 labelFrame
+        label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Position")
+        label_pos_ch1.grid(row=4, column=1, padx=0, pady=2, sticky='w')
+        self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, from_=-5, to=5, increment=.08, justify=tk.CENTER,
+                                         command=self.ch1_adjust_pos, width=7, textvariable=str(self.ch1_pos),
+                                         takefocus=True)
+        self.spinbox_pos_ch1.grid(row=4, column=2, padx=1, pady=2, sticky='w')
+        label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset(V)", command=None)
+        label_offs_ch1.grid(row=5, column=1, padx=0, pady=2, sticky='w')
+        self.spinbox_offset_ch1 = mySpinbox(self.labelFr_ch1, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
+                                         command=self.ch1_adjust_offset, width=7, textvariable=str(self.ch1_offset),
+                                         takefocus=True)
+        self.spinbox_offset_ch1.grid(row=5, column=2, padx=1, pady=2, sticky='e')
 
-        self.label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset: 900 mv", command=None)
-        self.label_offs_ch1.grid(row=5, column=1, padx=0, pady=2, sticky='w')
-        # self.label_offs_ch1.bind("<MouseWheel>", self.mouse_wheel_offset)
-        # self.label_offs_ch1.bind("<Button-4>", self.mouse_wheel_offset)
-        # self.label_offs_ch1.bind("<Button-5>", self.mouse_wheel_offset)
+        # ch2 labelFrame
+        label_pos_ch2 = tk.Label(self.labelFr_ch2, text="Position")
+        label_pos_ch2.grid(row=4, column=5, padx=0, pady=2, sticky='w')
+        self.spinbox_pos_ch2 = mySpinbox(self.labelFr_ch2, from_=-5, to=5, increment=.08, justify=tk.CENTER,
+                                         command=self.ch2_adjust_pos, width=7, textvariable=str(self.ch2_pos),
+                                         takefocus=True)
+        self.spinbox_pos_ch2.grid(row=4, column=6, padx=1, pady=2, sticky='w')
+        label_offs_ch2 = tk.Label(self.labelFr_ch2, text="Offset(V)", command=None)
+        label_offs_ch2.grid(row=5, column=5, padx=0, pady=2, sticky='w')
+        self.spinbox_offset_ch2 = mySpinbox(self.labelFr_ch2, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
+                                            command=self.ch2_adjust_offset, width=7, textvariable=str(self.ch2_offset),
+                                            takefocus=True)
+        self.spinbox_offset_ch2.grid(row=5, column=6, padx=1, pady=2, sticky='e')
 
-        self.label_pos_ch2 = tk.Label(self.labelFr_ch2, text="Pos: 1.64 div", command=None)
-        self.label_pos_ch2.grid(row=4, column=5, padx=0, pady=2, sticky='w')
-        self.label_offs_ch2 = tk.Label(self.labelFr_ch2, text="Offset: 900 mv", command=None)
-        self.label_offs_ch2.grid(row=5, column=5, padx=0, pady=2, sticky='w')
+        # ch3 labelFrame
+        label_pos_ch3 = tk.Label(self.labelFr_ch3, text="Position")
+        label_pos_ch3.grid(row=4, column=8, padx=0, pady=2, sticky='w')
+        self.spinbox_pos_ch3 = mySpinbox(self.labelFr_ch3, from_=-5, to=5, increment=.08, justify=tk.CENTER,
+                                         command=self.ch3_adjust_pos, width=7, textvariable=str(self.ch3_pos),
+                                         takefocus=True)
+        self.spinbox_pos_ch3.grid(row=4, column=9, padx=1, pady=2, sticky='w')
+        label_offs_ch3 = tk.Label(self.labelFr_ch3, text="Offset(V)", command=None)
+        label_offs_ch3.grid(row=5, column=8, padx=0, pady=2, sticky='w')
+        self.spinbox_offset_ch3 = mySpinbox(self.labelFr_ch3, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
+                                            command=self.ch3_adjust_offset, width=7, textvariable=str(self.ch3_offset),
+                                            takefocus=True)
+        self.spinbox_offset_ch3.grid(row=5, column=9, padx=1, pady=2, sticky='e')
 
-        self.label_pos_ch3 = tk.Label(self.labelFr_ch3, text="Pos: 1.64 div", command=None)
-        self.label_pos_ch3.grid(row=4, column=8, padx=0, pady=2, sticky='w')
-        self.label_offs_ch3 = tk.Label(self.labelFr_ch3, text="Offset: 900 mv", command=None)
-        self.label_offs_ch3.grid(row=5, column=8, padx=0, pady=2, sticky='w')
-
-        self.label_pos_ch4 = tk.Label(self.labelFr_ch4, text="Pos: 1.64 div", command=None)
-        self.label_pos_ch4.grid(row=4, column=11, padx=0, pady=2, sticky='w')
-        self.label_offs_ch4 = tk.Label(self.labelFr_ch4, text="Offset: 900 mv", command=None)
-        self.label_offs_ch4.grid(row=5, column=11, padx=0, pady=2, sticky='w')
+        # ch4 labelFrame
+        label_pos_ch4 = tk.Label(self.labelFr_ch4, text="Position")
+        label_pos_ch4.grid(row=4, column=11, padx=0, pady=2, sticky='w')
+        self.spinbox_pos_ch4 = mySpinbox(self.labelFr_ch4, from_=-5, to=5, increment=.08, justify=tk.CENTER,
+                                         command=self.ch4_adjust_pos, width=7, textvariable=str(self.ch4_pos),
+                                         takefocus=True)
+        self.spinbox_pos_ch4.grid(row=4, column=12, padx=1, pady=2, sticky='w')
+        label_offs_ch4 = tk.Label(self.labelFr_ch4, text="Offset(V)", command=None)
+        label_offs_ch4.grid(row=5, column=11, padx=0, pady=2, sticky='w')
+        self.spinbox_offset_ch4 = mySpinbox(self.labelFr_ch4, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
+                                            command=self.ch4_adjust_offset, width=7, textvariable=str(self.ch4_offset),
+                                            takefocus=True)
+        self.spinbox_offset_ch4.grid(row=5, column=12, padx=1, pady=2, sticky='e')
 
         self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=self.scope_ch1_scale_up)
-        self.btn_ch1_up.grid(row=4, column=2, padx=0, pady=2)
+        self.btn_ch1_up.grid(row=4, column=3, padx=0, pady=2)
         self.btn_ch1_down = tk.Button(self.labelFr_ch1, text="▼", command=self.scope_ch1_scale_down)
-        self.btn_ch1_down.grid(row=5, column=2, padx=0, pady=2)
+        self.btn_ch1_down.grid(row=5, column=3, padx=0, pady=2)
 
         self.btn_ch2_up = tk.Button(self.labelFr_ch2, text="▲", command=self.scope_ch2_scale_up)
-        self.btn_ch2_up.grid(row=4, column=6, padx=0, pady=2)
+        self.btn_ch2_up.grid(row=4, column=7, padx=0, pady=2)
         self.btn_ch2_down = tk.Button(self.labelFr_ch2, text="▼", command=self.scope_ch2_scale_down)
-        self.btn_ch2_down.grid(row=5, column=6, padx=0, pady=2)
+        self.btn_ch2_down.grid(row=5, column=7, padx=0, pady=2)
 
         self.btn_ch3_up = tk.Button(self.labelFr_ch3, text="▲", command=self.scope_ch3_scale_up)
-        self.btn_ch3_up.grid(row=4, column=9, padx=0, pady=2)
+        self.btn_ch3_up.grid(row=4, column=10, padx=0, pady=2)
         self.btn_ch3_down = tk.Button(self.labelFr_ch3, text="▼", command=self.scope_ch3_scale_down)
-        self.btn_ch3_down.grid(row=5, column=9, padx=0, pady=2)
+        self.btn_ch3_down.grid(row=5, column=10, padx=0, pady=2)
 
         self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=4, column=12, padx=0, pady=2)
+        self.btn_ch4_up.grid(row=4, column=13, padx=0, pady=2)
         self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=5, column=12, padx=0, pady=2)
+        self.btn_ch4_down.grid(row=5, column=13, padx=0, pady=2)
 
         # --------------row 5
         # self.chkbox_cursor = tk.Checkbutton(self.frame, text='Cursor',
@@ -340,13 +379,13 @@ class App:
         # self.radiobtn_cur_screen.grid(row=5, column=8, padx=0, pady=2, columnspan=2)
 
         # --------------row 6
-        self.btn_capture = tk.Button(self.frame, text=" ScreenShot(⮐) ", command=self.btn_capture_clicked)
+        self.btn_capture = tk.Button(self.frame, text=" Take ScreenShot ", command=self.btn_capture_clicked)
         self.btn_capture.grid(row=6, column=1, padx=3, pady=6, columnspan=3)
-        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop(Ctrl⮐)", command=self.btn_runstop_clicked)
+        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl⮐)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=6, column=3, padx=3, pady=6, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
         self.btn_Single.grid(row=6, column=7, padx=3, pady=6, columnspan=2)
-        self.btn_Clear = tk.Button(self.frame, text="Clear(Ctrl+Del)", command=self.btn_clear_clicked)
+        self.btn_Clear = tk.Button(self.frame, text="Clear (Ctrl+Del)", command=self.btn_clear_clicked)
         self.btn_Clear.grid(row=6, column=8, padx=3, pady=6, columnspan=3)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
@@ -474,6 +513,10 @@ class App:
         self.update_scope_thread = threading.Thread(target=self.task_update_device_state, daemon=True)
         self.update_scope_thread.start()
 
+    def validate_spinbox(self, new_value):
+        # Returning True allows the edit to happen, False prevents it.
+        return new_value.isdigit()
+
     def task_update_device_state(self):
         while 1:
             if WindowGPIBScanner.isOktoUpdateState:
@@ -482,7 +525,7 @@ class App:
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
-                    time.sleep(0.5)
+                    time.sleep(0.4)
                 except:
                     pass
         # messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
@@ -578,25 +621,24 @@ class App:
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def get_acq_state(self):
-        if self.pause_get_status_thread == False:
+        focused_obj = self.frame.focus_get()
+        if not self.pause_get_status_thread:
             try:
                 rm = visa.ResourceManager()
-                # print("try RM in [get_acq_state]")
                 try:
-                    scope = rm.open_resource(self.target_gpib_address.get())
+                    scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
                     idn_query = scope.query('*IDN?')
                     series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
                     series = series.split(',')[1]
-                    self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
+                    self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
                     self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
                     # print("self.ch_available->", self.ch_available)
                     idn_splited = idn_query.rstrip().split(',')
                     idn_title = idn_splited[0] + ", " + idn_splited[1]
                     Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
                     self.master.title(Text)
-                    # print("idn===", idn_query)
-                    # print("scope_series===", self.scope_series)
-                    if self.scope_series == 1:
+
+                    if self.scope_series_num == 1:
                         self.chkbox_fastacq["state"] = "disabled"
                     else:
                         self.chkbox_fastacq["state"] = "normal"
@@ -610,11 +652,84 @@ class App:
                         self.btn_ch3_down["state"] = "disabled"
                         self.btn_ch4_up["state"] = "disabled"
                         self.btn_ch4_down["state"] = "disabled"
+                        self.spinbox_pos_ch3['state'] = 'disabled'
+                        self.spinbox_offset_ch3['state'] = 'disabled'
+                        self.spinbox_pos_ch4['state'] = 'disabled'
+                        self.spinbox_offset_ch4['state'] = 'disabled'
+                        self.labelFr_ch3['text'] = 'Ch3 Unavailable'
+                        self.labelFr_ch4['text'] = 'Ch4 Unavailable'
+                        # ch1_pos_offset
+                        if (focused_obj != self.spinbox_offset_ch1) and (self.sel_ch1_var_bool.get()):
+                            self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                        if (focused_obj != self.spinbox_pos_ch1) and (self.sel_ch1_var_bool.get()):
+                            self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
+                        # ch2_pos_offset
+                        if (focused_obj != self.spinbox_offset_ch2) and (self.sel_ch2_var_bool.get()):
+                            self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
+                        if (focused_obj != self.spinbox_pos_ch2) and (self.sel_ch2_var_bool.get()):
+                            self.ch2_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
                     else:
                         self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
                         self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
                         self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
                         self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
+
+                        # ch1_pos_offset
+                        if self.sel_ch1_var_bool.get():
+                            self.labelFr_ch1['text'] = 'CH1 ON'
+                            self.spinbox_pos_ch1['state'] = 'normal'
+                            self.spinbox_offset_ch1['state'] = 'normal'
+                            if focused_obj != self.spinbox_offset_ch1:
+                                self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                            if focused_obj != self.spinbox_pos_ch1:
+                                self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
+                        else:
+                            self.labelFr_ch1['text'] = 'CH1 OFF'
+                            self.spinbox_pos_ch1['state'] = 'disabled'
+                            self.spinbox_offset_ch1['state'] = 'disabled'
+
+                        # ch2_pos_offset
+                        if self.sel_ch2_var_bool.get():
+                            self.labelFr_ch2['text'] = 'CH2 ON'
+                            self.spinbox_pos_ch2['state'] = 'normal'
+                            self.spinbox_offset_ch2['state'] = 'normal'
+                            if focused_obj != self.spinbox_offset_ch2:
+                                self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
+                            if focused_obj != self.spinbox_pos_ch2:
+                                self.ch2_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
+                        else:
+                            self.labelFr_ch2['text'] = 'CH2 OFF'
+                            self.spinbox_pos_ch2['state'] = 'disabled'
+                            self.spinbox_offset_ch2['state'] = 'disabled'
+
+                        # ch3_pos_offset
+                        if self.sel_ch3_var_bool.get():
+                            self.labelFr_ch3['text'] = 'CH3 ON'
+                            self.spinbox_pos_ch3['state'] = 'normal'
+                            self.spinbox_offset_ch3['state'] = 'normal'
+                            if focused_obj != self.spinbox_offset_ch3:
+                                self.ch3_offset.set(value=float(scope.query('CH3:OFFS?').rstrip()))
+                            if focused_obj != self.spinbox_pos_ch3:
+                                self.ch3_pos.set(value=float(scope.query('CH3:POS?').rstrip()))
+                        else:
+                            self.labelFr_ch3['text'] = 'CH3 OFF'
+                            self.spinbox_pos_ch3['state'] = 'disabled'
+                            self.spinbox_offset_ch3['state'] = 'disabled'
+
+                        # ch4_pos_offset
+                        if self.sel_ch4_var_bool.get():
+                            self.labelFr_ch4['text'] = 'CH4 ON'
+                            self.spinbox_pos_ch4['state'] = 'normal'
+                            self.spinbox_offset_ch4['state'] = 'normal'
+                            if focused_obj != self.spinbox_offset_ch4:
+                                self.ch4_offset.set(value=float(scope.query('CH4:OFFS?').rstrip()))
+                            if focused_obj != self.spinbox_pos_ch4:
+                                self.ch4_pos.set(value=float(scope.query('CH4:POS?').rstrip()))
+                        else:
+                            self.labelFr_ch4['text'] = 'CH4 OFF'
+                            self.spinbox_pos_ch4['state'] = 'disabled'
+                            self.spinbox_offset_ch4['state'] = 'disabled'
+
                     acq_state = int(scope.query('ACQuire:STATE?').rstrip())
                     acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
                     # print("scope acq state=", acq_state)
@@ -627,7 +742,7 @@ class App:
                     else:
                         self.chkbox_fastacq.configure(fg="black")
                     # Persistence---checked on DPO4104B
-                    if (self.scope_series > 1) and (self.scope_series < 5):
+                    if (self.scope_series_num > 1) and (self.scope_series_num < 5):
                         if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
                             self.persistence_var_bool.set(0)
                         else:
@@ -665,7 +780,7 @@ class App:
                     idn_query = scope.query('*IDN?')
                     series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
                     series = series.split(',')[1]
-                    self.scope_series = int(re.sub(r"[aA-zZ]", "", series)[0])
+                    self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
                     self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
                     idn_splited = idn_query.rstrip().split(',')
                     idn_title = idn_splited[0] + ", " + idn_splited[1]
@@ -688,31 +803,8 @@ class App:
             self.master.title(self.appTitleText)
             print("Cannot get scope info-VISA driver Error")
 
-    # def mouse_wheel_pos(self, event):
-    #     self.pause_get_status_thread = True
-    #     # respond to Linux or Windows wheel event
-    #     if (event.num == 5 or event.delta == -120) and self.ch1_pos > -4.9:
-    #         self.ch1_pos -= 0.1
-    #     if (event.num == 4 or event.delta == 120) and self.ch1_pos < 4.9:
-    #         self.ch1_pos += 0.1
-    #     self.ch_adjust_pos(pos=self.ch1_pos)
-    #     self.label_pos_ch1['text'] = "Pos:" + str(float("{:.2f}".format(self.ch1_pos)))
-    #     print(self.ch1_pos)
-    #     self.pause_get_status_thread = False
-    #
-    # def mouse_wheel_offset(self, event):
-    #     self.pause_get_status_thread = True
-    #     # respond to Linux or Windows wheel event
-    #     if (event.num == 5 or event.delta == -120) and self.ch1_offset > -4.96:
-    #         self.ch1_offset -= 0.04
-    #     if (event.num == 4 or event.delta == 120) and self.ch1_offset < 4.96:
-    #         self.ch1_offset += 0.04
-    #     self.ch_adjust_offset(offset=self.ch1_offset)
-    #     self.label_offs_ch1['text'] = "Offset:" + str(float("{:.2f}".format(self.ch1_offset)))
-    #     print(self.ch1_offset)
-    #     self.pause_get_status_thread = False
-    #
-    def ch_adjust_pos(self):
+    def ch1_adjust_pos(self):
+        self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
@@ -722,19 +814,98 @@ class App:
             rm.close()
         except Exception as e:
             print(e)
-    #
-    # def ch_adjust_offset(self, offset=0.0):
-    #     try:
-    #         rm = visa.ResourceManager()
-    #         with rm.open_resource(self.target_gpib_address.get()) as scope:
-    #             ch1_offset_cmd = "CH1:OFFS " + str(offset)
-    #             scope.write(ch1_offset_cmd)
-    #         scope.close()
-    #         rm.close()
-    #     except Exception as e:
-    #         self.status_var.set(e)
+        self.pause_get_status_thread = False
 
+    def ch1_adjust_offset(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch1_offset_cmd = "CH1:OFFS " + str(self.spinbox_offset_ch1.get())
+                scope.write(ch1_offset_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
 
+    def ch2_adjust_pos(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch2_pos_cmd = "CH2:POS " + str(self.spinbox_pos_ch2.get())
+                scope.write(ch2_pos_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
+
+    def ch2_adjust_offset(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch2_offset_cmd = "CH2:OFFS " + str(self.spinbox_offset_ch2.get())
+                scope.write(ch2_offset_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
+
+    def ch3_adjust_pos(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch3_pos_cmd = "CH3:POS " + str(self.spinbox_pos_ch3.get())
+                scope.write(ch3_pos_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
+
+    def ch3_adjust_offset(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch3_offset_cmd = "CH3:OFFS " + str(self.spinbox_offset_ch3.get())
+                scope.write(ch3_offset_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
+
+    def ch4_adjust_pos(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch4_pos_cmd = "CH4:POS " + str(self.spinbox_pos_ch4.get())
+                scope.write(ch4_pos_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
+
+    def ch4_adjust_offset(self):
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                ch4_offset_cmd = "CH4:OFFS " + str(self.spinbox_offset_ch4.get())
+                scope.write(ch4_offset_cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
 
     def get_default_filename(self):
         # self.update_addr_inApp()
@@ -761,7 +932,7 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
-                if self.scope_series < 5:
+                if self.scope_series_num < 5:
                     # test DPO2024B, DPO4104 OK
                     print("<5 series Scrshot")
                     scope.write("HARDCOPY:FORMat PNG")
@@ -1222,20 +1393,20 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.persistence_var_bool.get():
                     # TBS1000 series
-                    if self.scope_series == 1:
+                    if self.scope_series_num == 1:
                         scope.write('DISplay:PERSistence INF')
                     # 234 series
-                    elif (self.scope_series > 1) and (self.scope_series < 5):
+                    elif (self.scope_series_num > 1) and (self.scope_series_num < 5):
                         scope.write('DISplay:PERSistence INFInite')
                     # 5000,7000 series
                     else:
                         scope.write('DISplay:PERSistence INFPersist')
                 else:
                     # TBS1000 series
-                    if self.scope_series == 1:
+                    if self.scope_series_num == 1:
                         scope.write('DISplay:PERSistence OFF')
                     # 234 series
-                    elif (self.scope_series > 1) and (self.scope_series < 5):
+                    elif (self.scope_series_num > 1) and (self.scope_series_num < 5):
                         scope.write('DISplay:PERSistence MINImum')
                         scope.write('DISplay:PERSistence CLEAR')
                     # 5000,7000 series
@@ -1385,7 +1556,8 @@ def mainApp():
     # NEED a better way to fix the delete of filename and cannot Paste by Ctrl+V bug.
     # root.bind("<Control_L>", lambda i: app.frame.focus_set())
     root.bind("<Control_R>", lambda i: app.frame.focus_set())
-    root.bind("<Return>", app.btn_capture_clicked)
+    # root.bind("<Return>", app.btn_capture_clicked)
+    # root.bind("<Return>", lambda i: app.frame.focus_set())
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
     root.bind("<Control-Left>", app.horizontal_zoom_out)
