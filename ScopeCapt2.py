@@ -1174,7 +1174,7 @@ class App:
                 if self.closest_index > 1:
                     self.target_index = self.closest_index - 1
                     scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
-                    scope.write('HORizontal:RESOlution 2e5')
+                    scope.write('HORizontal:RESOlution 1e5')    # set resolution to 100k
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
