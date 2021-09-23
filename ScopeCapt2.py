@@ -1105,7 +1105,7 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 # scope.write('TRIGger:B SETLevel')
-                if self.trig_ch.get()[0:3] == '1':
+                if self.trig_ch.get() == '1':
                     scope.write('TRIGGER:A:EDGE:SOURCE CH1')
                 elif self.trig_ch.get() == '2':
                     scope.write('TRIGGER:A:EDGE:SOURCE CH2')
