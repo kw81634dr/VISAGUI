@@ -958,9 +958,9 @@ class App:
                     font_thickness = 1
                     text = self.filename_var.get()
                     height, width, depth = I_cv2.shape
-                    cv2.rectangle(I_cv2, (width - width + 677, height - height), (width, height - height + 31),
+                    cv2.rectangle(I_cv2, (width - width + 640, height - height), (width, height - height + 31),
                                   (0, 0, 0), -1)
-                    img_text = cv2.putText(I_cv2, text, (width - width + 677, height - height + 20), font,
+                    img_text = cv2.putText(I_cv2, text, (width - width + 640, height - height + 20), font,
                                            font_size, font_color, font_thickness,
                                            cv2.LINE_AA)
                     outputImage = img_text
