@@ -184,7 +184,7 @@ class App:
         self.addTextOverlay_var_bool = IntVar(value=0)
         self.path_var = tk.StringVar()
         self.path_var.set(os.getcwd())
-        self.filename_var.set('ScrShot')
+        self.filename_var.set('Name_File_Here')
 
         self.use_inkSaver_var_bool = IntVar(value=0)
         self.cursor_mode = IntVar(value=0)
@@ -215,8 +215,8 @@ class App:
         # --------------row 0
         blanklabel1 = tk.Label(self.frame, text=" ")
         blanklabel1.grid(row=0, column=0, sticky='W', pady=1)
-        label_entry_dir = tk.Label(self.frame, text="Save to Folder")
-        label_entry_dir.grid(row=0, column=1, sticky='W', pady=1)
+        label_entry_dir = tk.Label(self.frame, text="Save to :")
+        label_entry_dir.grid(row=0, column=1, sticky='W', pady=0)
 
         # --------------row 1
         blanklabel2 = tk.Label(self.frame, text=" ")
@@ -224,19 +224,19 @@ class App:
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
         self.E_dir.grid(row=1, column=1, columnspan=12, sticky='we', pady=3)
         blanklabel3 = tk.Label(self.frame, text=" ")
-        blanklabel3.grid(row=1, column=11, sticky='e', pady=1)
+        blanklabel3.grid(row=1, column=14, sticky='e', pady=0)
         btn_prompt_dir = tk.Button(self.frame, text="Prompt ", command=self.prompt_path)
         btn_prompt_dir.grid(row=0, column=10, padx=5, pady=1, columnspan=3, sticky='e')
 
         # --------------row 2
-        label_entry_filename = tk.Label(self.frame, text="File Name")
-        label_entry_filename.grid(row=2, column=1, sticky='W', pady=1)
+        # label_entry_filename = tk.Label(self.frame, text="File Name")
+        # label_entry_filename.grid(row=2, column=1, sticky='W', pady=1)
 
         # --------------row 3
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
-        self.E_filename.grid(row=3, column=1, columnspan=12, sticky='we', pady=3)
+        self.E_filename.grid(row=3, column=1, columnspan=12, sticky='we', pady=5)
         blanklabel4 = tk.Label(self.frame, text=" ")
-        blanklabel4.grid(row=3, column=11, sticky='e', pady=1)
+        blanklabel4.grid(row=3, column=14, sticky='e', pady=0)
 
         self.labelFr_trig = tk.LabelFrame(self.frame, text="Trigger CH")
         self.labelFr_trig.grid(row=4, column=5, padx=5, columnspan=3, pady=0, sticky='w')
@@ -669,8 +669,8 @@ class App:
 
                         self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
                         self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        self.labelFr_ch1['text'] = 'CH1 ON' if self.sel_ch1_var_bool.get() else 'CH1 OFF'
-                        self.labelFr_ch2['text'] = 'CH2 ON' if self.sel_ch2_var_bool.get() else 'CH2 OFF'
+                        self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
+                        self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
 
                     else:
                         self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
@@ -710,10 +710,10 @@ class App:
                     # self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
                     # self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
                     # self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    self.labelFr_ch1['text'] = 'CH1 ON' if self.sel_ch1_var_bool.get() else 'CH1 OFF'
-                    self.labelFr_ch2['text'] = 'CH2 ON' if self.sel_ch2_var_bool.get() else 'CH2 OFF'
-                    self.labelFr_ch3['text'] = 'CH3 ON' if self.sel_ch3_var_bool.get() else 'CH3 OFF'
-                    self.labelFr_ch4['text'] = 'CH4 ON' if self.sel_ch4_var_bool.get() else 'CH4 OFF'
+                    self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
+                    self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
+                    self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
+                    self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
 
                     acq_state = int(scope.query('ACQuire:STATE?').rstrip())
                     acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
