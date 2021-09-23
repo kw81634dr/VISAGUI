@@ -216,7 +216,7 @@ class App:
         blanklabel1 = tk.Label(self.frame, text=" ")
         blanklabel1.grid(row=0, column=0, sticky='W', pady=1)
         label_entry_dir = tk.Label(self.frame, text="Save to Folder")
-        label_entry_dir.grid(row=0, column=1, sticky='W', pady=3)
+        label_entry_dir.grid(row=0, column=1, sticky='W', pady=1)
 
         # --------------row 1
         blanklabel2 = tk.Label(self.frame, text=" ")
@@ -230,7 +230,7 @@ class App:
 
         # --------------row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
-        label_entry_filename.grid(row=2, column=1, sticky='W', pady=3)
+        label_entry_filename.grid(row=2, column=1, sticky='W', pady=1)
 
         # --------------row 3
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
@@ -241,13 +241,15 @@ class App:
         self.labelFr_trig = tk.LabelFrame(self.frame, text="Trigger CH")
         self.labelFr_trig.grid(row=4, column=5, padx=5, columnspan=3, pady=0, sticky='w')
 
-        trig_ch_combobox = ttk.Combobox(self.labelFr_trig, state='readonly', textvariable=self.trig_ch, width=1)
-        trig_ch_combobox['values'] = ('1', '2', '3', '4')
-        trig_ch_combobox.grid(row=4, column=5, padx=5, pady=1)
-
-        trig_edge_combobox = ttk.Combobox(self.labelFr_trig, state='readonly', textvariable=self.trig_edge, width=4)
-        trig_edge_combobox['values'] = ('Rise', 'Fall', 'Either')
-        trig_edge_combobox.grid(row=4, column=6, padx=5, pady=1)
+        self.trig_ch_combobox = ttk.Combobox(self.labelFr_trig, state='readonly', textvariable=None, width=1)
+        self.trig_ch_combobox['values'] = ('1', '2', '3', '4')
+        self.trig_ch_combobox.grid(row=4, column=5, padx=5, pady=1)
+        self.trig_ch_combobox.current(0)
+        #
+        self.trig_edge_combobox = ttk.Combobox(self.labelFr_trig, state='readonly', textvariable=None, width=4)
+        self.trig_edge_combobox['values'] = ('Rise', 'Fall', 'Either')
+        self.trig_edge_combobox.grid(row=4, column=6, padx=5, pady=1)
+        self.trig_edge_combobox.current(0)
 
         self.btn_trig50 = tk.Button(self.labelFr_trig, text="Set", command=self.scope_set_trigger_a)
         self.btn_trig50.grid(row=4, column=7, padx=5, pady=1)
@@ -359,7 +361,7 @@ class App:
         # --------------row 7
         self.btn_capture = tk.Button(self.frame, text=" Take ScreenShot ", command=self.btn_capture_clicked)
         self.btn_capture.grid(row=7, column=1, padx=3, pady=6, columnspan=3)
-        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl⮐)", command=self.btn_runstop_clicked)
+        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl+⮐)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=7, column=3, padx=3, pady=6, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
         self.btn_Single.grid(row=7, column=7, padx=3, pady=6, columnspan=2)
@@ -499,13 +501,13 @@ class App:
         while 1:
             if WindowGPIBScanner.isOktoUpdateState:
                 try:
-                    # print("Thread: check for updates")
+                    print("Thread: check for updates")
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
                     time.sleep(0.5)
-                except:
-                    pass
+                except Exception as e:
+                    print("task update state->", e)
         # messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
         #                          + "\nCheck either NI-VISA driver installation or wiring."
         #                          + "\nThen restart this App.")
@@ -599,8 +601,14 @@ class App:
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def get_acq_state(self):
-        focused_obj = self.frame.focus_get()
-        if not self.pause_get_status_thread:
+        focused_obj = None
+        try:
+            focused_obj = self.frame.focus_get()
+            print("focused=", focused_obj)
+        except:
+            pass
+        #and (focused_obj != self.trig_ch_combobox) and (focused_obj != self.trig_edge_combobox):
+        if (not self.pause_get_status_thread):
             try:
                 rm = visa.ResourceManager()
                 try:
@@ -698,10 +706,10 @@ class App:
                             if focused_obj != self.spinbox_pos_ch4:
                                 self.ch4_pos.set(value=float(scope.query('CH4:POS?').rstrip()))
 
-                    self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    # self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    # self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    # self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    # self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
                     self.labelFr_ch1['text'] = 'CH1 ON' if self.sel_ch1_var_bool.get() else 'CH1 OFF'
                     self.labelFr_ch2['text'] = 'CH2 ON' if self.sel_ch2_var_bool.get() else 'CH2 OFF'
                     self.labelFr_ch3['text'] = 'CH3 ON' if self.sel_ch3_var_bool.get() else 'CH3 OFF'
@@ -1103,23 +1111,23 @@ class App:
         print("Into --scope_channel_select--")
         try:
             rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
+            with rm.open_resource(self.target_gpib_address.get(), open_timeout=1) as scope:
                 # scope.write('TRIGger:B SETLevel')
-                if self.trig_ch.get() == '1':
+                if self.trig_ch_combobox.get() == '1':
                     scope.write('TRIGGER:A:EDGE:SOURCE CH1')
-                elif self.trig_ch.get() == '2':
+                elif self.trig_ch_combobox.get() == '2':
                     scope.write('TRIGGER:A:EDGE:SOURCE CH2')
-                elif self.trig_ch.get() == '3':
+                elif self.trig_ch_combobox.get() == '3':
                     scope.write('TRIGGER:A:EDGE:SOURCE CH3')
-                elif self.trig_ch.get() == '4':
+                elif self.trig_ch_combobox.get() == '4':
                     scope.write('TRIGGER:A:EDGE:SOURCE CH4')
                 else:
                     pass
-                if self.trig_edge.get() == 'Rise':
+                if self.trig_edge_combobox.get() == 'Rise':
                     scope.write('TRIGGER:A:EDGE:SLOPE RISE')
-                elif self.trig_edge.get() == 'Fall':
+                elif self.trig_edge_combobox.get() == 'Fall':
                     scope.write('TRIGGER:A:EDGE:SLOPE FALL')
-                elif self.trig_edge.get() == 'Either':
+                elif self.trig_edge_combobox.get() == 'Either':
                     scope.write('TRIGGER:A:EDGE:SLOPE EITher')
                 else:
                     pass
