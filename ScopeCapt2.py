@@ -188,6 +188,10 @@ class App:
 
         self.use_inkSaver_var_bool = IntVar(value=0)
         self.cursor_mode = IntVar(value=0)
+        self.trig_ch = tk.StringVar()
+        self.trig_ch.set('1')
+        self.trig_edge = tk.StringVar()
+        self.trig_edge.set('Rise')
 
         self.overwrite_bool = True
         self.IDN_of_scope.set('')
@@ -195,7 +199,7 @@ class App:
         self.ch_available = 1
         self.dt = datetime.now()
         self.visa_timeout_duration = 10000  # in ms
-        self.visa_error_retry_counter = 0
+        self.offset_err_cnt = 0
 
         self.ch1_pos = DoubleVar(value=0.0)
         self.ch1_offset = DoubleVar(value=0.0)
@@ -208,192 +212,166 @@ class App:
 
         self.pause_get_status_thread = False
 
-        # self.frame.columnconfigure(0, pad=3)
-        # self.frame.columnconfigure(1, pad=3)
-        # self.frame.columnconfigure(2, pad=3)
-        # self.frame.columnconfigure(3, pad=3)
-        #
-        # self.frame.rowconfigure(0, pad=3)
-        # self.frame.rowconfigure(1, pad=3)
-        # self.frame.rowconfigure(2, pad=3)
-        # self.frame.rowconfigure(3, pad=3)
-        # self.frame.rowconfigure(4, pad=3)
-
-        # row 0
-        # label_GPIB_address = tk.Label(self.frame, text="Target")
-        # label_GPIB_address.grid(row=0, column=0)
-        #
-        # Combo = tk.Combobox(self.frame, values=self.GPIB_list)
-        # Combo.set("Pick your device")
-        # Combo.grid(row=0, column=1, columnspan=2)
-        #
-        # btn_scan_gpib = tk.Button(self.frame, text="Scan", command=None)
-        # btn_scan_gpib.grid(row=0, column=3)
-        # btn_connect_gpib = tk.Button(self.frame, text="Connect", command=None)
-        # btn_connect_gpib.grid(row=0, column=4)
-
-        # btn_connect_scope = tk.Button(self.frame, text="Get Scope info", command=self.get_scope_info)
-        # btn_connect_scope.grid(row=0, column=4)
+        # --------------row 0
+        blanklabel1 = tk.Label(self.frame, text=" ")
+        blanklabel1.grid(row=0, column=0, sticky='W', pady=1)
+        label_entry_dir = tk.Label(self.frame, text="Save to Folder")
+        label_entry_dir.grid(row=0, column=1, sticky='W', pady=3)
 
         # --------------row 1
-        label_entry_dir = tk.Label(self.frame, text="Save to Folder")
-        label_entry_dir.grid(row=1, column=0, sticky='W')
+        blanklabel2 = tk.Label(self.frame, text=" ")
+        blanklabel2.grid(row=1, column=0, sticky='W', pady=1)
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
-        self.E_dir.grid(row=1, column=1, columnspan=12, sticky='we')
+        self.E_dir.grid(row=1, column=1, columnspan=12, sticky='we', pady=3)
+        blanklabel3 = tk.Label(self.frame, text=" ")
+        blanklabel3.grid(row=1, column=11, sticky='e', pady=1)
         btn_prompt_dir = tk.Button(self.frame, text="Prompt ", command=self.prompt_path)
-        btn_prompt_dir.grid(row=1, column=13, padx=5, pady=1)
-        # self.frame.bind('p', lambda event: self.prompt_path())
+        btn_prompt_dir.grid(row=0, column=10, padx=5, pady=1, columnspan=3, sticky='e')
 
         # --------------row 2
         label_entry_filename = tk.Label(self.frame, text="File Name")
-        label_entry_filename.grid(row=2, column=0, sticky='W')
-        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
-        self.E_filename.grid(row=2, column=1, columnspan=12, sticky='we')
-        self.btn_trig50 = tk.Button(self.frame, text="Trig 50%", command=self.scope_set_trigger_a)
-        self.btn_trig50.grid(row=2, column=13, padx=5, pady=1)
-        # btn_use_time = tk.Button(self.frame, text="Add TimeStamp", command=self.get_default_filename)
-        # btn_use_time.grid(row=2, column=2)
+        label_entry_filename.grid(row=2, column=1, sticky='W', pady=3)
 
-        # --------------row3
+        # --------------row 3
+        self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
+        self.E_filename.grid(row=3, column=1, columnspan=12, sticky='we', pady=3)
+        blanklabel4 = tk.Label(self.frame, text=" ")
+        blanklabel4.grid(row=3, column=11, sticky='e', pady=1)
+
+        self.labelFr_trig = tk.LabelFrame(self.frame, text="Trigger CH")
+        self.labelFr_trig.grid(row=4, column=5, padx=5, columnspan=3, pady=0, sticky='w')
+
+        trig_ch_combobox = ttk.Combobox(self.labelFr_trig, state='readonly', textvariable=self.trig_ch, width=1)
+        trig_ch_combobox['values'] = ('1', '2', '3', '4')
+        trig_ch_combobox.grid(row=4, column=5, padx=5, pady=1)
+
+        trig_edge_combobox = ttk.Combobox(self.labelFr_trig, state='readonly', textvariable=self.trig_edge, width=4)
+        trig_edge_combobox['values'] = ('Rise', 'Fall', 'Either')
+        trig_edge_combobox.grid(row=4, column=6, padx=5, pady=1)
+
+        self.btn_trig50 = tk.Button(self.labelFr_trig, text="Set", command=self.scope_set_trigger_a)
+        self.btn_trig50.grid(row=4, column=7, padx=5, pady=1)
+
+        # --------------row4
         self.chkbox_persistence = tk.Checkbutton(self.frame, text='Persistence',
                                                  variable=self.persistence_var_bool,
                                                  onvalue=1, offvalue=0, command=self.set_persistence)
-        self.chkbox_persistence.grid(row=3, column=1, columnspan=2, padx=0, pady=1, sticky='w')
+        self.chkbox_persistence.grid(row=4, column=1, columnspan=3, padx=0, pady=1, sticky='w')
         self.chkbox_fastacq = tk.Checkbutton(self.frame, text='FastAcq',
                                              variable=self.fastacq_var_bool,
                                              onvalue=1, offvalue=0, command=self.trigger_fstacq)
-        self.chkbox_fastacq.grid(row=3, column=3, columnspan=3, padx=0, pady=1, sticky='w')
+        self.chkbox_fastacq.grid(row=4, column=2, columnspan=3, padx=0, pady=1, sticky='w')
 
         self.labelFr_time_scale = tk.LabelFrame(self.frame, text="Time/div")
-        self.labelFr_time_scale.grid(row=3, column=6, padx=5, columnspan=7, pady=0, sticky='e')
-
+        self.labelFr_time_scale.grid(row=4, column=8, padx=5, columnspan=6, pady=0, sticky='W')
         self.l = tk.Button(self.labelFr_time_scale, text="◀ZoomOut", command=self.horizontal_zoom_out)
-        self.l.grid(row=3, column=6, columnspan=3,  padx=3, pady=1, sticky='w')
+        self.l.grid(row=4, column=4, columnspan=3,  padx=3, pady=1, sticky='w')
         self.r = tk.Button(self.labelFr_time_scale, text="ZoomIn▶", command=self.horizontal_zoom_in)
-        self.r.grid(row=3, column=10, columnspan=3,  padx=3, pady=1, sticky='e')
+        self.r.grid(row=4, column=8, columnspan=3,  padx=3, pady=1, sticky='e')
 
-        # --------------row 4
         # ▼▲▶◀↶⤾⟲
         # color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
         self.labelFr_ch1 = tk.LabelFrame(self.frame, text="CH1")
-        self.labelFr_ch1.grid(row=4, column=1, padx=3)
+        self.labelFr_ch1.grid(row=5, column=1, padx=3)
         self.labelFr_ch2 = tk.LabelFrame(self.frame, text="CH2")
-        self.labelFr_ch2.grid(row=4, column=4, padx=3)
+        self.labelFr_ch2.grid(row=5, column=4, padx=3)
         self.labelFr_ch3 = tk.LabelFrame(self.frame, text="CH3")
-        self.labelFr_ch3.grid(row=4, column=7, padx=3)
+        self.labelFr_ch3.grid(row=5, column=7, padx=3)
         self.labelFr_ch4 = tk.LabelFrame(self.frame, text="CH4")
-        self.labelFr_ch4.grid(row=4, column=10, padx=3)
+        self.labelFr_ch4.grid(row=5, column=10, padx=3)
 
         #ch1 labelFrame
         label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Position")
-        label_pos_ch1.grid(row=4, column=1, padx=0, pady=2, sticky='w')
+        label_pos_ch1.grid(row=5, column=1, padx=0, pady=2, sticky='w')
         self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch1_adjust_pos, width=7, textvariable=str(self.ch1_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch1.grid(row=4, column=2, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch1.grid(row=5, column=2, padx=1, pady=2, sticky='w')
         label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset(V)", command=None)
-        label_offs_ch1.grid(row=5, column=1, padx=0, pady=2, sticky='w')
+        label_offs_ch1.grid(row=6, column=1, padx=0, pady=2, sticky='w')
         self.spinbox_offset_ch1 = mySpinbox(self.labelFr_ch1, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
                                          command=self.ch1_adjust_offset, width=7, textvariable=str(self.ch1_offset),
                                          takefocus=True)
-        self.spinbox_offset_ch1.grid(row=5, column=2, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch1.grid(row=6, column=2, padx=1, pady=2, sticky='e')
 
         # ch2 labelFrame
         label_pos_ch2 = tk.Label(self.labelFr_ch2, text="Position")
-        label_pos_ch2.grid(row=4, column=5, padx=0, pady=2, sticky='w')
+        label_pos_ch2.grid(row=5, column=5, padx=0, pady=2, sticky='w')
         self.spinbox_pos_ch2 = mySpinbox(self.labelFr_ch2, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch2_adjust_pos, width=7, textvariable=str(self.ch2_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch2.grid(row=4, column=6, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch2.grid(row=5, column=6, padx=1, pady=2, sticky='w')
         label_offs_ch2 = tk.Label(self.labelFr_ch2, text="Offset(V)", command=None)
-        label_offs_ch2.grid(row=5, column=5, padx=0, pady=2, sticky='w')
+        label_offs_ch2.grid(row=6, column=5, padx=0, pady=2, sticky='w')
         self.spinbox_offset_ch2 = mySpinbox(self.labelFr_ch2, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
                                             command=self.ch2_adjust_offset, width=7, textvariable=str(self.ch2_offset),
                                             takefocus=True)
-        self.spinbox_offset_ch2.grid(row=5, column=6, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch2.grid(row=6, column=6, padx=1, pady=2, sticky='e')
 
         # ch3 labelFrame
         label_pos_ch3 = tk.Label(self.labelFr_ch3, text="Position")
-        label_pos_ch3.grid(row=4, column=8, padx=0, pady=2, sticky='w')
+        label_pos_ch3.grid(row=5, column=8, padx=0, pady=2, sticky='w')
         self.spinbox_pos_ch3 = mySpinbox(self.labelFr_ch3, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch3_adjust_pos, width=7, textvariable=str(self.ch3_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch3.grid(row=4, column=9, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch3.grid(row=5, column=9, padx=1, pady=2, sticky='w')
         label_offs_ch3 = tk.Label(self.labelFr_ch3, text="Offset(V)", command=None)
-        label_offs_ch3.grid(row=5, column=8, padx=0, pady=2, sticky='w')
+        label_offs_ch3.grid(row=6, column=8, padx=0, pady=2, sticky='w')
         self.spinbox_offset_ch3 = mySpinbox(self.labelFr_ch3, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
                                             command=self.ch3_adjust_offset, width=7, textvariable=str(self.ch3_offset),
                                             takefocus=True)
-        self.spinbox_offset_ch3.grid(row=5, column=9, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch3.grid(row=6, column=9, padx=1, pady=2, sticky='e')
 
         # ch4 labelFrame
         label_pos_ch4 = tk.Label(self.labelFr_ch4, text="Position")
-        label_pos_ch4.grid(row=4, column=11, padx=0, pady=2, sticky='w')
+        label_pos_ch4.grid(row=5, column=11, padx=0, pady=2, sticky='w')
         self.spinbox_pos_ch4 = mySpinbox(self.labelFr_ch4, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch4_adjust_pos, width=7, textvariable=str(self.ch4_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch4.grid(row=4, column=12, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch4.grid(row=5, column=12, padx=1, pady=2, sticky='w')
         label_offs_ch4 = tk.Label(self.labelFr_ch4, text="Offset(V)", command=None)
-        label_offs_ch4.grid(row=5, column=11, padx=0, pady=2, sticky='w')
+        label_offs_ch4.grid(row=6, column=11, padx=0, pady=2, sticky='w')
         self.spinbox_offset_ch4 = mySpinbox(self.labelFr_ch4, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
                                             command=self.ch4_adjust_offset, width=7, textvariable=str(self.ch4_offset),
                                             takefocus=True)
-        self.spinbox_offset_ch4.grid(row=5, column=12, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch4.grid(row=6, column=12, padx=1, pady=2, sticky='e')
 
         self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=self.scope_ch1_scale_up)
-        self.btn_ch1_up.grid(row=4, column=3, padx=0, pady=2)
+        self.btn_ch1_up.grid(row=5, column=3, padx=0, pady=2)
         self.btn_ch1_down = tk.Button(self.labelFr_ch1, text="▼", command=self.scope_ch1_scale_down)
-        self.btn_ch1_down.grid(row=5, column=3, padx=0, pady=2)
+        self.btn_ch1_down.grid(row=6, column=3, padx=0, pady=2)
 
         self.btn_ch2_up = tk.Button(self.labelFr_ch2, text="▲", command=self.scope_ch2_scale_up)
-        self.btn_ch2_up.grid(row=4, column=7, padx=0, pady=2)
+        self.btn_ch2_up.grid(row=5, column=7, padx=0, pady=2)
         self.btn_ch2_down = tk.Button(self.labelFr_ch2, text="▼", command=self.scope_ch2_scale_down)
-        self.btn_ch2_down.grid(row=5, column=7, padx=0, pady=2)
+        self.btn_ch2_down.grid(row=6, column=7, padx=0, pady=2)
 
         self.btn_ch3_up = tk.Button(self.labelFr_ch3, text="▲", command=self.scope_ch3_scale_up)
-        self.btn_ch3_up.grid(row=4, column=10, padx=0, pady=2)
+        self.btn_ch3_up.grid(row=5, column=10, padx=0, pady=2)
         self.btn_ch3_down = tk.Button(self.labelFr_ch3, text="▼", command=self.scope_ch3_scale_down)
-        self.btn_ch3_down.grid(row=5, column=10, padx=0, pady=2)
+        self.btn_ch3_down.grid(row=6, column=10, padx=0, pady=2)
 
         self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=4, column=13, padx=0, pady=2)
+        self.btn_ch4_up.grid(row=5, column=13, padx=0, pady=2)
         self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=5, column=13, padx=0, pady=2)
+        self.btn_ch4_down.grid(row=6, column=13, padx=0, pady=2)
 
-        # --------------row 5
-        # self.chkbox_cursor = tk.Checkbutton(self.frame, text='Cursor',
-        #                                          variable=None,
-        #                                          onvalue=1, offvalue=0, command=None)
-        # self.chkbox_cursor.grid(row=5, column=1)
-        #
-        # self.btn_cur_hbar = tk.Radiobutton(self.frame, text="HBar", padx=0, variable=self.cursor_mode, value=1)
-        # self.btn_cur_hbar.grid(row=5, column=2, padx=0, pady=2, columnspan=2)
-        #
-        # self.radiobtn_cur_vbar = tk.Radiobutton(self.frame, text="VBar", padx=0, variable=self.cursor_mode, value=2)
-        # self.radiobtn_cur_vbar.grid(row=5, column=4, padx=0, pady=2, columnspan=2)
-        #
-        # self.radiobtn_cur_wave = tk.Radiobutton(self.frame, text="Wave", padx=0, variable=self.cursor_mode, value=3)
-        # self.radiobtn_cur_wave.grid(row=5, column=6, padx=0, pady=2, columnspan=2)
-        #
-        # self.radiobtn_cur_screen = tk.Radiobutton(self.frame, text="Screen", padx=0, variable=self.cursor_mode, value=4)
-        # self.radiobtn_cur_screen.grid(row=5, column=8, padx=0, pady=2, columnspan=2)
-
-        # --------------row 6
+        # --------------row 7
         self.btn_capture = tk.Button(self.frame, text=" Take ScreenShot ", command=self.btn_capture_clicked)
-        self.btn_capture.grid(row=6, column=1, padx=3, pady=6, columnspan=3)
+        self.btn_capture.grid(row=7, column=1, padx=3, pady=6, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl⮐)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=6, column=3, padx=3, pady=6, columnspan=3)
+        self.btn_RunStop.grid(row=7, column=3, padx=3, pady=6, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
-        self.btn_Single.grid(row=6, column=7, padx=3, pady=6, columnspan=2)
+        self.btn_Single.grid(row=7, column=7, padx=3, pady=6, columnspan=2)
         self.btn_Clear = tk.Button(self.frame, text="Clear (Ctrl+Del)", command=self.btn_clear_clicked)
-        self.btn_Clear.grid(row=6, column=8, padx=3, pady=6, columnspan=3)
+        self.btn_Clear.grid(row=7, column=8, padx=3, pady=6, columnspan=3)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
 
-        # --------------row 7, status bar
+        # --------------row 8, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.grid(row=7, column=0, columnspan=14, sticky='we')
+        status_bar.grid(row=8, column=0, columnspan=14, sticky='we')
 
         self.closest_index = 0
         self.time_scaleList = [1e-9, 2e-9, 5e-9,
@@ -447,7 +425,7 @@ class App:
         miscmenu.add_checkbutton(label="Enable Ink Saver", onvalue=1, offvalue=0,
                                  variable=self.use_inkSaver_var_bool)
 
-        scope_submenu = Menu(scopemenu)
+        scope_submenu = Menu(scopemenu, tearoff=False)
 
         scope_submenu.add_checkbutton(label="CH 1", onvalue=1, offvalue=0, variable=self.sel_ch1_var_bool,
                                       command=self.scope_channel_select)
@@ -638,11 +616,19 @@ class App:
                     Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
                     self.master.title(Text)
 
+                    # Test if Scope support Offset
+                    if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
+                        try:
+                            scope.query('CH1:OFFS?').rstrip()
+                            self.offset_err_cnt = self.offset_err_cnt - 1
+                        except Exception as e:
+                            self.offset_err_cnt = self.offset_err_cnt + 1
+                            print("stst cmd dsn support ", e)
                     if self.scope_series_num == 1:
                         self.chkbox_fastacq["state"] = "disabled"
                     else:
                         self.chkbox_fastacq["state"] = "normal"
-                    self.visa_error_retry_counter = 0
+
                     if self.ch_available == 2:
                         self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
                         self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
@@ -658,77 +644,68 @@ class App:
                         self.spinbox_offset_ch4['state'] = 'disabled'
                         self.labelFr_ch3['text'] = 'Ch3 Unavailable'
                         self.labelFr_ch4['text'] = 'Ch4 Unavailable'
+
                         # ch1_pos_offset
-                        if (focused_obj != self.spinbox_offset_ch1) and (self.sel_ch1_var_bool.get()):
-                            self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                        if (focused_obj != self.spinbox_pos_ch1) and (self.sel_ch1_var_bool.get()):
-                            self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
+                        if self.sel_ch1_var_bool.get():
+                            if focused_obj != self.spinbox_offset_ch1:
+                                self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                            if focused_obj != self.spinbox_pos_ch1:
+                                self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
+
                         # ch2_pos_offset
-                        if (focused_obj != self.spinbox_offset_ch2) and (self.sel_ch2_var_bool.get()):
-                            self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
-                        if (focused_obj != self.spinbox_pos_ch2) and (self.sel_ch2_var_bool.get()):
-                            self.ch2_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
+                        if self.sel_ch2_var_bool.get():
+                            if focused_obj != self.spinbox_offset_ch2:
+                                self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
+                            if focused_obj != self.spinbox_pos_ch2:
+                                self.ch1_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
+
+                        self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        self.labelFr_ch1['text'] = 'CH1 ON' if self.sel_ch1_var_bool.get() else 'CH1 OFF'
+                        self.labelFr_ch2['text'] = 'CH2 ON' if self.sel_ch2_var_bool.get() else 'CH2 OFF'
+
                     else:
                         self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
                         self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
                         self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
                         self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
-
+                       
                         # ch1_pos_offset
                         if self.sel_ch1_var_bool.get():
-                            self.labelFr_ch1['text'] = 'CH1 ON'
-                            self.spinbox_pos_ch1['state'] = 'normal'
-                            self.spinbox_offset_ch1['state'] = 'normal'
                             if focused_obj != self.spinbox_offset_ch1:
                                 self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
                             if focused_obj != self.spinbox_pos_ch1:
                                 self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
-                        else:
-                            self.labelFr_ch1['text'] = 'CH1 OFF'
-                            self.spinbox_pos_ch1['state'] = 'disabled'
-                            self.spinbox_offset_ch1['state'] = 'disabled'
 
                         # ch2_pos_offset
                         if self.sel_ch2_var_bool.get():
-                            self.labelFr_ch2['text'] = 'CH2 ON'
-                            self.spinbox_pos_ch2['state'] = 'normal'
-                            self.spinbox_offset_ch2['state'] = 'normal'
                             if focused_obj != self.spinbox_offset_ch2:
                                 self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
                             if focused_obj != self.spinbox_pos_ch2:
                                 self.ch2_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
-                        else:
-                            self.labelFr_ch2['text'] = 'CH2 OFF'
-                            self.spinbox_pos_ch2['state'] = 'disabled'
-                            self.spinbox_offset_ch2['state'] = 'disabled'
 
                         # ch3_pos_offset
                         if self.sel_ch3_var_bool.get():
-                            self.labelFr_ch3['text'] = 'CH3 ON'
-                            self.spinbox_pos_ch3['state'] = 'normal'
-                            self.spinbox_offset_ch3['state'] = 'normal'
                             if focused_obj != self.spinbox_offset_ch3:
                                 self.ch3_offset.set(value=float(scope.query('CH3:OFFS?').rstrip()))
                             if focused_obj != self.spinbox_pos_ch3:
                                 self.ch3_pos.set(value=float(scope.query('CH3:POS?').rstrip()))
-                        else:
-                            self.labelFr_ch3['text'] = 'CH3 OFF'
-                            self.spinbox_pos_ch3['state'] = 'disabled'
-                            self.spinbox_offset_ch3['state'] = 'disabled'
 
                         # ch4_pos_offset
                         if self.sel_ch4_var_bool.get():
-                            self.labelFr_ch4['text'] = 'CH4 ON'
-                            self.spinbox_pos_ch4['state'] = 'normal'
-                            self.spinbox_offset_ch4['state'] = 'normal'
                             if focused_obj != self.spinbox_offset_ch4:
                                 self.ch4_offset.set(value=float(scope.query('CH4:OFFS?').rstrip()))
                             if focused_obj != self.spinbox_pos_ch4:
                                 self.ch4_pos.set(value=float(scope.query('CH4:POS?').rstrip()))
-                        else:
-                            self.labelFr_ch4['text'] = 'CH4 OFF'
-                            self.spinbox_pos_ch4['state'] = 'disabled'
-                            self.spinbox_offset_ch4['state'] = 'disabled'
+
+                    self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                    self.labelFr_ch1['text'] = 'CH1 ON' if self.sel_ch1_var_bool.get() else 'CH1 OFF'
+                    self.labelFr_ch2['text'] = 'CH2 ON' if self.sel_ch2_var_bool.get() else 'CH2 OFF'
+                    self.labelFr_ch3['text'] = 'CH3 ON' if self.sel_ch3_var_bool.get() else 'CH3 OFF'
+                    self.labelFr_ch4['text'] = 'CH4 ON' if self.sel_ch4_var_bool.get() else 'CH4 OFF'
 
                     acq_state = int(scope.query('ACQuire:STATE?').rstrip())
                     acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
@@ -763,10 +740,10 @@ class App:
                 except Exception as e:
                     print("get_acq_state->", e)
                 rm.close()
-                # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
+                # self.offset_err_cnt = self.offset_err_cnt + 1
             except Exception:
                 # self.status_var.set("Connection issue! Retrying...")
-                # self.visa_error_retry_counter = self.visa_error_retry_counter + 1
+                # self.offset_err_cnt = self.offset_err_cnt + 1
                 print("Cannot get Acq status-VISA driver Error")
         else:
             pass
@@ -1127,8 +1104,26 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
+                # scope.write('TRIGger:B SETLevel')
+                if self.trig_ch.get()[0:3] == '1':
+                    scope.write('TRIGGER:A:EDGE:SOURCE CH1')
+                elif self.trig_ch.get() == '2':
+                    scope.write('TRIGGER:A:EDGE:SOURCE CH2')
+                elif self.trig_ch.get() == '3':
+                    scope.write('TRIGGER:A:EDGE:SOURCE CH3')
+                elif self.trig_ch.get() == '4':
+                    scope.write('TRIGGER:A:EDGE:SOURCE CH4')
+                else:
+                    pass
+                if self.trig_edge.get() == 'Rise':
+                    scope.write('TRIGGER:A:EDGE:SLOPE RISE')
+                elif self.trig_edge.get() == 'Fall':
+                    scope.write('TRIGGER:A:EDGE:SLOPE FALL')
+                elif self.trig_edge.get() == 'Either':
+                    scope.write('TRIGGER:A:EDGE:SLOPE EITher')
+                else:
+                    pass
                 scope.write('TRIGger:A SETLevel')
-                scope.write('TRIGger:B SETLevel')
                 scope.close()
             rm.close()
         except ValueError:
