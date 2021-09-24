@@ -601,6 +601,7 @@ class App:
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
 
     def get_acq_state(self):
+        opc = 0
         focused_obj = None
         try:
             focused_obj = self.frame.focus_get()
@@ -612,139 +613,148 @@ class App:
             try:
                 rm = visa.ResourceManager()
                 try:
-                    scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
-                    idn_query = scope.query('*IDN?')
-                    series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
-                    series = series.split(',')[1]
-                    self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
-                    self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
-                    # print("self.ch_available->", self.ch_available)
-                    idn_splited = idn_query.rstrip().split(',')
-                    idn_title = idn_splited[0] + ", " + idn_splited[1]
-                    Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
-                    self.master.title(Text)
-
-                    # Test if Scope support Offset
-                    if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
-                        try:
-                            scope.query('CH1:OFFS?').rstrip()
-                            self.offset_err_cnt = self.offset_err_cnt - 1
-                        except Exception as e:
-                            self.offset_err_cnt = self.offset_err_cnt + 1
-                            print("stst cmd dsn support ", e)
-                    if self.scope_series_num == 1:
-                        self.chkbox_fastacq["state"] = "disabled"
+                    if focused_obj is not None:
+                        scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
+                        opc = scope.query('*OPC?')
                     else:
-                        self.chkbox_fastacq["state"] = "normal"
+                        pass
+                    if opc:
+                        idn_query = scope.query('*IDN?')
+                        series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
+                        series = series.split(',')[1]
+                        self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
+                        self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
+                        # print("self.ch_available->", self.ch_available)
+                        idn_splited = idn_query.rstrip().split(',')
+                        idn_title = idn_splited[0] + ", " + idn_splited[1]
+                        Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
+                        self.master.title(Text)
 
-                    if self.ch_available == 2:
-                        self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                        self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                        self.sel_ch3_var_bool.set(value=0)
-                        self.sel_ch4_var_bool.set(value=0)
-                        self.btn_ch3_up["state"] = "disabled"
-                        self.btn_ch3_down["state"] = "disabled"
-                        self.btn_ch4_up["state"] = "disabled"
-                        self.btn_ch4_down["state"] = "disabled"
-                        self.spinbox_pos_ch3['state'] = 'disabled'
-                        self.spinbox_offset_ch3['state'] = 'disabled'
-                        self.spinbox_pos_ch4['state'] = 'disabled'
-                        self.spinbox_offset_ch4['state'] = 'disabled'
-                        self.labelFr_ch3['text'] = 'Ch3 Unavailable'
-                        self.labelFr_ch4['text'] = 'Ch4 Unavailable'
+                        # Test if Scope support Offset
+                        if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
+                            try:
+                                scope.query('CH1:OFFS?').rstrip()
+                                self.offset_err_cnt = self.offset_err_cnt - 1
+                            except Exception as e:
+                                self.offset_err_cnt = self.offset_err_cnt + 1
+                                print("stst cmd dsn support ", e)
+                        if self.scope_series_num == 1:
+                            self.chkbox_fastacq["state"] = "disabled"
+                        else:
+                            self.chkbox_fastacq["state"] = "normal"
 
-                        # ch1_pos_offset
-                        if self.sel_ch1_var_bool.get():
-                            if focused_obj != self.spinbox_offset_ch1:
-                                self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                            if focused_obj != self.spinbox_pos_ch1:
-                                self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
+                        if self.ch_available == 2:
+                            self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                            self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                            self.sel_ch3_var_bool.set(value=0)
+                            self.sel_ch4_var_bool.set(value=0)
+                            self.btn_ch3_up["state"] = "disabled"
+                            self.btn_ch3_down["state"] = "disabled"
+                            self.btn_ch4_up["state"] = "disabled"
+                            self.btn_ch4_down["state"] = "disabled"
+                            self.spinbox_pos_ch3['state'] = 'disabled'
+                            self.spinbox_offset_ch3['state'] = 'disabled'
+                            self.spinbox_pos_ch4['state'] = 'disabled'
+                            self.spinbox_offset_ch4['state'] = 'disabled'
+                            self.labelFr_ch3['text'] = 'Ch3 Unavailable'
+                            self.labelFr_ch4['text'] = 'Ch4 Unavailable'
 
-                        # ch2_pos_offset
-                        if self.sel_ch2_var_bool.get():
-                            if focused_obj != self.spinbox_offset_ch2:
-                                self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
-                            if focused_obj != self.spinbox_pos_ch2:
-                                self.ch1_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
+                            # ch1_pos_offset
+                            if self.sel_ch1_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch1:
+                                    self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                                if focused_obj != self.spinbox_pos_ch1:
+                                    self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
 
-                        self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                            # ch2_pos_offset
+                            if self.sel_ch2_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch2:
+                                    self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
+                                if focused_obj != self.spinbox_pos_ch2:
+                                    self.ch1_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
+
+                            self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                            self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                            self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
+                            self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
+
+                        else:
+                            self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                            self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                            self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
+                            self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
+
+                            # ch1_pos_offset
+                            if self.sel_ch1_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch1:
+                                    self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                                if focused_obj != self.spinbox_pos_ch1:
+                                    self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
+
+                            # ch2_pos_offset
+                            if self.sel_ch2_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch2:
+                                    self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
+                                if focused_obj != self.spinbox_pos_ch2:
+                                    self.ch2_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
+
+                            # ch3_pos_offset
+                            if self.sel_ch3_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch3:
+                                    self.ch3_offset.set(value=float(scope.query('CH3:OFFS?').rstrip()))
+                                if focused_obj != self.spinbox_pos_ch3:
+                                    self.ch3_pos.set(value=float(scope.query('CH3:POS?').rstrip()))
+
+                            # ch4_pos_offset
+                            if self.sel_ch4_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch4:
+                                    self.ch4_offset.set(value=float(scope.query('CH4:OFFS?').rstrip()))
+                                if focused_obj != self.spinbox_pos_ch4:
+                                    self.ch4_pos.set(value=float(scope.query('CH4:POS?').rstrip()))
+
+                        # self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
                         self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
                         self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
+                        self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
+                        self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
 
-                    else:
-                        self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                        self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                        self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
-                        self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
-                       
-                        # ch1_pos_offset
-                        if self.sel_ch1_var_bool.get():
-                            if focused_obj != self.spinbox_offset_ch1:
-                                self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                            if focused_obj != self.spinbox_pos_ch1:
-                                self.ch1_pos.set(value=float(scope.query('CH1:POS?').rstrip()))
-
-                        # ch2_pos_offset
-                        if self.sel_ch2_var_bool.get():
-                            if focused_obj != self.spinbox_offset_ch2:
-                                self.ch2_offset.set(value=float(scope.query('CH2:OFFS?').rstrip()))
-                            if focused_obj != self.spinbox_pos_ch2:
-                                self.ch2_pos.set(value=float(scope.query('CH2:POS?').rstrip()))
-
-                        # ch3_pos_offset
-                        if self.sel_ch3_var_bool.get():
-                            if focused_obj != self.spinbox_offset_ch3:
-                                self.ch3_offset.set(value=float(scope.query('CH3:OFFS?').rstrip()))
-                            if focused_obj != self.spinbox_pos_ch3:
-                                self.ch3_pos.set(value=float(scope.query('CH3:POS?').rstrip()))
-
-                        # ch4_pos_offset
-                        if self.sel_ch4_var_bool.get():
-                            if focused_obj != self.spinbox_offset_ch4:
-                                self.ch4_offset.set(value=float(scope.query('CH4:OFFS?').rstrip()))
-                            if focused_obj != self.spinbox_pos_ch4:
-                                self.ch4_pos.set(value=float(scope.query('CH4:POS?').rstrip()))
-
-                    # self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    # self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    # self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    # self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                    self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
-                    self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
-                    self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
-                    self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
-
-                    acq_state = int(scope.query('ACQuire:STATE?').rstrip())
-                    acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
-                    # print("scope acq state=", acq_state)
-                    self.acq_state_var_bool.set(acq_state)
-                    self.status_var.set("Acquisition#" + str(acq_num))
-                    self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
-                    # orig_color = self.chkbox_fastacq.cget("background")
-                    if self.fastacq_var_bool.get():
-                        self.chkbox_fastacq.configure(fg="Purple2")
-                    else:
-                        self.chkbox_fastacq.configure(fg="black")
-                    # Persistence---checked on DPO4104B
-                    if (self.scope_series_num > 1) and (self.scope_series_num < 5):
-                        if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
-                            self.persistence_var_bool.set(0)
+                        acq_state = int(scope.query('ACQuire:STATE?').rstrip())
+                        acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
+                        # print("scope acq state=", acq_state)
+                        self.acq_state_var_bool.set(acq_state)
+                        self.status_var.set("Acquisition#" + str(acq_num))
+                        self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
+                        # orig_color = self.chkbox_fastacq.cget("background")
+                        if self.fastacq_var_bool.get():
+                            self.chkbox_fastacq.configure(fg="Purple2")
                         else:
-                            self.persistence_var_bool.set(1)
-                    else:
-                        if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
-                            self.persistence_var_bool.set(0)
+                            self.chkbox_fastacq.configure(fg="black")
+                        # Persistence---checked on DPO4104B
+                        if (self.scope_series_num > 1) and (self.scope_series_num < 5):
+                            if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
+                                self.persistence_var_bool.set(0)
+                            else:
+                                self.persistence_var_bool.set(1)
                         else:
-                            self.persistence_var_bool.set(1)
-                    if self.acq_state_var_bool.get() == True:
-                        self.btn_RunStop.configure(fg="green4")
-                    elif self.acq_state_var_bool.get() == False:
-                        self.btn_RunStop.configure(fg="black")
+                            if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
+                                self.persistence_var_bool.set(0)
+                            else:
+                                self.persistence_var_bool.set(1)
+                        if self.acq_state_var_bool.get() == True:
+                            self.btn_RunStop.configure(fg="green4")
+                        elif self.acq_state_var_bool.get() == False:
+                            self.btn_RunStop.configure(fg="black")
+                        else:
+                            # print("Cannot get Acq state")
+                            self.status_var.set("Cannot get Acq state")
+                        scope.close()
                     else:
-                        # print("Cannot get Acq state")
-                        self.status_var.set("Cannot get Acq state")
-                    scope.close()
+                        self.status_var.set("Window not focused or Scope might be BUSY...")
+                        print("frame not focused or Scope might be BUSY...")
+
                 except Exception as e:
                     print("get_acq_state->", e)
                 rm.close()
