@@ -6,7 +6,7 @@
 App preview
 
 ![mac_GUI screen shot](img/scrshot/macGUIv1.7.png)
-![win_GUI screen shot](img/scrshot/v2.1scrshot.PNG)
+![win_GUI screen shot](img/scrshot/v2.1scrshot.png)
 
 ## Features
 
