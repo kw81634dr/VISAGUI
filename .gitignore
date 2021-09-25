@@ -133,8 +133,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-.idea/misc.xml
-.idea/misc.xml
-.idea/misc.xml
-.idea/misc.xml
-.idea/VISAGUI.iml
+.idea/

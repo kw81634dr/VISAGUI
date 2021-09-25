@@ -4,7 +4,7 @@ import os
 import re
 from pathlib import Path
 import atexit
-from PIL import Image
+from PIL import Image, ImageTk
 from io import BytesIO, StringIO
 import numpy as np
 import cv2
@@ -1575,7 +1575,7 @@ def splash():
     # splash.geometry("800x750+128+128")
     splash_img = myIcon.splash_base64_128px
     splash_img = base64.b64decode(splash_img)
-    splash_img = PhotoImage(data=splash_img)
+    splash_img = ImageTk.PhotoImage(data=splash_img)
     # highlightthickness=0 -> remove frame
     canvas = tk.Canvas(splash, height=256, width=256, bg='black', highlightthickness=0)
     canvas.create_image(128, 128, image=splash_img)
@@ -1591,7 +1591,7 @@ def mainApp():
     app = App(root)
     img = myIcon.icon_base64_32px
     img = base64.b64decode(img)
-    img = PhotoImage(data=img)
+    img = ImageTk.PhotoImage(data=img)
     root.wm_iconphoto(True, img)
     # root.iconbitmap(r'img/ico32.ico')
 
