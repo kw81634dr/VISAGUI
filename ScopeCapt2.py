@@ -284,117 +284,117 @@ class App:
 
         #ch1 labelFrame
         label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Position")
-        label_pos_ch1.grid(row=5, column=1, padx=0, pady=2, sticky='w')
+        label_pos_ch1.grid(row=5, column=1, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch1_adjust_pos, width=7,
                                          textvariable=self.ch1_pos, takefocus=True)
-        self.spinbox_pos_ch1.grid(row=5, column=2, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch1.grid(row=5, column=2, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch1.bind('<Return>', lambda i: (self.spinbox_pos_ch1.invoke('buttondown'),
                                                          self.spinbox_pos_ch1.invoke('buttonup'),
                                                          self.frame.focus_force()))
 
         label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset(V)", command=None)
-        label_offs_ch1.grid(row=6, column=1, padx=0, pady=2, sticky='w')
+        label_offs_ch1.grid(row=6, column=1, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch1 = mySpinbox(self.labelFr_ch1, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
                                          command=self.ch1_adjust_offset, width=7,
                                          textvariable=self.ch1_offset, takefocus=True)
-        self.spinbox_offset_ch1.grid(row=6, column=2, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch1.grid(row=6, column=2, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch1.bind('<Return>', lambda i: (self.spinbox_offset_ch1.invoke('buttondown'),
                                                             self.spinbox_offset_ch1.invoke('buttonup'),
                                                             self.frame.focus_force()))
 
         # ch2 labelFrame
         label_pos_ch2 = tk.Label(self.labelFr_ch2, text="Position")
-        label_pos_ch2.grid(row=5, column=5, padx=0, pady=2, sticky='w')
+        label_pos_ch2.grid(row=5, column=5, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch2 = mySpinbox(self.labelFr_ch2, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch2_adjust_pos, width=7, textvariable=str(self.ch2_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch2.grid(row=5, column=6, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch2.grid(row=5, column=6, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch2.bind('<Return>', lambda i: (self.spinbox_pos_ch2.invoke('buttondown'),
                                                          self.spinbox_pos_ch2.invoke('buttonup'),
                                                          self.frame.focus_force()))
 
         label_offs_ch2 = tk.Label(self.labelFr_ch2, text="Offset(V)", command=None)
-        label_offs_ch2.grid(row=6, column=5, padx=0, pady=2, sticky='w')
+        label_offs_ch2.grid(row=6, column=5, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch2 = mySpinbox(self.labelFr_ch2, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
                                             command=self.ch2_adjust_offset, width=7,
                                             textvariable=str(self.ch2_offset), takefocus=True)
-        self.spinbox_offset_ch2.grid(row=6, column=6, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch2.grid(row=6, column=6, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch2.bind('<Return>', lambda i: (self.spinbox_offset_ch2.invoke('buttondown'),
                                                             self.spinbox_offset_ch2.invoke('buttonup'),
                                                             self.frame.focus_force()))
 
         # ch3 labelFrame
         label_pos_ch3 = tk.Label(self.labelFr_ch3, text="Position")
-        label_pos_ch3.grid(row=5, column=8, padx=0, pady=2, sticky='w')
+        label_pos_ch3.grid(row=5, column=8, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch3 = mySpinbox(self.labelFr_ch3, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch3_adjust_pos, width=7, textvariable=str(self.ch3_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch3.grid(row=5, column=9, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch3.grid(row=5, column=9, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch3.bind('<Return>', lambda i: (self.spinbox_pos_ch3.invoke('buttondown'),
                                                          self.spinbox_pos_ch3.invoke('buttonup'),
                                                          self.frame.focus_force()))
 
         label_offs_ch3 = tk.Label(self.labelFr_ch3, text="Offset(V)", command=None)
-        label_offs_ch3.grid(row=6, column=8, padx=0, pady=2, sticky='w')
+        label_offs_ch3.grid(row=6, column=8, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch3 = mySpinbox(self.labelFr_ch3, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
                                             command=self.ch3_adjust_offset, width=7, textvariable=str(self.ch3_offset),
                                             takefocus=True)
-        self.spinbox_offset_ch3.grid(row=6, column=9, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch3.grid(row=6, column=9, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch3.bind('<Return>', lambda i: (self.spinbox_offset_ch3.invoke('buttondown'),
                                                             self.spinbox_offset_ch3.invoke('buttonup'),
                                                             self.frame.focus_force()))
 
         # ch4 labelFrame
         label_pos_ch4 = tk.Label(self.labelFr_ch4, text="Position")
-        label_pos_ch4.grid(row=5, column=11, padx=0, pady=2, sticky='w')
+        label_pos_ch4.grid(row=5, column=11, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch4 = mySpinbox(self.labelFr_ch4, from_=-5, to=5, increment=.08, justify=tk.CENTER,
                                          command=self.ch4_adjust_pos, width=7, textvariable=str(self.ch4_pos),
                                          takefocus=True)
-        self.spinbox_pos_ch4.grid(row=5, column=12, padx=1, pady=2, sticky='w')
+        self.spinbox_pos_ch4.grid(row=5, column=12, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch4.bind('<Return>', lambda i: (self.spinbox_pos_ch4.invoke('buttondown'),
                                                          self.spinbox_pos_ch4.invoke('buttonup'),
                                                          self.frame.focus_force()))
 
         label_offs_ch4 = tk.Label(self.labelFr_ch4, text="Offset(V)", command=None)
-        label_offs_ch4.grid(row=6, column=11, padx=0, pady=2, sticky='w')
+        label_offs_ch4.grid(row=6, column=11, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch4 = mySpinbox(self.labelFr_ch4, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
                                             command=self.ch4_adjust_offset, width=7, textvariable=str(self.ch4_offset),
                                             takefocus=True)
-        self.spinbox_offset_ch4.grid(row=6, column=12, padx=1, pady=2, sticky='e')
+        self.spinbox_offset_ch4.grid(row=6, column=12, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch4.bind('<Return>', lambda i: (self.spinbox_offset_ch4.invoke('buttondown'),
                                                             self.spinbox_offset_ch4.invoke('buttonup'),
                                                             self.frame.focus_force()))
 
         self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=self.scope_ch1_scale_up)
-        self.btn_ch1_up.grid(row=5, column=3, padx=0, pady=2)
+        self.btn_ch1_up.grid(row=5, column=3, padx=0, pady=1)
         self.btn_ch1_down = tk.Button(self.labelFr_ch1, text="▼", command=self.scope_ch1_scale_down)
-        self.btn_ch1_down.grid(row=6, column=3, padx=0, pady=2)
+        self.btn_ch1_down.grid(row=6, column=3, padx=0, pady=1)
 
         self.btn_ch2_up = tk.Button(self.labelFr_ch2, text="▲", command=self.scope_ch2_scale_up)
-        self.btn_ch2_up.grid(row=5, column=7, padx=0, pady=2)
+        self.btn_ch2_up.grid(row=5, column=7, padx=0, pady=1)
         self.btn_ch2_down = tk.Button(self.labelFr_ch2, text="▼", command=self.scope_ch2_scale_down)
-        self.btn_ch2_down.grid(row=6, column=7, padx=0, pady=2)
+        self.btn_ch2_down.grid(row=6, column=7, padx=0, pady=1)
 
         self.btn_ch3_up = tk.Button(self.labelFr_ch3, text="▲", command=self.scope_ch3_scale_up)
-        self.btn_ch3_up.grid(row=5, column=10, padx=0, pady=2)
+        self.btn_ch3_up.grid(row=5, column=10, padx=0, pady=1)
         self.btn_ch3_down = tk.Button(self.labelFr_ch3, text="▼", command=self.scope_ch3_scale_down)
-        self.btn_ch3_down.grid(row=6, column=10, padx=0, pady=2)
+        self.btn_ch3_down.grid(row=6, column=10, padx=0, pady=1)
 
         self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=5, column=13, padx=0, pady=2)
+        self.btn_ch4_up.grid(row=5, column=13, padx=0, pady=1)
         self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=6, column=13, padx=0, pady=2)
+        self.btn_ch4_down.grid(row=6, column=13, padx=0, pady=1)
 
         # --------------row 7
         self.btn_capture = tk.Button(self.frame, text=" Take ScreenShot ", command=self.btn_capture_clicked)
-        self.btn_capture.grid(row=7, column=1, padx=3, pady=6, columnspan=3)
+        self.btn_capture.grid(row=7, column=1, padx=3, pady=2, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl+⮐)", command=self.btn_runstop_clicked)
-        self.btn_RunStop.grid(row=7, column=3, padx=3, pady=6, columnspan=3)
+        self.btn_RunStop.grid(row=7, column=3, padx=3, pady=2, columnspan=3)
         self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
-        self.btn_Single.grid(row=7, column=7, padx=3, pady=6, columnspan=2)
+        self.btn_Single.grid(row=7, column=7, padx=3, pady=2, columnspan=2)
         self.btn_Clear = tk.Button(self.frame, text="Clear (Ctrl+Del)", command=self.btn_clear_clicked)
-        self.btn_Clear.grid(row=7, column=8, padx=3, pady=6, columnspan=3)
+        self.btn_Clear.grid(row=7, column=8, padx=3, pady=2, columnspan=3)
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
@@ -437,11 +437,22 @@ class App:
         toolmenu = Menu(menubar, tearoff=False)
         helpmenu = Menu(menubar, tearoff=False)
 
-        file_submenu = Menu(filemenu)
-        # file_submenu.add_command(label="Future Implementation 1")
-        # file_submenu.add_command(label="Future Implementation 2")
-        # file_submenu.add_command(label="Future Implementation 3")
-        # filemenu.add_cascade(label='Import', menu=file_submenu, underline=0)
+        file_submenu_save_setup = Menu(filemenu, tearoff=False)
+        filemenu.add_cascade(label='Save Setup To', menu=file_submenu_save_setup, underline=0)
+        file_submenu_save_setup.add_command(label="Slot 1", command=lambda: self.save_setup_slot(slot_num=1))
+        file_submenu_save_setup.add_command(label="Slot 2", command=lambda: self.save_setup_slot(slot_num=2))
+        file_submenu_save_setup.add_command(label="Slot 3", command=lambda: self.save_setup_slot(slot_num=3))
+        file_submenu_save_setup.add_command(label="Slot 4", command=lambda: self.save_setup_slot(slot_num=4))
+        file_submenu_save_setup.add_command(label="Slot 5", command=lambda: self.save_setup_slot(slot_num=5))
+
+        file_submenu_recall_setup = Menu(filemenu, tearoff=False)
+        filemenu.add_cascade(label='Recall Setup From', menu=file_submenu_recall_setup, underline=0)
+        file_submenu_recall_setup.add_command(label="Slot 1", command=lambda: self.recall_setup_slot(slot_num=1))
+        file_submenu_recall_setup.add_command(label="Slot 2", command=lambda: self.recall_setup_slot(slot_num=2))
+        file_submenu_recall_setup.add_command(label="Slot 3", command=lambda: self.recall_setup_slot(slot_num=3))
+        file_submenu_recall_setup.add_command(label="Slot 4", command=lambda: self.recall_setup_slot(slot_num=4))
+        file_submenu_recall_setup.add_command(label="Slot 5", command=lambda: self.recall_setup_slot(slot_num=5))
+
         filemenu.add_command(label="Check App Updates", underline=0, command=self.check_app_update)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
@@ -636,8 +647,7 @@ class App:
             print("focused=", focused_obj)
         except:
             pass
-        #and (focused_obj != self.trig_ch_combobox) and (focused_obj != self.trig_edge_combobox):
-        if (not self.pause_get_status_thread):
+        if not self.pause_get_status_thread:
             try:
                 rm = visa.ResourceManager()
                 try:
@@ -796,37 +806,66 @@ class App:
         else:
             pass
 
-    def get_scope_info(self):
-        self.update_addr_inApp()
+    # def get_scope_info(self):
+    #     self.update_addr_inApp()
+    #     try:
+    #         rm = visa.ResourceManager()
+    #         try:
+    #             with rm.open_resource(self.target_gpib_address.get()) as scope:
+    #                 idn_query = scope.query('*IDN?')
+    #                 series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
+    #                 series = series.split(',')[1]
+    #                 self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
+    #                 self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
+    #                 idn_splited = idn_query.rstrip().split(',')
+    #                 idn_title = idn_splited[0] + ", " + idn_splited[1]
+    #                 Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
+    #                 self.master.title(Text)
+    #                 scope.close()
+    #             rm.close()
+    #             # self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
+    #         except:
+    #             messagebox.showinfo("Oops! Something changed!",
+    #                                 "Unable to connect the device used last time.\n\n"
+    #                                 "You could check:\n"
+    #                                 "1. connection between the target device & your PC.\n"
+    #                                 "2. Any change of GPIB address? \n\n"
+    #                                 "Then use Tool>GPIB Scanner to Set New target Device.")
+    #             # self.create_frame_gpib_scanner()
+    #         rm.close()
+    #     except:
+    #         self.appTitleText = "KW Scope Capture" + str(self.app_version) + "  [VISA driver Error]!"
+    #         self.master.title(self.appTitleText)
+    #         print("Cannot get scope info-VISA driver Error")
+
+    def save_setup_slot(self, slot_num=1):
+        self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
-            try:
-                with rm.open_resource(self.target_gpib_address.get()) as scope:
-                    idn_query = scope.query('*IDN?')
-                    series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
-                    series = series.split(',')[1]
-                    self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
-                    self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
-                    idn_splited = idn_query.rstrip().split(',')
-                    idn_title = idn_splited[0] + ", " + idn_splited[1]
-                    Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
-                    self.master.title(Text)
-                    scope.close()
-                rm.close()
-                # self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
-            except:
-                messagebox.showinfo("Oops! Something changed!",
-                                    "Unable to connect the device used last time.\n\n"
-                                    "You could check:\n"
-                                    "1. connection between the target device & your PC.\n"
-                                    "2. Any change of GPIB address? \n\n"
-                                    "Then use Tool>GPIB Scanner to Set New target Device.")
-                # self.create_frame_gpib_scanner()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                cmd = "*SAV " + str(slot_num)
+                print(cmd)
+                scope.write(cmd)
+            scope.close()
             rm.close()
-        except:
-            self.appTitleText = "KW Scope Capture" + str(self.app_version) + "  [VISA driver Error]!"
-            self.master.title(self.appTitleText)
-            print("Cannot get scope info-VISA driver Error")
+        except Exception as e:
+            print("save_setup_slot->", e)
+        self.pause_get_status_thread = False
+
+    def recall_setup_slot(self, slot_num=1):
+        print("recall_setup_slot")
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                cmd = "*RCL " + str(slot_num)
+                print(cmd)
+                scope.write(cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print("recall_setup_slot->", e)
+        self.pause_get_status_thread = False
 
     def ch1_adjust_pos(self):
         self.pause_get_status_thread = True
