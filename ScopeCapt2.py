@@ -27,6 +27,7 @@ class mySpinbox(tk.Spinbox):
         self.bind('<MouseWheel>', self.mouseWheel)
         self.bind('<Button-4>', self.mouseWheel)
         self.bind('<Button-5>', self.mouseWheel)
+
     #     self.bind('<Return>', self.returnKeyPressed)
     #
     # def returnKeyPressed(self, event):
@@ -34,12 +35,12 @@ class mySpinbox(tk.Spinbox):
     #     self.invoke('buttondown')
     #     self.invoke('buttonup')
 
-
     def mouseWheel(self, event):
         if event.num == 5 or event.delta < 0:
             self.invoke('buttondown')
         elif event.num == 4 or event.delta > 0:
             self.invoke('buttonup')
+
 
 class WindowGPIBScanner:
     isOktoUpdateState = True
@@ -220,7 +221,6 @@ class App:
         # blanklabel1 = tk.Label(self.frame, text=" ")
         # blanklabel1.grid(row=0, column=0, sticky='W', pady=1)
 
-
         # --------------row 1
         # blanklabel2 = tk.Label(self.frame, text=" ")
         # blanklabel2.grid(row=1, column=0, sticky='W', pady=1)
@@ -267,16 +267,16 @@ class App:
                                              onvalue=1, offvalue=0, command=self.trigger_fstacq)
         self.chkbox_fastacq.grid(row=3, column=4, columnspan=3, padx=0, pady=1, sticky='w')
         # self.chkbox_cursor = tk.Checkbutton(self.labelFr_periss, text='cursor',
-        #                                      variable=None,
-        #                                      onvalue=1, offvalue=0, command=None)
+        #                                     variable=self.enable_cursor_var_bool,
+        #                                     onvalue=1, offvalue=0, command=None)
         # self.chkbox_cursor.grid(row=3, column=7, columnspan=3, padx=0, pady=1, sticky='w')
 
         self.labelFr_time_scale = tk.LabelFrame(self.frame, text="Time/div")
         self.labelFr_time_scale.grid(row=3, column=8, padx=5, columnspan=5, pady=0, sticky='We')
         self.l = tk.Button(self.labelFr_time_scale, text="◀ZoomOut", command=self.horizontal_zoom_out)
-        self.l.grid(row=4, column=0, columnspan=3,  padx=3, pady=1, sticky='we')
+        self.l.grid(row=4, column=0, columnspan=3, padx=3, pady=1, sticky='we')
         self.r = tk.Button(self.labelFr_time_scale, text="ZoomIn▶", command=self.horizontal_zoom_in)
-        self.r.grid(row=4, column=4, columnspan=3,  padx=3, pady=1, sticky='we')
+        self.r.grid(row=4, column=4, columnspan=3, padx=3, pady=1, sticky='we')
 
         # ▼▲▶◀↶⤾⟲
         # color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
@@ -289,7 +289,7 @@ class App:
         self.labelFr_ch4 = tk.LabelFrame(self.frame, text="CH4")
         self.labelFr_ch4.grid(row=5, column=10, padx=3)
 
-        #ch1 labelFrame
+        # ch1 labelFrame
         label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Position")
         label_pos_ch1.grid(row=5, column=1, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, from_=-5, to=5, increment=.08, justify=tk.CENTER,
@@ -302,8 +302,8 @@ class App:
         label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset(V)", command=None)
         label_offs_ch1.grid(row=6, column=1, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch1 = mySpinbox(self.labelFr_ch1, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
-                                         command=lambda: self.adjust_offset(ch=1), width=7,
-                                         textvariable=self.ch1_offset, takefocus=True)
+                                            command=lambda: self.adjust_offset(ch=1), width=7,
+                                            textvariable=self.ch1_offset, takefocus=True)
         self.spinbox_offset_ch1.grid(row=6, column=2, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch1.bind('<Return>', lambda i: (self.spinbox_offset_ch1.invoke('buttondown'),
                                                             self.spinbox_offset_ch1.invoke('buttonup'),
@@ -369,24 +369,24 @@ class App:
                                                             self.spinbox_offset_ch4.invoke('buttonup'),
                                                             self.frame.focus_force()))
 
-        self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=self.scope_ch1_scale_up)
+        self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=lambda: self.ch_scale_adj(ch=1, updn='up'))
         self.btn_ch1_up.grid(row=5, column=3, padx=0, pady=1)
-        self.btn_ch1_down = tk.Button(self.labelFr_ch1, text="▼", command=self.scope_ch1_scale_down)
+        self.btn_ch1_down = tk.Button(self.labelFr_ch1, text="▼", command=lambda: self.ch_scale_adj(ch=1, updn='dn'))
         self.btn_ch1_down.grid(row=6, column=3, padx=0, pady=1)
 
-        self.btn_ch2_up = tk.Button(self.labelFr_ch2, text="▲", command=self.scope_ch2_scale_up)
+        self.btn_ch2_up = tk.Button(self.labelFr_ch2, text="▲", command=lambda: self.ch_scale_adj(ch=2, updn='up'))
         self.btn_ch2_up.grid(row=5, column=7, padx=0, pady=1)
-        self.btn_ch2_down = tk.Button(self.labelFr_ch2, text="▼", command=self.scope_ch2_scale_down)
+        self.btn_ch2_down = tk.Button(self.labelFr_ch2, text="▼", command=lambda: self.ch_scale_adj(ch=2, updn='dn'))
         self.btn_ch2_down.grid(row=6, column=7, padx=0, pady=1)
 
-        self.btn_ch3_up = tk.Button(self.labelFr_ch3, text="▲", command=self.scope_ch3_scale_up)
+        self.btn_ch3_up = tk.Button(self.labelFr_ch3, text="▲", command=lambda: self.ch_scale_adj(ch=3, updn='up'))
         self.btn_ch3_up.grid(row=5, column=10, padx=0, pady=1)
-        self.btn_ch3_down = tk.Button(self.labelFr_ch3, text="▼", command=self.scope_ch3_scale_down)
+        self.btn_ch3_down = tk.Button(self.labelFr_ch3, text="▼", command=lambda: self.ch_scale_adj(ch=3, updn='dn'))
         self.btn_ch3_down.grid(row=6, column=10, padx=0, pady=1)
 
-        self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=self.scope_ch4_scale_up)
+        self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=lambda: self.ch_scale_adj(ch=4, updn='up'))
         self.btn_ch4_up.grid(row=0, column=2, padx=0, pady=1)
-        self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=self.scope_ch4_scale_down)
+        self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=lambda: self.ch_scale_adj(ch=4, updn='dn'))
         self.btn_ch4_down.grid(row=1, column=2, padx=0, pady=1)
 
         # --------------row 7
@@ -399,10 +399,8 @@ class App:
         self.btn_Clear = tk.Button(self.frame, text="Clear (Ctrl+Del)", command=self.btn_clear_clicked)
         self.btn_Clear.grid(row=7, column=8, padx=3, pady=2, columnspan=3)
 
-        # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
-        # btn_exit.grid(row=4, column=4)
         self.labelFr_cursor = tk.LabelFrame(self.frame, text="Cursor")
-        self.labelFr_cursor.grid(row=0, column=14, columnspan=3, rowspan=8, padx=3, sticky='ns')
+        self.labelFr_cursor.grid(row=0, column=14, columnspan=3, rowspan=9, padx=3, sticky='ns')
         self.cursor_type_combobox = ttk.Combobox(self.labelFr_cursor, state='readonly', textvariable=None, width=6)
         self.cursor_type_combobox['values'] = ('OFF', 'HBar', 'VBar', 'Wave', 'Screen')
         self.cursor_type_combobox.grid(row=0, column=0, padx=2, pady=0)
@@ -411,18 +409,18 @@ class App:
         self.btn_cur_center.grid(row=0, column=1, padx=1, pady=0)
 
         self.labelFr_cursor_one = tk.LabelFrame(self.labelFr_cursor, text="Cursor1")
-        self.labelFr_cursor_one.grid(row=1, column=0, padx=1, columnspan=2, rowspan=2)
+        self.labelFr_cursor_one.grid(row=1, column=0, padx=1, columnspan=2, rowspan=3)
         label_cur1_ch = tk.Label(self.labelFr_cursor_one, text="CH", command=None)
         label_cur1_ch.grid(row=0, column=0, padx=0, pady=1, sticky='w')
-        self.cursor1_ch_combobox = ttk.Combobox(self.labelFr_cursor_one, state='readonly', textvariable=None, width=2)
+        self.cursor1_ch_combobox = ttk.Combobox(self.labelFr_cursor_one, state='readonly', textvariable=None, width=1)
         self.cursor1_ch_combobox['values'] = ('1', '2', '3', '4')
         self.cursor1_ch_combobox.grid(row=0, column=1, padx=1, pady=1, sticky='w')
         self.cursor1_ch_combobox.current(0)
         label_cur1_x = tk.Label(self.labelFr_cursor_one, text="X", command=None)
         label_cur1_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
         self.spinbox_cur1_x = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.5, justify=tk.CENTER,
-                                            command=lambda: None, width=7,
-                                            textvariable=None)
+                                        command=lambda: None, width=7,
+                                        textvariable=None)
         self.spinbox_cur1_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
         label_cur1_y = tk.Label(self.labelFr_cursor_one, text="Y", command=None)
         label_cur1_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
@@ -435,7 +433,7 @@ class App:
         self.labelFr_cursor_two.grid(row=4, column=0, padx=3, pady=0, columnspan=2, rowspan=3)
         label_cur2_ch = tk.Label(self.labelFr_cursor_two, text="CH", command=None)
         label_cur2_ch.grid(row=0, column=0, padx=0, pady=1, sticky='w')
-        self.cursor2_ch_combobox = ttk.Combobox(self.labelFr_cursor_two, state='readonly', textvariable=None, width=3)
+        self.cursor2_ch_combobox = ttk.Combobox(self.labelFr_cursor_two, state='readonly', textvariable=None, width=1)
         self.cursor2_ch_combobox['values'] = ('1', '2', '3', '4')
         self.cursor2_ch_combobox.grid(row=0, column=1, padx=1, pady=1, sticky='w')
         self.cursor2_ch_combobox.current(0)
@@ -454,9 +452,9 @@ class App:
 
         # --------------row 8, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.grid(row=8, column=0, columnspan=17, sticky='we')
+        status_bar.grid(row=8, column=0, columnspan=14, sticky='we')
 
-        self.closest_index = 0
+        self.closest_timediv_index = 0
         self.time_scaleList = [1e-9, 2e-9, 5e-9,
                                1e-8, 2e-8, 5e-8,
                                1e-7, 2e-7, 5e-7,
@@ -491,7 +489,7 @@ class App:
         helpmenu = Menu(menubar, tearoff=False)
 
         file_submenu_save_setup = Menu(filemenu, tearoff=False)
-        filemenu.add_cascade(label='Save Setup To', menu=file_submenu_save_setup, underline=0)
+        filemenu.add_cascade(label='Save Setup', menu=file_submenu_save_setup, underline=0)
         file_submenu_save_setup.add_command(label="Slot 1", command=lambda: self.save_setup_slot(slot_num=1))
         file_submenu_save_setup.add_command(label="Slot 2", command=lambda: self.save_setup_slot(slot_num=2))
         file_submenu_save_setup.add_command(label="Slot 3", command=lambda: self.save_setup_slot(slot_num=3))
@@ -499,7 +497,7 @@ class App:
         file_submenu_save_setup.add_command(label="Slot 5", command=lambda: self.save_setup_slot(slot_num=5))
 
         file_submenu_recall_setup = Menu(filemenu, tearoff=False)
-        filemenu.add_cascade(label='Recall Setup From', menu=file_submenu_recall_setup, underline=0)
+        filemenu.add_cascade(label='Recall Setup', menu=file_submenu_recall_setup, underline=0)
         file_submenu_recall_setup.add_command(label="Slot 1", command=lambda: self.recall_setup_slot(slot_num=1))
         file_submenu_recall_setup.add_command(label="Slot 2", command=lambda: self.recall_setup_slot(slot_num=2))
         file_submenu_recall_setup.add_command(label="Slot 3", command=lambda: self.recall_setup_slot(slot_num=3))
@@ -543,7 +541,7 @@ class App:
         toolmenu.add_command(label="GPIB Scanner", command=self.create_frame_gpib_scanner)
 
         helpmenu.add_command(label="tips", underline=0, command=lambda: messagebox.showinfo("tips",
-                            "Use <Control>+<Left> & <Control>+<Right> arrow key to scale time division"))
+                                                                                            "Use <Control>+<Left> & <Control>+<Right> arrow key to scale time division"))
 
         helpmenu.add_command(label="About", underline=0, command=lambda:
         messagebox.showinfo("About this program", "KW ScopeCapt " + " Version:" + str(self.app_version)
@@ -584,7 +582,7 @@ class App:
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
         self.update_scope_thread = threading.Thread(target=self.task_update_device_state, daemon=True)
         self.update_scope_thread.start()
-
+        
     def validate_spinbox(self, new_value):
         # Returning True allows the edit to happen, False prevents it.
         return new_value.isdigit()
@@ -622,7 +620,6 @@ class App:
     def at_exit(self):
         try:
             pass
-            # self.write_user_pref()
         except:
             pass
 
@@ -632,7 +629,6 @@ class App:
     def check_app_update(self):
         self.check_app_update_thread = threading.Thread(target=self.task_check_app_update, daemon=True)
         self.check_app_update_thread.start()
-        # self.check_app_update_thread.join()
 
     def task_check_app_update(self):
         url_api = 'https://api.github.com/repos/kw81634dr/VISAGUI/releases/latest'
@@ -646,8 +642,8 @@ class App:
         if latest_release_float > self.app_version:
             print("there's an Update")
             ans = messagebox.askokcancel("Version check", "New version available,"
-                                   + "\nWould you like to take a look?"
-                                   + "\n** click [OK] will direct you to repository)")
+                                         + "\nWould you like to take a look?"
+                                         + "\n** click [OK] will direct you to repository)")
             if ans:
                 webbrowser.open(url_release)
         else:
@@ -843,6 +839,12 @@ class App:
                         else:
                             # print("Cannot get Acq state")
                             self.status_var.set("Cannot get Acq state")
+
+                        # get the index of closest value
+                        time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
+                        self.closest_timediv_index = min(range(len(self.time_scaleList)),
+                                                         key=lambda i: abs(self.time_scaleList[i] - time_scale))
+                        print("closetstIndex=", self.closest_timediv_index)
                         scope.close()
                     else:
                         self.status_var.set("Window not focused or Scope BUSY...")
@@ -925,13 +927,13 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                if ch==1:
+                if ch == 1:
                     value = self.spinbox_pos_ch1.get()
-                elif ch==2:
+                elif ch == 2:
                     value = self.spinbox_pos_ch2.get()
-                elif ch==3:
+                elif ch == 3:
                     value = self.spinbox_pos_ch3.get()
-                elif ch==4:
+                elif ch == 4:
                     value = self.spinbox_pos_ch4.get()
                 else:
                     pass
@@ -949,17 +951,17 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                if ch==1:
+                if ch == 1:
                     value = self.spinbox_offset_ch1.get()
-                elif ch==2:
+                elif ch == 2:
                     value = self.spinbox_offset_ch2.get()
-                elif ch==3:
+                elif ch == 3:
                     value = self.spinbox_offset_ch3.get()
-                elif ch==4:
+                elif ch == 4:
                     value = self.spinbox_offset_ch4.get()
                 else:
                     pass
-                ch1_offset_cmd = "CH"+str(ch)+":OFFS " + str(value)
+                ch1_offset_cmd = "CH" + str(ch) + ":OFFS " + str(value)
                 # ch1_offset_cmd = "CH1:OFFS " + str(self.spinbox_offset_ch1.get())
                 scope.write(ch1_offset_cmd)
             scope.close()
@@ -1219,21 +1221,20 @@ class App:
             self.status_var.set("Set Trig A failed, VISA ERROR")
 
     def horizontal_zoom_out(self, *args):
-        # self.update_addr_inApp()
+        self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
                 print("Scale = ", time_scale)
                 # get the index of closest value
-                self.closest_index = min(range(len(self.time_scaleList)),
+                self.closest_timediv_index = min(range(len(self.time_scaleList)),
                                          key=lambda i: abs(self.time_scaleList[i] - time_scale))
-                print("closetstIndex=", self.closest_index)
-                self.target_index = self.closest_index
-                if self.closest_index < (len(self.time_scaleList)) - 1:
-                    self.target_index = self.closest_index + 1
+                self.target_index = self.closest_timediv_index
+                if self.closest_timediv_index < (len(self.time_scaleList)) - 1:
+                    self.target_index = self.closest_timediv_index + 1
                     scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
-                    scope.write('HORizontal:RESOlution 1e5')    # set resolution to 100k
+                    scope.write('HORizontal:RESOlution 1e5')  # set resolution to 100k
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
@@ -1241,23 +1242,22 @@ class App:
         except ValueError:
             self.status_var.set("VISA driver Error")
             self.btn_RunStop.configure(fg="red")
+        self.pause_get_status_thread = False
 
     def horizontal_zoom_in(self, *args):
-        # self.update_addr_inApp()
+        self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
-                print("Scale = ", time_scale)
                 # get the index of closest value
-                self.closest_index = min(range(len(self.time_scaleList)),
+                self.closest_timediv_index = min(range(len(self.time_scaleList)),
                                          key=lambda i: abs(self.time_scaleList[i] - time_scale))
-                print("closetstIndex=", self.closest_index)
-                self.target_index = self.closest_index
-                if self.closest_index > 1:
-                    self.target_index = self.closest_index - 1
+                self.target_index = self.closest_timediv_index
+                if self.closest_timediv_index > 1:
+                    self.target_index = self.closest_timediv_index - 1
                     scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
-                    scope.write('HORizontal:RESOlution 1e5')    # set resolution to 100k
+                    scope.write('HORizontal:RESOlution 1e5')  # set resolution to 100k
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
@@ -1265,166 +1265,36 @@ class App:
         except ValueError:
             self.status_var.set("VISA driver Error")
             self.btn_RunStop.configure(fg="red")
+        self.pause_get_status_thread = False
 
-    def scope_ch1_scale_up(self):
-        print("Into --scope_ch1_scale Up--")
+    def ch_scale_adj(self, ch=1, updn='up'):
+        cmd_scale = ''
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH1:SCALe?'))
-                print("CH1 Scale=", scale_current)
+                cmd = 'CH'+str(ch)+':SCALe?'
+                scale_current = float(scope.query(cmd))
                 # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList)) - 1:
-                    self.target_index = self.closest_index + 1
-                    scope.write('CH1:SCALe ' + str(self.vertical_scaleList[self.target_index]))
+                self.closest_timediv_index = min(range(len(self.vertical_scaleList)),
+                                                 key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
+                if updn == 'up':
+                    if self.closest_timediv_index < (len(self.vertical_scaleList)) - 1:
+                        target_index = self.closest_timediv_index + 1
+                        cmd_scale = 'CH'+str(ch)+':SCALe ' + str(self.vertical_scaleList[target_index])
+                        print('scale cmd=', cmd_scale)
+                elif updn == 'dn':
+                    if self.closest_timediv_index > 0:
+                        target_index = self.closest_timediv_index - 1
+                        cmd_scale = 'CH' + str(ch) + ':SCALe ' + str(self.vertical_scaleList[target_index])
+                        print('scale cmd=', cmd_scale)
+                else:
+                    pass
+                scope.write(cmd_scale)
                 scope.close()
             rm.close()
         except ValueError:
             print("Scale CH1 Failed")
             self.status_var.set("Scale CH1 Failed, VISA ERROR")
-
-    def scope_ch1_scale_down(self):
-        print("Into --scope_ch1_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH1:SCALe?'))
-                print("CH1 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index > 0:
-                    self.target_index = self.closest_index - 1
-                    scope.write('CH1:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH1 Failed")
-            self.status_var.set("Scale CH1 Failed, VISA ERROR")
-
-    def scope_ch2_scale_up(self):
-        print("Into --scope_ch2_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH2:SCALe?'))
-                print("CH2 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList)) - 1:
-                    self.target_index = self.closest_index + 1
-                    scope.write('CH2:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH2 Failed")
-            self.status_var.set("Scale CH2 Failed, VISA ERROR")
-
-    def scope_ch2_scale_down(self):
-        print("Into --scope_ch2_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH2:SCALe?'))
-                print("CH2 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index > 0:
-                    self.target_index = self.closest_index - 1
-                    scope.write('CH2:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH2 Failed")
-            self.status_var.set("Scale CH2 Failed, VISA ERROR")
-
-    def scope_ch3_scale_up(self):
-        print("Into --scope_ch3_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH3:SCALe?'))
-                print("CH3 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList)) - 1:
-                    self.target_index = self.closest_index + 1
-                    scope.write('CH3:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH3 Failed")
-            self.status_var.set("Scale CH3 Failed, VISA ERROR")
-
-    def scope_ch3_scale_down(self):
-        print("Into --scope_ch3_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH3:SCALe?'))
-                print("CH3 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index > 0:
-                    self.target_index = self.closest_index - 1
-                    scope.write('CH3:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH3 Failed")
-            self.status_var.set("Scale CH3 Failed, VISA ERROR")
-
-    def scope_ch4_scale_up(self):
-        print("Into --scope_ch4_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH4:SCALe?'))
-                print("CH4 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index < (len(self.vertical_scaleList)) - 1:
-                    self.target_index = self.closest_index + 1
-                    scope.write('CH4:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH4 Failed")
-            self.status_var.set("Scale CH4 Failed, VISA ERROR")
-
-    def scope_ch4_scale_down(self):
-        print("Into --scope_ch4_scale Up--")
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scale_current = float(scope.query('CH4:SCALe?'))
-                print("CH4 Scale=", scale_current)
-                # get the index of closest value
-                self.closest_index = min(range(len(self.vertical_scaleList)),
-                                         key=lambda i: abs(self.vertical_scaleList[i] - scale_current))
-                print("closetstIndex=", self.closest_index)
-                if self.closest_index > 0:
-                    self.target_index = self.closest_index - 1
-                    scope.write('CH4:SCALe ' + str(self.vertical_scaleList[self.target_index]))
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("Scale CH4 Failed")
-            self.status_var.set("Scale CH4 Failed, VISA ERROR")
 
     def scope_channel_select(self):
         # self.update_addr_inApp()
@@ -1600,26 +1470,26 @@ def center(win):
     win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
     win.deiconify()
 
-
-def splash():
-    splash = tk.Tk()
-    splash.overrideredirect(True)
-    splash.title("Splash!")
-    width = splash.winfo_screenwidth()
-    height = splash.winfo_screenheight()
-    # splash.geometry('%dx%d+%d+%d' % (width*0.2, height*0.2, width*0.1, height*0.1))
-    # splash.geometry("800x750+128+128")
-    splash_img = myIcon.splash_base64_128px
-    splash_img = base64.b64decode(splash_img)
-    splash_img = ImageTk.PhotoImage(data=splash_img)
-    # highlightthickness=0 -> remove frame
-    canvas = tk.Canvas(splash, height=256, width=256, bg='black', highlightthickness=0)
-    canvas.create_image(128, 128, image=splash_img)
-    canvas.pack(fill='both')
-    splash.after(2700, splash.destroy)
-    splash.wm_attributes('-transparentcolor', 'black')
-    center(splash)
-    splash.mainloop()
+# Splash
+# def splash():
+#     splash = tk.Tk()
+#     splash.overrideredirect(True)
+#     splash.title("Splash!")
+#     width = splash.winfo_screenwidth()
+#     height = splash.winfo_screenheight()
+#     # splash.geometry('%dx%d+%d+%d' % (width*0.2, height*0.2, width*0.1, height*0.1))
+#     # splash.geometry("800x750+128+128")
+#     splash_img = myIcon.splash_base64_128px
+#     splash_img = base64.b64decode(splash_img)
+#     splash_img = ImageTk.PhotoImage(data=splash_img)
+#     # highlightthickness=0 -> remove frame
+#     canvas = tk.Canvas(splash, height=256, width=256, bg='black', highlightthickness=0)
+#     canvas.create_image(128, 128, image=splash_img)
+#     canvas.pack(fill='both')
+#     splash.after(2700, splash.destroy)
+#     splash.wm_attributes('-transparentcolor', 'black')
+#     center(splash)
+#     splash.mainloop()
 
 
 def mainApp():
