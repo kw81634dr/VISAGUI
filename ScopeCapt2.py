@@ -178,6 +178,9 @@ class App:
         self.persistence_var_bool = IntVar()
         self.fastacq_var_bool = IntVar()
         self.acq_state_var_bool = IntVar()
+        self.enable_cursor_var_bool = IntVar(value=0)
+        self.cursor_type_var = tk.StringVar()
+        self.cursor_type_var.set('HBar')
 
         # User Preference var
         self.imshow_var_bool = IntVar(value=0)
@@ -224,14 +227,14 @@ class App:
         label_entry_dir = tk.Label(self.frame, text="Save to :")
         label_entry_dir.grid(row=0, column=0, sticky='W', pady=0)
         self.E_dir = tk.Entry(self.frame, textvariable=self.path_var)
-        self.E_dir.grid(row=0, column=1, columnspan=9, padx=1, pady=1, sticky='we')
+        self.E_dir.grid(row=0, column=1, columnspan=9, padx=1, pady=0, sticky='we')
         label_entry_dir = tk.Label(self.frame, text="Filename:")
         label_entry_dir.grid(row=1, column=0, sticky='W', pady=0)
         self.E_filename = tk.Entry(self.frame, textvariable=self.filename_var)
-        self.E_filename.grid(row=1, column=1, columnspan=9, padx=1, pady=3, sticky='we')
+        self.E_filename.grid(row=1, column=1, columnspan=9, padx=1, pady=0, sticky='we')
 
         btn_prompt_dir = tk.Button(self.frame, text="Prompt folder", command=self.prompt_path)
-        btn_prompt_dir.grid(row=0, column=10, padx=2, pady=1, columnspan=2, rowspan=2, sticky='nswe')
+        btn_prompt_dir.grid(row=0, column=10, padx=2, pady=0, columnspan=2, rowspan=2, sticky='nswe')
 
         # --------------row 2
 
@@ -253,7 +256,7 @@ class App:
         self.btn_trig50.grid(row=4, column=7, padx=5, pady=1)
 
         # --------------row4
-        self.labelFr_periss = tk.LabelFrame(self.frame, text="")
+        self.labelFr_periss = tk.LabelFrame(self.frame, text="Display")
         self.labelFr_periss.grid(row=3, column=1, padx=5, columnspan=4, pady=0, sticky='w')
         self.chkbox_persistence = tk.Checkbutton(self.labelFr_periss, text='Persistence',
                                                  variable=self.persistence_var_bool,
@@ -263,13 +266,17 @@ class App:
                                              variable=self.fastacq_var_bool,
                                              onvalue=1, offvalue=0, command=self.trigger_fstacq)
         self.chkbox_fastacq.grid(row=3, column=4, columnspan=3, padx=0, pady=1, sticky='w')
+        # self.chkbox_cursor = tk.Checkbutton(self.labelFr_periss, text='cursor',
+        #                                      variable=None,
+        #                                      onvalue=1, offvalue=0, command=None)
+        # self.chkbox_cursor.grid(row=3, column=7, columnspan=3, padx=0, pady=1, sticky='w')
 
         self.labelFr_time_scale = tk.LabelFrame(self.frame, text="Time/div")
-        self.labelFr_time_scale.grid(row=3, column=8, padx=5, columnspan=6, pady=0, sticky='W')
+        self.labelFr_time_scale.grid(row=3, column=8, padx=5, columnspan=5, pady=0, sticky='We')
         self.l = tk.Button(self.labelFr_time_scale, text="◀ZoomOut", command=self.horizontal_zoom_out)
-        self.l.grid(row=4, column=4, columnspan=3,  padx=3, pady=1, sticky='we')
+        self.l.grid(row=4, column=0, columnspan=3,  padx=3, pady=1, sticky='we')
         self.r = tk.Button(self.labelFr_time_scale, text="ZoomIn▶", command=self.horizontal_zoom_in)
-        self.r.grid(row=4, column=8, columnspan=3,  padx=3, pady=1, sticky='we')
+        self.r.grid(row=4, column=4, columnspan=3,  padx=3, pady=1, sticky='we')
 
         # ▼▲▶◀↶⤾⟲
         # color yellow=#F7F700, cyan=#00F7F8, magenta=#FF33FF, green=#00F700
@@ -286,8 +293,7 @@ class App:
         label_pos_ch1 = tk.Label(self.labelFr_ch1, text="Position")
         label_pos_ch1.grid(row=5, column=1, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch1 = mySpinbox(self.labelFr_ch1, from_=-5, to=5, increment=.08, justify=tk.CENTER,
-                                         command=self.ch1_adjust_pos, width=7,
-                                         textvariable=self.ch1_pos, takefocus=True)
+                                         command=lambda: self.adjust_pos(ch=1), width=7, textvariable=self.ch1_pos)
         self.spinbox_pos_ch1.grid(row=5, column=2, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch1.bind('<Return>', lambda i: (self.spinbox_pos_ch1.invoke('buttondown'),
                                                          self.spinbox_pos_ch1.invoke('buttonup'),
@@ -296,7 +302,7 @@ class App:
         label_offs_ch1 = tk.Label(self.labelFr_ch1, text="Offset(V)", command=None)
         label_offs_ch1.grid(row=6, column=1, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch1 = mySpinbox(self.labelFr_ch1, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
-                                         command=self.ch1_adjust_offset, width=7,
+                                         command=lambda: self.adjust_offset(ch=1), width=7,
                                          textvariable=self.ch1_offset, takefocus=True)
         self.spinbox_offset_ch1.grid(row=6, column=2, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch1.bind('<Return>', lambda i: (self.spinbox_offset_ch1.invoke('buttondown'),
@@ -307,8 +313,7 @@ class App:
         label_pos_ch2 = tk.Label(self.labelFr_ch2, text="Position")
         label_pos_ch2.grid(row=5, column=5, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch2 = mySpinbox(self.labelFr_ch2, from_=-5, to=5, increment=.08, justify=tk.CENTER,
-                                         command=self.ch2_adjust_pos, width=7, textvariable=str(self.ch2_pos),
-                                         takefocus=True)
+                                         command=lambda: self.adjust_pos(ch=2), width=7, textvariable=str(self.ch2_pos))
         self.spinbox_pos_ch2.grid(row=5, column=6, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch2.bind('<Return>', lambda i: (self.spinbox_pos_ch2.invoke('buttondown'),
                                                          self.spinbox_pos_ch2.invoke('buttonup'),
@@ -317,8 +322,8 @@ class App:
         label_offs_ch2 = tk.Label(self.labelFr_ch2, text="Offset(V)", command=None)
         label_offs_ch2.grid(row=6, column=5, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch2 = mySpinbox(self.labelFr_ch2, from_=-9.3, to=9.3, increment=.004, justify=tk.CENTER,
-                                            command=self.ch2_adjust_offset, width=7,
-                                            textvariable=str(self.ch2_offset), takefocus=True)
+                                            command=lambda: self.adjust_offset(ch=2), width=7,
+                                            textvariable=str(self.ch2_offset))
         self.spinbox_offset_ch2.grid(row=6, column=6, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch2.bind('<Return>', lambda i: (self.spinbox_offset_ch2.invoke('buttondown'),
                                                             self.spinbox_offset_ch2.invoke('buttonup'),
@@ -328,8 +333,7 @@ class App:
         label_pos_ch3 = tk.Label(self.labelFr_ch3, text="Position")
         label_pos_ch3.grid(row=5, column=8, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch3 = mySpinbox(self.labelFr_ch3, from_=-5, to=5, increment=.08, justify=tk.CENTER,
-                                         command=self.ch3_adjust_pos, width=7, textvariable=str(self.ch3_pos),
-                                         takefocus=True)
+                                         command=lambda: self.adjust_pos(ch=3), width=7, textvariable=str(self.ch3_pos))
         self.spinbox_pos_ch3.grid(row=5, column=9, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch3.bind('<Return>', lambda i: (self.spinbox_pos_ch3.invoke('buttondown'),
                                                          self.spinbox_pos_ch3.invoke('buttonup'),
@@ -338,8 +342,8 @@ class App:
         label_offs_ch3 = tk.Label(self.labelFr_ch3, text="Offset(V)", command=None)
         label_offs_ch3.grid(row=6, column=8, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch3 = mySpinbox(self.labelFr_ch3, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
-                                            command=self.ch3_adjust_offset, width=7, textvariable=str(self.ch3_offset),
-                                            takefocus=True)
+                                            command=lambda: self.adjust_offset(ch=3), width=7,
+                                            textvariable=str(self.ch3_offset))
         self.spinbox_offset_ch3.grid(row=6, column=9, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch3.bind('<Return>', lambda i: (self.spinbox_offset_ch3.invoke('buttondown'),
                                                             self.spinbox_offset_ch3.invoke('buttonup'),
@@ -347,21 +351,20 @@ class App:
 
         # ch4 labelFrame
         label_pos_ch4 = tk.Label(self.labelFr_ch4, text="Position")
-        label_pos_ch4.grid(row=5, column=11, padx=0, pady=1, sticky='w')
+        label_pos_ch4.grid(row=0, column=0, padx=0, pady=1, sticky='w')
         self.spinbox_pos_ch4 = mySpinbox(self.labelFr_ch4, from_=-5, to=5, increment=.08, justify=tk.CENTER,
-                                         command=self.ch4_adjust_pos, width=7, textvariable=str(self.ch4_pos),
-                                         takefocus=True)
-        self.spinbox_pos_ch4.grid(row=5, column=12, padx=1, pady=1, sticky='w')
+                                         command=lambda: self.adjust_pos(ch=4), width=7, textvariable=str(self.ch4_pos))
+        self.spinbox_pos_ch4.grid(row=0, column=1, padx=1, pady=1, sticky='w')
         self.spinbox_pos_ch4.bind('<Return>', lambda i: (self.spinbox_pos_ch4.invoke('buttondown'),
                                                          self.spinbox_pos_ch4.invoke('buttonup'),
                                                          self.frame.focus_force()))
 
         label_offs_ch4 = tk.Label(self.labelFr_ch4, text="Offset(V)", command=None)
-        label_offs_ch4.grid(row=6, column=11, padx=0, pady=1, sticky='w')
+        label_offs_ch4.grid(row=1, column=0, padx=0, pady=1, sticky='w')
         self.spinbox_offset_ch4 = mySpinbox(self.labelFr_ch4, from_=-9.3, to=9.3, increment=.002, justify=tk.CENTER,
-                                            command=self.ch4_adjust_offset, width=7, textvariable=str(self.ch4_offset),
-                                            takefocus=True)
-        self.spinbox_offset_ch4.grid(row=6, column=12, padx=1, pady=1, sticky='e')
+                                            command=lambda: self.adjust_offset(ch=4), width=7,
+                                            textvariable=str(self.ch4_offset))
+        self.spinbox_offset_ch4.grid(row=1, column=1, padx=1, pady=1, sticky='e')
         self.spinbox_offset_ch4.bind('<Return>', lambda i: (self.spinbox_offset_ch4.invoke('buttondown'),
                                                             self.spinbox_offset_ch4.invoke('buttonup'),
                                                             self.frame.focus_force()))
@@ -382,9 +385,9 @@ class App:
         self.btn_ch3_down.grid(row=6, column=10, padx=0, pady=1)
 
         self.btn_ch4_up = tk.Button(self.labelFr_ch4, text="▲", command=self.scope_ch4_scale_up)
-        self.btn_ch4_up.grid(row=5, column=13, padx=0, pady=1)
+        self.btn_ch4_up.grid(row=0, column=2, padx=0, pady=1)
         self.btn_ch4_down = tk.Button(self.labelFr_ch4, text="▼", command=self.scope_ch4_scale_down)
-        self.btn_ch4_down.grid(row=6, column=13, padx=0, pady=1)
+        self.btn_ch4_down.grid(row=1, column=2, padx=0, pady=1)
 
         # --------------row 7
         self.btn_capture = tk.Button(self.frame, text=" Take ScreenShot ", command=self.btn_capture_clicked)
@@ -398,10 +401,60 @@ class App:
 
         # btn_exit = tk.Button(self.frame, text="Exit", command=self.client_exit)
         # btn_exit.grid(row=4, column=4)
+        self.labelFr_cursor = tk.LabelFrame(self.frame, text="Cursor")
+        self.labelFr_cursor.grid(row=0, column=14, columnspan=3, rowspan=8, padx=3, sticky='ns')
+        self.cursor_type_combobox = ttk.Combobox(self.labelFr_cursor, state='readonly', textvariable=None, width=6)
+        self.cursor_type_combobox['values'] = ('OFF', 'HBar', 'VBar', 'Wave', 'Screen')
+        self.cursor_type_combobox.grid(row=0, column=0, padx=2, pady=0)
+        self.cursor_type_combobox.current(0)
+        self.btn_cur_center = tk.Button(self.labelFr_cursor, text="✜", command=None)
+        self.btn_cur_center.grid(row=0, column=1, padx=1, pady=0)
+
+        self.labelFr_cursor_one = tk.LabelFrame(self.labelFr_cursor, text="Cursor1")
+        self.labelFr_cursor_one.grid(row=1, column=0, padx=1, columnspan=2, rowspan=2)
+        label_cur1_ch = tk.Label(self.labelFr_cursor_one, text="CH", command=None)
+        label_cur1_ch.grid(row=0, column=0, padx=0, pady=1, sticky='w')
+        self.cursor1_ch_combobox = ttk.Combobox(self.labelFr_cursor_one, state='readonly', textvariable=None, width=2)
+        self.cursor1_ch_combobox['values'] = ('1', '2', '3', '4')
+        self.cursor1_ch_combobox.grid(row=0, column=1, padx=1, pady=1, sticky='w')
+        self.cursor1_ch_combobox.current(0)
+        label_cur1_x = tk.Label(self.labelFr_cursor_one, text="X", command=None)
+        label_cur1_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
+        self.spinbox_cur1_x = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.5, justify=tk.CENTER,
+                                            command=lambda: None, width=7,
+                                            textvariable=None)
+        self.spinbox_cur1_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
+        label_cur1_y = tk.Label(self.labelFr_cursor_one, text="Y", command=None)
+        label_cur1_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
+        self.spinbox_cur1_y = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+                                        command=lambda: None, width=7,
+                                        textvariable=None)
+        self.spinbox_cur1_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+
+        self.labelFr_cursor_two = tk.LabelFrame(self.labelFr_cursor, text="Cursor2")
+        self.labelFr_cursor_two.grid(row=4, column=0, padx=3, pady=0, columnspan=2, rowspan=3)
+        label_cur2_ch = tk.Label(self.labelFr_cursor_two, text="CH", command=None)
+        label_cur2_ch.grid(row=0, column=0, padx=0, pady=1, sticky='w')
+        self.cursor2_ch_combobox = ttk.Combobox(self.labelFr_cursor_two, state='readonly', textvariable=None, width=3)
+        self.cursor2_ch_combobox['values'] = ('1', '2', '3', '4')
+        self.cursor2_ch_combobox.grid(row=0, column=1, padx=1, pady=1, sticky='w')
+        self.cursor2_ch_combobox.current(0)
+        label_cur2_x = tk.Label(self.labelFr_cursor_two, text="X", command=None)
+        label_cur2_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
+        self.spinbox_cur2_x = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.5, justify=tk.CENTER,
+                                        command=lambda: None, width=7,
+                                        textvariable=None)
+        self.spinbox_cur2_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
+        label_cur2_y = tk.Label(self.labelFr_cursor_two, text="Y", command=None)
+        label_cur2_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
+        self.spinbox_cur1_y = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+                                        command=lambda: None, width=7,
+                                        textvariable=None)
+        self.spinbox_cur1_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
 
         # --------------row 8, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.grid(row=8, column=0, columnspan=14, sticky='we')
+        status_bar.grid(row=8, column=0, columnspan=17, sticky='we')
 
         self.closest_index = 0
         self.time_scaleList = [1e-9, 2e-9, 5e-9,
@@ -867,12 +920,23 @@ class App:
             print("recall_setup_slot->", e)
         self.pause_get_status_thread = False
 
-    def ch1_adjust_pos(self):
+    def adjust_pos(self, ch=1):
         self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch1_pos_cmd = "CH1:POS " + str(self.spinbox_pos_ch1.get())
+                if ch==1:
+                    value = self.spinbox_pos_ch1.get()
+                elif ch==2:
+                    value = self.spinbox_pos_ch2.get()
+                elif ch==3:
+                    value = self.spinbox_pos_ch3.get()
+                elif ch==4:
+                    value = self.spinbox_pos_ch4.get()
+                else:
+                    pass
+                ch1_pos_cmd = "CH" + str(ch) + ":POS " + str(value)
+                # ch1_pos_cmd = "CH1:POS " + str(self.spinbox_pos_ch1.get())
                 scope.write(ch1_pos_cmd)
             scope.close()
             rm.close()
@@ -880,91 +944,24 @@ class App:
             print(e)
         self.pause_get_status_thread = False
 
-    def ch1_adjust_offset(self):
+    def adjust_offset(self, ch=1):
         self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch1_offset_cmd = "CH1:OFFS " + str(self.spinbox_offset_ch1.get())
+                if ch==1:
+                    value = self.spinbox_offset_ch1.get()
+                elif ch==2:
+                    value = self.spinbox_offset_ch2.get()
+                elif ch==3:
+                    value = self.spinbox_offset_ch3.get()
+                elif ch==4:
+                    value = self.spinbox_offset_ch4.get()
+                else:
+                    pass
+                ch1_offset_cmd = "CH"+str(ch)+":OFFS " + str(value)
+                # ch1_offset_cmd = "CH1:OFFS " + str(self.spinbox_offset_ch1.get())
                 scope.write(ch1_offset_cmd)
-            scope.close()
-            rm.close()
-        except Exception as e:
-            print(e)
-        self.pause_get_status_thread = False
-
-    def ch2_adjust_pos(self):
-        self.pause_get_status_thread = True
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch2_pos_cmd = "CH2:POS " + str(self.spinbox_pos_ch2.get())
-                scope.write(ch2_pos_cmd)
-            scope.close()
-            rm.close()
-        except Exception as e:
-            print(e)
-        self.pause_get_status_thread = False
-
-    def ch2_adjust_offset(self):
-        self.pause_get_status_thread = True
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch2_offset_cmd = "CH2:OFFS " + str(self.spinbox_offset_ch2.get())
-                scope.write(ch2_offset_cmd)
-            scope.close()
-            rm.close()
-        except Exception as e:
-            print(e)
-        self.pause_get_status_thread = False
-
-    def ch3_adjust_pos(self):
-        self.pause_get_status_thread = True
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch3_pos_cmd = "CH3:POS " + str(self.spinbox_pos_ch3.get())
-                scope.write(ch3_pos_cmd)
-            scope.close()
-            rm.close()
-        except Exception as e:
-            print(e)
-        self.pause_get_status_thread = False
-
-    def ch3_adjust_offset(self):
-        self.pause_get_status_thread = True
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch3_offset_cmd = "CH3:OFFS " + str(self.spinbox_offset_ch3.get())
-                scope.write(ch3_offset_cmd)
-            scope.close()
-            rm.close()
-        except Exception as e:
-            print(e)
-        self.pause_get_status_thread = False
-
-    def ch4_adjust_pos(self):
-        self.pause_get_status_thread = True
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch4_pos_cmd = "CH4:POS " + str(self.spinbox_pos_ch4.get())
-                scope.write(ch4_pos_cmd)
-            scope.close()
-            rm.close()
-        except Exception as e:
-            print(e)
-        self.pause_get_status_thread = False
-
-    def ch4_adjust_offset(self):
-        self.pause_get_status_thread = True
-        try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                ch4_offset_cmd = "CH4:OFFS " + str(self.spinbox_offset_ch4.get())
-                scope.write(ch4_offset_cmd)
             scope.close()
             rm.close()
         except Exception as e:
