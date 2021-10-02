@@ -215,6 +215,11 @@ class App:
         self.ch4_pos = DoubleVar(value=0.0)
         self.ch4_offset = DoubleVar(value=0.0)
 
+        self.cur_x1_doublevar = DoubleVar(value=0.0)
+        self.cur_x2_doublevar = DoubleVar(value=0.0)
+        self.cur_y1_doublevar = DoubleVar(value=0.0)
+        self.cur_y2_doublevar = DoubleVar(value=0.0)
+
         self.pause_get_status_thread = False
 
         # --------------row 0
@@ -405,8 +410,10 @@ class App:
         self.cursor_type_combobox['values'] = ('OFF', 'HBar', 'VBar', 'Wave', 'Screen')
         self.cursor_type_combobox.grid(row=0, column=0, padx=2, pady=0)
         self.cursor_type_combobox.current(0)
-        self.btn_cur_center = tk.Button(self.labelFr_cursor, text="✜", command=None)
-        self.btn_cur_center.grid(row=0, column=1, padx=1, pady=0)
+
+        # ✜
+        self.btn_cur_set = tk.Button(self.labelFr_cursor, text="set", command=self.adjust_cur)
+        self.btn_cur_set.grid(row=0, column=1, padx=1, pady=0)
 
         self.labelFr_cursor_one = tk.LabelFrame(self.labelFr_cursor, text="Cursor1")
         self.labelFr_cursor_one.grid(row=1, column=0, padx=1, columnspan=2, rowspan=3)
@@ -418,16 +425,23 @@ class App:
         self.cursor1_ch_combobox.current(0)
         label_cur1_x = tk.Label(self.labelFr_cursor_one, text="X", command=None)
         label_cur1_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
-        self.spinbox_cur1_x = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.5, justify=tk.CENTER,
-                                        command=lambda: None, width=7,
-                                        textvariable=None)
+        self.spinbox_cur1_x = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+                                        command=lambda: self.adjust_cur(), width=7,
+                                        textvariable=self.cur_x1_doublevar)
         self.spinbox_cur1_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur1_x.bind('<Return>', lambda i: (self.spinbox_cur1_x.invoke('buttondown'),
+                                                         self.spinbox_cur1_x.invoke('buttonup'),
+                                                         self.frame.focus_force()))
+
         label_cur1_y = tk.Label(self.labelFr_cursor_one, text="Y", command=None)
         label_cur1_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
         self.spinbox_cur1_y = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.01, justify=tk.CENTER,
-                                        command=lambda: None, width=7,
-                                        textvariable=None)
+                                        command=lambda: self.adjust_cur(), width=7,
+                                        textvariable=self.cur_y1_doublevar)
         self.spinbox_cur1_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur1_y.bind('<Return>', lambda i: (self.spinbox_cur1_y.invoke('buttondown'),
+                                                        self.spinbox_cur1_y.invoke('buttonup'),
+                                                        self.frame.focus_force()))
 
         self.labelFr_cursor_two = tk.LabelFrame(self.labelFr_cursor, text="Cursor2")
         self.labelFr_cursor_two.grid(row=4, column=0, padx=3, pady=0, columnspan=2, rowspan=3)
@@ -440,15 +454,22 @@ class App:
         label_cur2_x = tk.Label(self.labelFr_cursor_two, text="X", command=None)
         label_cur2_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
         self.spinbox_cur2_x = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.5, justify=tk.CENTER,
-                                        command=lambda: None, width=7,
-                                        textvariable=None)
+                                        command=lambda: self.adjust_cur(), width=7,
+                                        textvariable=self.cur_x2_doublevar)
         self.spinbox_cur2_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur2_x.bind('<Return>', lambda i: (self.spinbox_cur2_x.invoke('buttondown'),
+                                                        self.spinbox_cur2_x.invoke('buttonup'),
+                                                        self.frame.focus_force()))
+
         label_cur2_y = tk.Label(self.labelFr_cursor_two, text="Y", command=None)
         label_cur2_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
-        self.spinbox_cur1_y = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.01, justify=tk.CENTER,
-                                        command=lambda: None, width=7,
-                                        textvariable=None)
-        self.spinbox_cur1_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur2_y = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+                                        command=lambda: self.adjust_cur(), width=7,
+                                        textvariable=self.cur_y2_doublevar)
+        self.spinbox_cur2_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur2_y.bind('<Return>', lambda i: (self.spinbox_cur2_y.invoke('buttondown'),
+                                                        self.spinbox_cur2_y.invoke('buttonup'),
+                                                        self.frame.focus_force()))
 
         # --------------row 8, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -844,7 +865,80 @@ class App:
                         time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
                         self.closest_timediv_index = min(range(len(self.time_scaleList)),
                                                          key=lambda i: abs(self.time_scaleList[i] - time_scale))
-                        print("closetstIndex=", self.closest_timediv_index)
+                        # print("closetstIndex=", self.closest_timediv_index)
+
+                        cmd_ask_scale1 = 'CH' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
+                        cmd_ask_scale2 = 'CH' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
+                        # print(cmd_ask_scale1, cmd_ask_scale2)
+                        scale1 = float(scope.query(cmd_ask_scale1).rstrip())
+                        scale2 = float(scope.query(cmd_ask_scale2).rstrip())
+                        # print(scale1, scale2)
+                        self.spinbox_cur1_x['increment'] = time_scale*0.01
+                        self.spinbox_cur1_x['from_'] = time_scale * -5
+                        self.spinbox_cur1_x['to'] = time_scale * 5
+
+                        self.spinbox_cur2_x['increment'] = time_scale*0.01
+                        self.spinbox_cur2_x['from_'] = time_scale * -5
+                        self.spinbox_cur2_x['to'] = time_scale * 5
+
+                        self.spinbox_cur1_y['increment'] = scale1*0.02
+                        self.spinbox_cur1_y['from_'] = scale1*-5
+                        self.spinbox_cur1_y['to'] = scale1*5
+
+                        self.spinbox_cur2_y['increment'] = scale2*0.02
+                        self.spinbox_cur2_y['from_'] = scale2 * -5
+                        self.spinbox_cur2_y['to'] = scale2 * 5
+
+                        if self.cursor_type_combobox.current() == 0:
+                            self.cursor1_ch_combobox['state'] = 'disable'
+                            self.cursor2_ch_combobox['state'] = 'disable'
+                            self.spinbox_cur1_x['state'] = 'disable'
+                            self.spinbox_cur1_y['state'] = 'disable'
+                            self.spinbox_cur2_x['state'] = 'disable'
+                            self.spinbox_cur2_y['state'] = 'disable'
+                        elif self.cursor_type_combobox.current() == 1:
+                            self.cursor1_ch_combobox['state'] = 'normal'
+                            self.cursor2_ch_combobox['state'] = 'normal'
+                            self.spinbox_cur1_x['state'] = 'disable'
+                            self.spinbox_cur1_y['state'] = 'normal'
+                            self.spinbox_cur2_x['state'] = 'disable'
+                            self.spinbox_cur2_y['state'] = 'normal'
+                        elif self.cursor_type_combobox.current() == 2 or self.cursor_type_combobox.current() == 3:
+                            self.cursor1_ch_combobox['state'] = 'normal'
+                            self.cursor2_ch_combobox['state'] = 'normal'
+                            self.spinbox_cur1_x['state'] = 'normal'
+                            self.spinbox_cur1_y['state'] = 'disable'
+                            self.spinbox_cur2_x['state'] = 'normal'
+                            self.spinbox_cur2_y['state'] = 'disable'
+                        else:
+                            self.cursor1_ch_combobox['state'] = 'normal'
+                            self.cursor2_ch_combobox['state'] = 'normal'
+                            self.spinbox_cur1_x['state'] = 'normal'
+                            self.spinbox_cur1_y['state'] = 'normal'
+                            self.spinbox_cur2_x['state'] = 'normal'
+                            self.spinbox_cur2_y['state'] = 'normal'
+
+                        if focused_obj != self.cursor_type_combobox:
+                            curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
+                            if curfuncnow == 'HBA':
+                                self.cursor_type_combobox.current(1)
+                            elif curfuncnow == 'VBA':
+                                self.cursor_type_combobox.current(2)
+                            elif curfuncnow == 'WAVE':
+                                self.cursor_type_combobox.current(3)
+                            elif curfuncnow == 'SCREEN':
+                                self.cursor_type_combobox.current(4)
+                            else:
+                                self.cursor_type_combobox.current(0)
+
+                        if focused_obj != self.spinbox_cur1_x:
+                            self.cur_x1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION1?').rstrip())))
+                        if focused_obj != self.spinbox_cur2_x:
+                            self.cur_x2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION2?').rstrip())))
+                        if focused_obj != self.spinbox_cur1_y:
+                            self.cur_y1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION1?').rstrip())))
+                        if focused_obj != self.spinbox_cur2_y:
+                            self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
                         scope.close()
                     else:
                         self.status_var.set("Window not focused or Scope BUSY...")
@@ -921,6 +1015,75 @@ class App:
         except Exception as e:
             print("recall_setup_slot->", e)
         self.pause_get_status_thread = False
+
+    def adjust_cur(self):
+        cmd_pool_list = ['']
+        if self.cursor_type_combobox.current() == 1:
+            cmd_cur1_ch = 'CURS:SOU1 CH' + str(self.cursor1_ch_combobox.get())
+            cmd_cur1_y = 'CURS:HBA:POSITION1 ' + str(self.spinbox_cur1_y.get())
+            cmd_cur2_ch = 'CURS:SOU2 CH' + str(self.cursor2_ch_combobox.get())
+            cmd_cur2_y = 'CURS:HBA:POSITION2 ' + str(self.spinbox_cur2_y.get())
+            cmd_pool_list.append('CURS:FUNC HBA')
+            cmd_pool_list.append(cmd_cur1_ch)
+            cmd_pool_list.append(cmd_cur1_y)
+            cmd_pool_list.append(cmd_cur2_ch)
+            cmd_pool_list.append(cmd_cur2_y)
+            cmd_pool_list.append('CURSor:STATE ON')
+        elif self.cursor_type_combobox.current() == 2:
+            cmd_cur1_ch = 'CURS:SOU1 CH' + str(self.cursor1_ch_combobox.get())
+            cmd_cur1_x = 'CURS:VBA:POS1 ' + str(self.spinbox_cur1_x.get())
+            cmd_cur2_ch = 'CURS:SOU2 CH' + str(self.cursor2_ch_combobox.get())
+            cmd_cur2_x = 'CURS:VBA:POS2 ' + str(self.spinbox_cur2_x.get())
+            cmd_pool_list.append('CURS:FUNC VBA')
+            cmd_pool_list.append(cmd_cur1_ch)
+            cmd_pool_list.append(cmd_cur1_x)
+            cmd_pool_list.append(cmd_cur2_ch)
+            cmd_pool_list.append(cmd_cur2_x)
+            cmd_pool_list.append('CURSor:STATE ON')
+        elif self.cursor_type_combobox.current() == 3:
+            cmd_cur1_ch = 'CURS:SOU1 CH' + str(self.cursor1_ch_combobox.get())
+            cmd_cur1_x = 'CURS:VBA:POS1 ' + str(self.spinbox_cur1_x.get())
+            cmd_cur2_ch = 'CURS:SOU2 CH' + str(self.cursor2_ch_combobox.get())
+            cmd_cur2_x = 'CURS:VBA:POS2 ' + str(self.spinbox_cur2_x.get())
+            cmd_pool_list.append('CURS:FUNC WAVE')
+            cmd_pool_list.append(cmd_cur1_ch)
+            cmd_pool_list.append(cmd_cur1_x)
+            cmd_pool_list.append(cmd_cur2_ch)
+            cmd_pool_list.append(cmd_cur2_x)
+            cmd_pool_list.append('CURSor:STATE ON')
+        elif self.cursor_type_combobox.current() == 4:
+            cmd_cur1_ch = 'CURS:SOU1 CH' + str(self.cursor1_ch_combobox.get())
+            cmd_cur2_ch = 'CURS:SOU2 CH' + str(self.cursor2_ch_combobox.get())
+            cmd_cur1_y = 'CURSor:SCREEN:YPOSITION1 ' + str(self.spinbox_cur1_y.get())
+            cmd_cur2_y = 'CURSor:SCREEN:YPOSITION2 ' + str(self.spinbox_cur2_y.get())
+            cmd_cur1_x = 'CURSor:SCREEN:XPOSITION1 ' + str(self.spinbox_cur1_x.get())
+            cmd_cur2_x = 'CURSor:SCREEN:XPOSITION2 ' + str(self.spinbox_cur2_x.get())
+            cmd_pool_list.append('CURS:FUNC SCREEN')
+            cmd_pool_list.append(cmd_cur1_ch)
+            cmd_pool_list.append(cmd_cur1_x)
+            cmd_pool_list.append(cmd_cur1_y)
+            cmd_pool_list.append(cmd_cur2_ch)
+            cmd_pool_list.append(cmd_cur2_x)
+            cmd_pool_list.append(cmd_cur2_y)
+            cmd_pool_list.append('CURSor:STATE ON')
+        else:
+            cmd_pool_list.append('CURS:FUNC OFF')
+            cmd_pool_list.append('CURSor:STATE OFF')
+
+        self.pause_get_status_thread = True
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                for cmd in cmd_pool_list:
+                    scope.write(cmd)
+                    print("VISAWrite->", cmd)
+            scope.close()
+            rm.close()
+        except Exception as e:
+            print(e)
+        self.pause_get_status_thread = False
+
+
 
     def adjust_pos(self, ch=1):
         self.pause_get_status_thread = True
