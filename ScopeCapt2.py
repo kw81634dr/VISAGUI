@@ -13,6 +13,7 @@ import imgBase64 as myIcon
 import time
 import tkinter as tk
 from tkinter import ttk, Entry, messagebox, filedialog, IntVar, DoubleVar, Menu, PhotoImage
+from idlelib.tooltip import Hovertip
 # https://pythonguides.com/python-tkinter-menu-bar/
 # https://coderslegacy.com/python/list-of-tkinter-widgets/
 import threading
@@ -206,6 +207,12 @@ class App:
         self.visa_timeout_duration = 10000  # in ms
         self.offset_err_cnt = 0
 
+        self.spinbox_cur1_x_increment = 0.01
+        self.spinbox_cur2_x_increment = 0.01
+        self.spinbox_cur1_y_increment = 0.01
+        self.spinbox_cur2_y_increment = 0.01
+        self.is_cur_use_fine_step = False
+
         self.ch1_pos = DoubleVar(value=0.0)
         self.ch1_offset = DoubleVar(value=0.0)
         self.ch2_pos = DoubleVar(value=0.0)
@@ -271,6 +278,8 @@ class App:
                                              variable=self.fastacq_var_bool,
                                              onvalue=1, offvalue=0, command=self.trigger_fstacq)
         self.chkbox_fastacq.grid(row=3, column=4, columnspan=3, padx=0, pady=1, sticky='w')
+        self.label_acqnum = tk.Label(self.labelFr_periss, text='Acq#')
+        self.label_acqnum.grid(row=3, column=7, columnspan=3, padx=0, pady=1, sticky='w')
         # self.chkbox_cursor = tk.Checkbutton(self.labelFr_periss, text='cursor',
         #                                     variable=self.enable_cursor_var_bool,
         #                                     onvalue=1, offvalue=0, command=None)
@@ -429,9 +438,13 @@ class App:
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_x1_doublevar)
         self.spinbox_cur1_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur1_x.bind('<Button-3>', lambda i: (self.cursor_step_set(fine=True)))
+        self.spinbox_cur1_x.bind('<ButtonRelease-3>', lambda i: (self.cursor_step_set(fine=False)))
         self.spinbox_cur1_x.bind('<Return>', lambda i: (self.spinbox_cur1_x.invoke('buttondown'),
                                                          self.spinbox_cur1_x.invoke('buttonup'),
                                                          self.frame.focus_force()))
+        myTip_cur1_x = Hovertip(self.spinbox_cur1_x, 'Use the Right mouse\nbutton to fine tune.',
+                                hover_delay=1000)
 
         label_cur1_y = tk.Label(self.labelFr_cursor_one, text="Y", command=None)
         label_cur1_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
@@ -439,9 +452,13 @@ class App:
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_y1_doublevar)
         self.spinbox_cur1_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur1_y.bind('<Button-3>', lambda i: (self.cursor_step_set(fine=True)))
+        self.spinbox_cur1_y.bind('<ButtonRelease-3>', lambda i: (self.cursor_step_set(fine=False)))
         self.spinbox_cur1_y.bind('<Return>', lambda i: (self.spinbox_cur1_y.invoke('buttondown'),
                                                         self.spinbox_cur1_y.invoke('buttonup'),
                                                         self.frame.focus_force()))
+        myTip_cur1_y = Hovertip(self.spinbox_cur1_y, 'Use the Right mouse\nbutton to fine tune.',
+                                hover_delay=1000)
 
         self.labelFr_cursor_two = tk.LabelFrame(self.labelFr_cursor, text="Cursor2")
         self.labelFr_cursor_two.grid(row=4, column=0, padx=3, pady=0, columnspan=2, rowspan=3)
@@ -457,9 +474,13 @@ class App:
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_x2_doublevar)
         self.spinbox_cur2_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur2_x.bind('<Button-3>', lambda i: (self.cursor_step_set(fine=True)))
+        self.spinbox_cur2_x.bind('<ButtonRelease-3>', lambda i: (self.cursor_step_set(fine=False)))
         self.spinbox_cur2_x.bind('<Return>', lambda i: (self.spinbox_cur2_x.invoke('buttondown'),
                                                         self.spinbox_cur2_x.invoke('buttonup'),
                                                         self.frame.focus_force()))
+        myTip_cur2_x = Hovertip(self.spinbox_cur2_x, 'Use the Right mouse\nbutton to fine tune.',
+                                hover_delay=1000)
 
         label_cur2_y = tk.Label(self.labelFr_cursor_two, text="Y", command=None)
         label_cur2_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
@@ -467,9 +488,13 @@ class App:
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_y2_doublevar)
         self.spinbox_cur2_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
+        self.spinbox_cur2_y.bind('<Button-3>', lambda i: (self.cursor_step_set(fine=True)))
+        self.spinbox_cur2_y.bind('<ButtonRelease-3>', lambda i: (self.cursor_step_set(fine=False)))
         self.spinbox_cur2_y.bind('<Return>', lambda i: (self.spinbox_cur2_y.invoke('buttondown'),
                                                         self.spinbox_cur2_y.invoke('buttonup'),
                                                         self.frame.focus_force()))
+        myTip_cur2_y = Hovertip(self.spinbox_cur2_y, 'Use the Right mouse\nbutton to fine tune.', hover_delay=1000)
+
 
         # --------------row 8, status bar
         status_bar = tk.Label(self.frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -631,12 +656,15 @@ class App:
         # print(self.target_gpib_address.get())
 
     def ask_quit(self):
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            # file must be saved before destroy main frame.
-            self.write_user_pref()
-            self.master.destroy()
-            # self.frame.destroy()
-            # exit()
+        # if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        #     # file must be saved before destroy main frame.
+        #     self.write_user_pref()
+        #     self.master.destroy()
+        #     # self.frame.destroy()
+        #     # exit()
+        self.write_user_pref()
+        self.master.destroy()
+
 
     def at_exit(self):
         try:
@@ -708,6 +736,12 @@ class App:
     def create_frame_gpib_scanner(self):
         self.newwindow = tk.Toplevel(self.master)
         self.gpibScannerObj = WindowGPIBScanner(self.newwindow)
+
+    def cursor_step_set(self, fine=False):
+        if fine:
+            self.is_cur_use_fine_step = True
+        else:
+            self.is_cur_use_fine_step = False
 
     def get_acq_state(self):
         opc = 0
@@ -835,7 +869,8 @@ class App:
                         acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
                         # print("scope acq state=", acq_state)
                         self.acq_state_var_bool.set(acq_state)
-                        self.status_var.set("Acquisition#" + str(acq_num))
+                        acqlabeltext = " Acq #" + str(acq_num)
+                        self.label_acqnum.config(text=acqlabeltext)
                         self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                         # orig_color = self.chkbox_fastacq.cget("background")
                         if self.fastacq_var_bool.get():
@@ -863,9 +898,9 @@ class App:
 
                         # get the index of closest value
                         time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
-                        self.closest_timediv_index = min(range(len(self.time_scaleList)),
-                                                         key=lambda i: abs(self.time_scaleList[i] - time_scale))
-                        # print("closetstIndex=", self.closest_timediv_index)
+                        horizontal_pos = float(scope.query('HORizontal:POSition?'))
+                        # self.closest_timediv_index = min(range(len(self.time_scaleList)),
+                        #                                  key=lambda i: abs(self.time_scaleList[i] - time_scale))
 
                         cmd_ask_scale1 = 'CH' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
                         cmd_ask_scale2 = 'CH' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
@@ -873,21 +908,57 @@ class App:
                         scale1 = float(scope.query(cmd_ask_scale1).rstrip())
                         scale2 = float(scope.query(cmd_ask_scale2).rstrip())
                         # print(scale1, scale2)
-                        self.spinbox_cur1_x['increment'] = time_scale*0.01
-                        self.spinbox_cur1_x['from_'] = time_scale * -5
-                        self.spinbox_cur1_x['to'] = time_scale * 5
 
-                        self.spinbox_cur2_x['increment'] = time_scale*0.01
-                        self.spinbox_cur2_x['from_'] = time_scale * -5
-                        self.spinbox_cur2_x['to'] = time_scale * 5
+                        if self.is_cur_use_fine_step:
+                            self.spinbox_cur1_x_increment = time_scale*0.01
+                            self.spinbox_cur2_x_increment = time_scale * 0.01
+                            self.spinbox_cur1_y_increment = scale1*0.02
+                            self.spinbox_cur2_y_increment = scale2*0.02
+                        else:
+                            self.spinbox_cur1_x_increment = time_scale * 0.1
+                            self.spinbox_cur2_x_increment = time_scale * 0.1
+                            self.spinbox_cur1_y_increment = scale1 * 0.2
+                            self.spinbox_cur2_y_increment = scale2 * 0.2
+                        print("horizontal_pos=", horizontal_pos)
+                        self.spinbox_cur1_x['increment'] = self.spinbox_cur1_x_increment
+                        self.spinbox_cur1_x['from_'] = time_scale * -10 * horizontal_pos*0.01
+                        self.spinbox_cur1_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
 
-                        self.spinbox_cur1_y['increment'] = scale1*0.02
-                        self.spinbox_cur1_y['from_'] = scale1*-5
-                        self.spinbox_cur1_y['to'] = scale1*5
+                        self.spinbox_cur2_x['increment'] = self.spinbox_cur2_x_increment
+                        self.spinbox_cur2_x['from_'] = time_scale * -10 * horizontal_pos*0.01
+                        self.spinbox_cur2_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
 
-                        self.spinbox_cur2_y['increment'] = scale2*0.02
-                        self.spinbox_cur2_y['from_'] = scale2 * -5
-                        self.spinbox_cur2_y['to'] = scale2 * 5
+                        self.spinbox_cur1_y['increment'] = self.spinbox_cur1_y_increment
+                        offset1 = 0
+                        if self.cursor1_ch_combobox.get() == '1':
+                            offset1 = float(self.ch1_offset.get())
+                        elif self.cursor1_ch_combobox.get() == '2':
+                            offset1 = float(self.ch2_offset.get())
+                        elif self.cursor1_ch_combobox.get() == '3':
+                            offset1 = float(self.ch3_offset.get())
+                        elif self.cursor1_ch_combobox.get() == '4':
+                            offset1 = float(self.ch4_offset.get())
+                        else:
+                            pass
+                        # print("offset1=", offset1)
+                        self.spinbox_cur1_y['from_'] = scale1*-5 + offset1
+                        self.spinbox_cur1_y['to'] = scale1*5 + offset1
+
+                        self.spinbox_cur2_y['increment'] = self.spinbox_cur2_y_increment
+                        offset2 = 0
+                        if self.cursor2_ch_combobox.get() == '1':
+                            offset2 = float(self.ch1_offset.get())
+                        elif self.cursor2_ch_combobox.get() == '2':
+                            offset2 = float(self.ch2_offset.get())
+                        elif self.cursor2_ch_combobox.get() == '3':
+                            offset2 = float(self.ch3_offset.get())
+                        elif self.cursor2_ch_combobox.get() == '4':
+                            offset2 = float(self.ch4_offset.get())
+                        else:
+                            pass
+                        # print("offset2=", offset2)
+                        self.spinbox_cur2_y['from_'] = scale2 * -5 + offset2
+                        self.spinbox_cur2_y['to'] = scale2 * 5 + offset2
 
                         if self.cursor_type_combobox.current() == 0:
                             self.cursor1_ch_combobox['state'] = 'disable'
@@ -940,10 +1011,10 @@ class App:
                         if focused_obj != self.spinbox_cur2_y:
                             self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
                         scope.close()
+                        self.status_var.set("Waiting for user...")
                     else:
                         self.status_var.set("Window not focused or Scope BUSY...")
                         print("self.frame not focused or Scope BUSY...")
-
                 except Exception as e:
                     print("get_acq_state->", e)
                 rm.close()
@@ -1082,8 +1153,6 @@ class App:
         except Exception as e:
             print(e)
         self.pause_get_status_thread = False
-
-
 
     def adjust_pos(self, ch=1):
         self.pause_get_status_thread = True
@@ -1398,6 +1467,7 @@ class App:
                     self.target_index = self.closest_timediv_index + 1
                     scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
                     scope.write('HORizontal:RESOlution 1e5')  # set resolution to 100k
+                    scope.write('HORizontal:POSition 50')
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
@@ -1421,6 +1491,7 @@ class App:
                     self.target_index = self.closest_timediv_index - 1
                     scope.write('HORizontal:MAIn:SCAle ' + str(self.time_scaleList[self.target_index]))
                     scope.write('HORizontal:RESOlution 1e5')  # set resolution to 100k
+                    scope.write('HORizontal:POSition 50')
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
