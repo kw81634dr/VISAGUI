@@ -992,15 +992,18 @@ class App:
                             self.spinbox_cur2_y['state'] = 'normal'
 
                         if focused_obj != self.cursor_type_combobox:
-                            curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
-                            if curfuncnow == 'HBA':
-                                self.cursor_type_combobox.current(1)
-                            elif curfuncnow == 'VBA':
-                                self.cursor_type_combobox.current(2)
-                            elif curfuncnow == 'WAVE':
-                                self.cursor_type_combobox.current(3)
-                            elif curfuncnow == 'SCREEN':
-                                self.cursor_type_combobox.current(4)
+                            if int(scope.query('CURSor:STATE?').rstrip()):
+                                curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
+                                if curfuncnow == 'HBA':
+                                    self.cursor_type_combobox.current(1)
+                                elif curfuncnow == 'VBA':
+                                    self.cursor_type_combobox.current(2)
+                                elif curfuncnow == 'WAVE':
+                                    self.cursor_type_combobox.current(3)
+                                elif curfuncnow == 'SCREEN':
+                                    self.cursor_type_combobox.current(4)
+                                else:
+                                    self.cursor_type_combobox.current(0)
                             else:
                                 self.cursor_type_combobox.current(0)
 
