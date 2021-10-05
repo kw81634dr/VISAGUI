@@ -1013,9 +1013,8 @@ class App:
                         if focused_obj != self.spinbox_cur2_y:
                             self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
                         scope.close()
-                        self.status_var.set("Waiting for user...")
                     else:
-                        self.status_var.set("Window not focused or Scope BUSY...")
+                        # self.status_var.set("Window not focused or Scope BUSY...")
                         print("self.frame not focused or Scope BUSY...")
                 except Exception as e:
                     print("get_acq_state->", e)
@@ -1351,7 +1350,7 @@ class App:
                                     imgFile.write(img_data)
                                     imgFile.close()
                                     print("Saved!")
-                        self.status_var.set("Saved: " + str(Path(filepath).name))
+                        self.status_var.set("Saved: " + str(Path(filepath)))
                 except Exception as e:
                     self.status_var.set(e)
                 scope.close()
@@ -1616,6 +1615,7 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.write('ACQuire:STOPAFTER SEQUENCE')
                 scope.write('ACQ:STATE ON')
+                self.status_var.set("Single Acquisition")
             scope.close()
             rm.close()
         except:
@@ -1669,9 +1669,11 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.acq_state_var_bool.get() == True:
                     scope.write('ACQuire:STATE OFF')
+                    self.status_var.set("STOP Acquisition")
                 else:
                     scope.write('ACQ:STOPA RUNST')
                     scope.write('ACQuire:STATE ON')
+                    self.status_var.set("START Acquisition")
                 scope.close()
             rm.close()
         except ValueError:
