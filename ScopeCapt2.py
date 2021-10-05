@@ -20,7 +20,7 @@ import threading
 import json
 import requests
 import webbrowser
-
+from prefixed import Float as SIFloat
 
 class mySpinbox(tk.Spinbox):
     def __init__(self, *args, **kwargs):
@@ -1013,6 +1013,9 @@ class App:
                             self.cur_x2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION2?').rstrip())))
                         if focused_obj != self.spinbox_cur1_y:
                             self.cur_y1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION1?').rstrip())))
+                            # fl=float(scope.query('CURS:HBA:POSITION1?').rstrip())
+                            # self.cur_y1_doublevar.set(
+                            #     value=f'{SIFloat(fl):.2h}')
                         if focused_obj != self.spinbox_cur2_y:
                             self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
                         scope.close()
