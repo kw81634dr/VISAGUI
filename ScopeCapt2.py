@@ -22,19 +22,31 @@ import requests
 import webbrowser
 from prefixed import Float as SIFloat
 
+
 class mySpinbox(tk.Spinbox):
     def __init__(self, *args, **kwargs):
+        # kwargs['command'] = self.command
         tk.Spinbox.__init__(self, *args, **kwargs)
         self.bind('<MouseWheel>', self.mouseWheel)
         self.bind('<Button-4>', self.mouseWheel)
         self.bind('<Button-5>', self.mouseWheel)
 
-    #     self.bind('<Return>', self.returnKeyPressed)
+    # def set(self, value):
+    #     super().set(value)
+    #     self.command()
     #
-    # def returnKeyPressed(self, event):
-    #     print("Return pressed in mySpinbox")
-    #     self.invoke('buttondown')
-    #     self.invoke('buttonup')
+    # def get(self):
+    #     f = float(SIFloat(super().get()))
+    #     # print('f->', f)
+    #     return f
+    #
+    # def command(self):
+    #     value = self.get()
+    #     self.delete(0, tk.END)
+    #     print('val->', value)
+    #     # svalue = str(value).format(format)
+    #     print('svalue->', f'{SIFloat(value):.2h}')
+    #     self.insert(0, f'{SIFloat(value):.2h}')
 
     def mouseWheel(self, event):
         if event.num == 5 or event.delta < 0:
