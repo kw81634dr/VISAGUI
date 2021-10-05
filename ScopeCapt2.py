@@ -38,8 +38,10 @@ class mySpinbox(tk.Spinbox):
 
     def mouseWheel(self, event):
         if event.num == 5 or event.delta < 0:
+            self.focus_set()
             self.invoke('buttondown')
         elif event.num == 4 or event.delta > 0:
+            self.focus_set()
             self.invoke('buttonup')
 
 
@@ -637,7 +639,7 @@ class App:
         while 1:
             if WindowGPIBScanner.isOktoUpdateState:
                 try:
-                    print("Thread: check for updates")
+                    # print("Thread: check for updates")
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
@@ -828,19 +830,19 @@ class App:
                             self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
 
                             # ch1_pos_offset
-                            if self.sel_ch1_var_bool.get():
-                                if focused_obj != self.spinbox_offset_ch1:
-                                    # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                                    self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch1:
-                                    self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
-
-                            # ch2_pos_offset
-                            if self.sel_ch2_var_bool.get():
-                                if focused_obj != self.spinbox_offset_ch2:
-                                    self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch2:
-                                    self.ch2_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
+                            # if self.sel_ch1_var_bool.get():
+                            #     if focused_obj != self.spinbox_offset_ch1:
+                            #         # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                            #         self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
+                            #     if focused_obj != self.spinbox_pos_ch1:
+                            #         self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
+                            #
+                            # # ch2_pos_offset
+                            # if self.sel_ch2_var_bool.get():
+                            #     if focused_obj != self.spinbox_offset_ch2:
+                            #         self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
+                            #     if focused_obj != self.spinbox_pos_ch2:
+                            #         self.ch2_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
 
                             # ch3_pos_offset
                             if self.sel_ch3_var_bool.get():
@@ -919,7 +921,7 @@ class App:
                             self.spinbox_cur2_x_increment = time_scale * 0.1
                             self.spinbox_cur1_y_increment = scale1 * 0.2
                             self.spinbox_cur2_y_increment = scale2 * 0.2
-                        print("horizontal_pos=", horizontal_pos)
+                        # print("horizontal_pos=", horizontal_pos)
                         self.spinbox_cur1_x['increment'] = self.spinbox_cur1_x_increment
                         self.spinbox_cur1_x['from_'] = time_scale * -10 * horizontal_pos*0.01
                         self.spinbox_cur1_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
