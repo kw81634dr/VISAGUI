@@ -1302,15 +1302,6 @@ class App:
                 else:
                    pass
 
-                # # Image show (OpenCV)
-                if self.imshow_var_bool.get():
-                    # Use CV2
-                    # cv2.imshow("Press Any Key to Dismiss", outputImage)
-                    # cv2.waitKey()
-                    # cv2.destroyAllWindows()
-                    # Use CV2
-                    self.imshow_thread = threading.Thread(target=lambda: I.show(), daemon=True)
-                    self.imshow_thread.start()
                 # create directory if doesn't exist
                 if not Path(self.path_var.get()).exists():
                     try:
@@ -1347,7 +1338,7 @@ class App:
                                 imgFile.write(img_data)
                                 imgFile.close()
                                 print("Saved!")
-                                self.status_var.set("Saved: " + self.savefilename + '.png')
+                                self.status_var.set("Saved: " + save_path)
                     else:
                         files = [('PNG Image', '*.png')]
                         filepath = filedialog.asksaveasfilename(filetypes=files, defaultextension=files)
@@ -1368,7 +1359,7 @@ class App:
                                     imgFile.write(img_data)
                                     imgFile.close()
                                     print("Saved!")
-                        self.status_var.set("Saved: " + str(Path(filepath)))
+                        self.status_var.set("Saved: " + str(save_path))
                 except Exception as e:
                     self.status_var.set(e)
                 scope.close()
@@ -1378,6 +1369,16 @@ class App:
             self.status_var.set(e)
         self.get_default_filename()
         self.pause_get_status_thread = False
+        if self.imshow_var_bool.get():
+            # Use CV2
+            # cv2.imshow("Press Any Key to Dismiss", outputImage)
+            # cv2.waitKey()
+            # cv2.destroyAllWindows()
+            # self.imshow_thread = threading.Thread(target=self.show_image(save_path), daemon=True)
+            # self.imshow_thread.start()
+            print("open image->", save_path)
+            webbrowser.open(save_path)
+            self.status_var.set("Saved: " + save_path)
 
     def prompt_path(self):
         folder_prompted = filedialog.askdirectory()
