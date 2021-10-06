@@ -447,7 +447,7 @@ class App:
         self.cursor1_ch_combobox.current(0)
         label_cur1_x = tk.Label(self.labelFr_cursor_one, text="X", command=None)
         label_cur1_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
-        self.spinbox_cur1_x = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+        self.spinbox_cur1_x = mySpinbox(self.labelFr_cursor_one, from_=-5, to=5, increment=0.2, justify=tk.CENTER,
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_x1_doublevar)
         self.spinbox_cur1_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
@@ -461,7 +461,7 @@ class App:
 
         label_cur1_y = tk.Label(self.labelFr_cursor_one, text="Y", command=None)
         label_cur1_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
-        self.spinbox_cur1_y = mySpinbox(self.labelFr_cursor_one, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+        self.spinbox_cur1_y = mySpinbox(self.labelFr_cursor_one, from_=-5, to=5, increment=0.2, justify=tk.CENTER,
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_y1_doublevar)
         self.spinbox_cur1_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
@@ -483,7 +483,7 @@ class App:
         self.cursor2_ch_combobox.current(0)
         label_cur2_x = tk.Label(self.labelFr_cursor_two, text="X", command=None)
         label_cur2_x.grid(row=1, column=0, padx=0, pady=1, sticky='w')
-        self.spinbox_cur2_x = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.5, justify=tk.CENTER,
+        self.spinbox_cur2_x = mySpinbox(self.labelFr_cursor_two, from_=-5, to=5, increment=0.2, justify=tk.CENTER,
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_x2_doublevar)
         self.spinbox_cur2_x.grid(row=1, column=1, padx=1, pady=1, sticky='w')
@@ -497,7 +497,7 @@ class App:
 
         label_cur2_y = tk.Label(self.labelFr_cursor_two, text="Y", command=None)
         label_cur2_y.grid(row=2, column=0, padx=0, pady=1, sticky='w')
-        self.spinbox_cur2_y = mySpinbox(self.labelFr_cursor_two, from_=-50, to=50, increment=.01, justify=tk.CENTER,
+        self.spinbox_cur2_y = mySpinbox(self.labelFr_cursor_two, from_=-5, to=5, increment=0.2, justify=tk.CENTER,
                                         command=lambda: self.adjust_cur(), width=7,
                                         textvariable=self.cur_y2_doublevar)
         self.spinbox_cur2_y.grid(row=2, column=1, padx=1, pady=1, sticky='w')
@@ -814,7 +814,7 @@ class App:
                             self.labelFr_ch4['text'] = 'Ch4 Unavailable'
 
                             # ch1_pos_offset
-                            if self.sel_ch1_var_bool.get():
+                            if 1:
                                 if focused_obj != self.spinbox_offset_ch1:
                                     # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
                                     self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
@@ -822,7 +822,7 @@ class App:
                                     self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
 
                             # ch2_pos_offset
-                            if self.sel_ch2_var_bool.get():
+                            if 1:
                                 if focused_obj != self.spinbox_offset_ch2:
                                     self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch2:
@@ -840,7 +840,7 @@ class App:
                             self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
 
                             # ch1_pos_offset
-                            if self.sel_ch1_var_bool.get():
+                            if 1:
                                 if focused_obj != self.spinbox_offset_ch1:
                                     # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
                                     self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
@@ -848,21 +848,21 @@ class App:
                                     self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
 
                             # ch2_pos_offset
-                            if self.sel_ch2_var_bool.get():
+                            if 1:
                                 if focused_obj != self.spinbox_offset_ch2:
                                     self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch2:
                                     self.ch2_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
 
                             # ch3_pos_offset
-                            if self.sel_ch3_var_bool.get():
+                            if 1:
                                 if focused_obj != self.spinbox_offset_ch3:
                                     self.ch3_offset.set(value="{:.3f}".format(float(scope.query('CH3:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch3:
                                     self.ch3_pos.set(value="{:.2f}".format(float(scope.query('CH3:POS?').rstrip())))
 
                             # ch4_pos_offset
-                            if self.sel_ch4_var_bool.get():
+                            if 1:
                                 if focused_obj != self.spinbox_offset_ch4:
                                     self.ch4_offset.set(value="{:.3f}".format(float(scope.query('CH4:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch4:
@@ -900,9 +900,9 @@ class App:
                                 self.persistence_var_bool.set(0)
                             else:
                                 self.persistence_var_bool.set(1)
-                        if self.acq_state_var_bool.get() == True:
+                        if self.acq_state_var_bool.get():
                             self.btn_RunStop.configure(fg="green4")
-                        elif self.acq_state_var_bool.get() == False:
+                        elif not self.acq_state_var_bool.get():
                             self.btn_RunStop.configure(fg="black")
                         else:
                             # print("Cannot get Acq state")
@@ -916,10 +916,9 @@ class App:
 
                         cmd_ask_scale1 = 'CH' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
                         cmd_ask_scale2 = 'CH' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
-                        # print(cmd_ask_scale1, cmd_ask_scale2)
-                        scale1 = float(scope.query(cmd_ask_scale1).rstrip())
-                        scale2 = float(scope.query(cmd_ask_scale2).rstrip())
-                        # print(scale1, scale2)
+                        print(cmd_ask_scale1, cmd_ask_scale2)
+                        self.scale1 = float(scope.query(cmd_ask_scale1).rstrip())
+                        self.scale2 = float(scope.query(cmd_ask_scale2).rstrip())
 
                         if focused_obj != self.cursor1_ch_combobox:
                             cur1_source = int(scope.query('CURS:SOU1?').rstrip()[-1])
@@ -932,13 +931,13 @@ class App:
                         if self.is_cur_use_fine_step:
                             self.spinbox_cur1_x_increment = time_scale*0.01
                             self.spinbox_cur2_x_increment = time_scale * 0.01
-                            self.spinbox_cur1_y_increment = scale1*0.02
-                            self.spinbox_cur2_y_increment = scale2*0.02
+                            self.spinbox_cur1_y['increment'] = 0.02
+                            self.spinbox_cur2_y['increment'] = 0.02
                         else:
                             self.spinbox_cur1_x_increment = time_scale * 0.1
                             self.spinbox_cur2_x_increment = time_scale * 0.1
-                            self.spinbox_cur1_y_increment = scale1 * 0.2
-                            self.spinbox_cur2_y_increment = scale2 * 0.2
+                            self.spinbox_cur1_y['increment'] = 0.2
+                            self.spinbox_cur2_y['increment'] = 0.2
                         # print("horizontal_pos=", horizontal_pos)
                         self.spinbox_cur1_x['increment'] = self.spinbox_cur1_x_increment
                         self.spinbox_cur1_x['from_'] = time_scale * -10 * horizontal_pos*0.01
@@ -948,7 +947,6 @@ class App:
                         self.spinbox_cur2_x['from_'] = time_scale * -10 * horizontal_pos*0.01
                         self.spinbox_cur2_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
 
-                        self.spinbox_cur1_y['increment'] = self.spinbox_cur1_y_increment
                         offset1 = 0
                         pos1 = 0
                         if self.cursor1_ch_combobox.get() == '1':
@@ -965,11 +963,6 @@ class App:
                             pos1 = float(self.ch4_pos.get())
                         else:
                             pass
-                        print("offset&pos1=", offset1, pos1)
-                        self.spinbox_cur1_y['from_'] = scale1*-5 + offset1 - pos1*scale1
-                        self.spinbox_cur1_y['to'] = scale1*5 + offset1 - pos1*scale1
-
-                        self.spinbox_cur2_y['increment'] = self.spinbox_cur2_y_increment
                         offset2 = 0
                         pos2 = 0
                         if self.cursor2_ch_combobox.get() == '1':
@@ -986,9 +979,11 @@ class App:
                             pos2 = float(self.ch4_pos.get())
                         else:
                             pass
-                        print("offset&pos2=", offset2, pos2)
-                        self.spinbox_cur2_y['from_'] = scale2 * -5 + offset2 - pos2*scale2
-                        self.spinbox_cur2_y['to'] = scale2 * 5 + offset2 - pos2*scale2
+
+                        self.spinbox_cur1_y['from_'] = -5 - pos1
+                        self.spinbox_cur1_y['to'] = 5 - pos1
+                        self.spinbox_cur2_y['from_'] = -5 - pos2
+                        self.spinbox_cur2_y['to'] = 5 - pos2
 
                         if self.cursor_type_combobox.current() == 0:
                             self.cursor1_ch_combobox['state'] = 'disable'
@@ -1035,14 +1030,14 @@ class App:
                             else:
                                 self.cursor_type_combobox.current(0)
 
-                        if focused_obj != self.spinbox_cur1_x:
-                            self.cur_x1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION1?').rstrip())))
-                        if focused_obj != self.spinbox_cur2_x:
-                            self.cur_x2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION2?').rstrip())))
-                        if focused_obj != self.spinbox_cur1_y:
-                            self.cur_y1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION1?').rstrip())))
-                        if focused_obj != self.spinbox_cur2_y:
-                            self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
+                        # if focused_obj != self.spinbox_cur1_x:
+                        #     self.cur_x1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION1?').rstrip())))
+                        # if focused_obj != self.spinbox_cur2_x:
+                        #     self.cur_x2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION2?').rstrip())))
+                        # if focused_obj != self.spinbox_cur1_y:
+                        #     self.cur_y1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION1?').rstrip())))
+                        # if focused_obj != self.spinbox_cur2_y:
+                        #     self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
                         scope.close()
                     else:
                         # self.status_var.set("Window not focused or Scope BUSY...")
@@ -1149,7 +1144,7 @@ class App:
                 for cmd in cmd_pool_list:
                     scope.write(cmd)
                     print("VISAWrite->", cmd)
-                    self.status_var.set("cursor set.")
+            self.status_var.set("cursor set.")
             scope.close()
             rm.close()
         except Exception as e:
