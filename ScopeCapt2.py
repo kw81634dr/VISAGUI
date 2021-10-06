@@ -950,35 +950,45 @@ class App:
 
                         self.spinbox_cur1_y['increment'] = self.spinbox_cur1_y_increment
                         offset1 = 0
+                        pos1 = 0
                         if self.cursor1_ch_combobox.get() == '1':
                             offset1 = float(self.ch1_offset.get())
+                            pos1 = float(self.ch1_pos.get())
                         elif self.cursor1_ch_combobox.get() == '2':
                             offset1 = float(self.ch2_offset.get())
+                            pos1 = float(self.ch2_pos.get())
                         elif self.cursor1_ch_combobox.get() == '3':
                             offset1 = float(self.ch3_offset.get())
+                            pos1 = float(self.ch3_pos.get())
                         elif self.cursor1_ch_combobox.get() == '4':
                             offset1 = float(self.ch4_offset.get())
+                            pos1 = float(self.ch4_pos.get())
                         else:
                             pass
-                        # print("offset1=", offset1)
-                        self.spinbox_cur1_y['from_'] = scale1*-5 + offset1
-                        self.spinbox_cur1_y['to'] = scale1*5 + offset1
+                        print("offset&pos1=", offset1, pos1)
+                        self.spinbox_cur1_y['from_'] = scale1*-5 + offset1 + pos1*scale1
+                        self.spinbox_cur1_y['to'] = scale1*5 + offset1 - pos1*scale1
 
                         self.spinbox_cur2_y['increment'] = self.spinbox_cur2_y_increment
                         offset2 = 0
+                        pos2 = 0
                         if self.cursor2_ch_combobox.get() == '1':
                             offset2 = float(self.ch1_offset.get())
+                            pos2 = float(self.ch1_pos.get())
                         elif self.cursor2_ch_combobox.get() == '2':
                             offset2 = float(self.ch2_offset.get())
+                            pos2 = float(self.ch2_pos.get())
                         elif self.cursor2_ch_combobox.get() == '3':
                             offset2 = float(self.ch3_offset.get())
+                            pos2 = float(self.ch3_pos.get())
                         elif self.cursor2_ch_combobox.get() == '4':
                             offset2 = float(self.ch4_offset.get())
+                            pos2 = float(self.ch4_pos.get())
                         else:
                             pass
-                        # print("offset2=", offset2)
-                        self.spinbox_cur2_y['from_'] = scale2 * -5 + offset2
-                        self.spinbox_cur2_y['to'] = scale2 * 5 + offset2
+                        print("offset&pos2=", offset2, pos2)
+                        self.spinbox_cur2_y['from_'] = scale2 * -5 + offset2 + pos2*scale2
+                        self.spinbox_cur2_y['to'] = scale2 * 5 + offset2 - pos2*scale2
 
                         if self.cursor_type_combobox.current() == 0:
                             self.cursor1_ch_combobox['state'] = 'disable'
