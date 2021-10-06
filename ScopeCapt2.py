@@ -4,10 +4,9 @@ import os
 import re
 from pathlib import Path
 import atexit
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageFont, ImageDraw
 from io import BytesIO, StringIO
-import numpy as np
-import cv2
+
 import base64
 import imgBase64 as myIcon
 import time
@@ -632,12 +631,11 @@ class App:
         if len(self.target_gpib_address.get()) > 1:
             self.update_addr_inApp()
             print("ReadOut_target-addr=", self.target_gpib_address.get())
-            # self.get_scope_info()
             self.get_acq_state()
         else:
             messagebox.showinfo("First time Huh?",
                                 "Target device record not found\nUse Tool>GPIB Scanner to Set target Device.")
-            # self.create_frame_gpib_scanner()
+            self.create_frame_gpib_scanner()
 
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
         self.update_scope_thread = threading.Thread(target=self.task_update_device_state, daemon=True)
@@ -762,7 +760,7 @@ class App:
         focused_obj = None
         try:
             focused_obj = self.frame.focus_get()
-            print("focused=", focused_obj)
+            # print("focused=", focused_obj)
         except:
             pass
         if not self.pause_get_status_thread:
@@ -842,19 +840,19 @@ class App:
                             self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
 
                             # ch1_pos_offset
-                            # if self.sel_ch1_var_bool.get():
-                            #     if focused_obj != self.spinbox_offset_ch1:
-                            #         # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                            #         self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
-                            #     if focused_obj != self.spinbox_pos_ch1:
-                            #         self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
-                            #
-                            # # ch2_pos_offset
-                            # if self.sel_ch2_var_bool.get():
-                            #     if focused_obj != self.spinbox_offset_ch2:
-                            #         self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
-                            #     if focused_obj != self.spinbox_pos_ch2:
-                            #         self.ch2_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
+                            if self.sel_ch1_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch1:
+                                    # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                                    self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
+                                if focused_obj != self.spinbox_pos_ch1:
+                                    self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
+
+                            # ch2_pos_offset
+                            if self.sel_ch2_var_bool.get():
+                                if focused_obj != self.spinbox_offset_ch2:
+                                    self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
+                                if focused_obj != self.spinbox_pos_ch2:
+                                    self.ch2_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
 
                             # ch3_pos_offset
                             if self.sel_ch3_var_bool.get():
@@ -922,6 +920,14 @@ class App:
                         scale1 = float(scope.query(cmd_ask_scale1).rstrip())
                         scale2 = float(scope.query(cmd_ask_scale2).rstrip())
                         # print(scale1, scale2)
+
+                        if focused_obj != self.cursor1_ch_combobox:
+                            cur1_source = int(scope.query('CURS:SOU1?').rstrip()[-1])
+                            self.cursor1_ch_combobox.current(cur1_source-1)
+
+                        if focused_obj != self.cursor2_ch_combobox:
+                            cur2_source = int(scope.query('CURS:SOU2?').rstrip()[-1])
+                            self.cursor2_ch_combobox.current(cur2_source - 1)
 
                         if self.is_cur_use_fine_step:
                             self.spinbox_cur1_x_increment = time_scale*0.01
@@ -1025,9 +1031,6 @@ class App:
                             self.cur_x2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION2?').rstrip())))
                         if focused_obj != self.spinbox_cur1_y:
                             self.cur_y1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION1?').rstrip())))
-                            # fl=float(scope.query('CURS:HBA:POSITION1?').rstrip())
-                            # self.cur_y1_doublevar.set(
-                            #     value=f'{SIFloat(fl):.2h}')
                         if focused_obj != self.spinbox_cur2_y:
                             self.cur_y2_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:HBA:POSITION2?').rstrip())))
                         scope.close()
@@ -1036,6 +1039,7 @@ class App:
                         print("self.frame not focused or Scope BUSY...")
                 except Exception as e:
                     print("get_acq_state->", e)
+                    # self.status_var.set(e)
                 rm.close()
                 # self.offset_err_cnt = self.offset_err_cnt + 1
             except Exception:
@@ -1044,38 +1048,6 @@ class App:
                 print("Cannot get Acq status-VISA driver Error")
         else:
             pass
-
-    # def get_scope_info(self):
-    #     self.update_addr_inApp()
-    #     try:
-    #         rm = visa.ResourceManager()
-    #         try:
-    #             with rm.open_resource(self.target_gpib_address.get()) as scope:
-    #                 idn_query = scope.query('*IDN?')
-    #                 series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
-    #                 series = series.split(',')[1]
-    #                 self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
-    #                 self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
-    #                 idn_splited = idn_query.rstrip().split(',')
-    #                 idn_title = idn_splited[0] + ", " + idn_splited[1]
-    #                 Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
-    #                 self.master.title(Text)
-    #                 scope.close()
-    #             rm.close()
-    #             # self.status_var.set(" tip: Use <Control> key + <Left> or <Right> arrow key to scale time division")
-    #         except:
-    #             messagebox.showinfo("Oops! Something changed!",
-    #                                 "Unable to connect the device used last time.\n\n"
-    #                                 "You could check:\n"
-    #                                 "1. connection between the target device & your PC.\n"
-    #                                 "2. Any change of GPIB address? \n\n"
-    #                                 "Then use Tool>GPIB Scanner to Set New target Device.")
-    #             # self.create_frame_gpib_scanner()
-    #         rm.close()
-    #     except:
-    #         self.appTitleText = "KW Scope Capture" + str(self.app_version) + "  [VISA driver Error]!"
-    #         self.master.title(self.appTitleText)
-    #         print("Cannot get scope info-VISA driver Error")
 
     def save_setup_slot(self, slot_num=1):
         self.pause_get_status_thread = True
@@ -1167,6 +1139,7 @@ class App:
                 for cmd in cmd_pool_list:
                     scope.write(cmd)
                     print("VISAWrite->", cmd)
+                    self.status_var.set("cursor set.")
             scope.close()
             rm.close()
         except Exception as e:
@@ -1191,6 +1164,7 @@ class App:
                 ch1_pos_cmd = "CH" + str(ch) + ":POS " + str(value)
                 # ch1_pos_cmd = "CH1:POS " + str(self.spinbox_pos_ch1.get())
                 scope.write(ch1_pos_cmd)
+                self.status_var.set("position set.")
             scope.close()
             rm.close()
         except Exception as e:
@@ -1215,6 +1189,7 @@ class App:
                 ch1_offset_cmd = "CH" + str(ch) + ":OFFS " + str(value)
                 # ch1_offset_cmd = "CH1:OFFS " + str(self.spinbox_offset_ch1.get())
                 scope.write(ch1_offset_cmd)
+                self.status_var.set("offset set.")
             scope.close()
             rm.close()
         except Exception as e:
@@ -1284,35 +1259,58 @@ class App:
                     # print(img_data)
 
                 file_png_data = BytesIO(img_data)
-                dt = Image.open(file_png_data)
-                I = np.asarray(dt)
-                I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
-                print("cv2 image shape:", I.shape)
+                I = Image.open(file_png_data)
+                # I = Image.open('img/scrshot/DPO4104B_151449.png')
+
+                # Use CV2
+                # I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
+                # print("cv2 image shape:", I.shape)
 
                 if self.addTextOverlay_var_bool.get():
-                    font = cv2.FONT_HERSHEY_DUPLEX
-                    font_size = 0.44
-                    font_color = (255, 255, 255)
-                    font_thickness = 1
-                    text = self.filename_var.get()
-                    height, width, depth = I_cv2.shape
-                    cv2.rectangle(I_cv2, (width - width + 640, height - height), (width, height - height + 31),
-                                  (0, 0, 0), -1)
-                    img_text = cv2.putText(I_cv2, text, (width - width + 640, height - height + 20), font,
-                                           font_size, font_color, font_thickness,
-                                           cv2.LINE_AA)
-                    outputImage = img_text
+
+                    # use CV2
+                    # font = cv2.FONT_HERSHEY_DUPLEX
+                    # font_size = 0.44
+                    # font_color = (255, 255, 255)
+                    # font_thickness = 1
+                    # height, width, depth = I_cv2.shape
+                    # use CV2
+
+                    # Use Pillow
+                    w, h = I.size
+                    # print(w,h)
+                    text_to_overlay = self.filename_var.get()
+                    # text_to_overlay = "Kp=44 Kd=50 Jitter Ontime CPU1 2 VDDQ ABCD2 Default 20%Load"
+                    # font = ImageFont.load_default()
+                    fontsize = 13
+                    font = ImageFont.truetype("FreeSansBold.ttf", fontsize)
+                    draw = ImageDraw.Draw(I)
+                    #rectangle[x0, y0, x1, y1]
+                    draw.rectangle((w*0.5+76, h-55, w-10, h-55+14), fill=(37, 37, 37))
+                    draw.text((w*0.5+76, h-55), text_to_overlay, fill=(255, 154, 0), font=font)
+                    # img = Image.fromarray(I, 'RGB')
+                    # Use Pillow
+
+                    # Use CV2
+                    # cv2.rectangle(I_cv2, (width - width + 640, height - height), (width, height - height + 31),
+                    #               (0, 0, 0), -1)
+                    # img_text = cv2.putText(I_cv2, text, (width - width + 640, height - height + 20), font,
+                    #                        font_size, font_color, font_thickness,
+                    #                        cv2.LINE_AA)
+                    # outputImage = img_text
+                    # Use CV2
                 else:
-                    outputImage = I_cv2
+                   pass
 
                 # # Image show (OpenCV)
                 if self.imshow_var_bool.get():
-                    cv2.imshow("Press Any Key to Dismiss", outputImage)
-                    cv2.waitKey()
-                    cv2.destroyAllWindows()
-                    # img = Image.fromarray(outputImage, 'RGB')
-                    # img.show()
-
+                    # Use CV2
+                    # cv2.imshow("Press Any Key to Dismiss", outputImage)
+                    # cv2.waitKey()
+                    # cv2.destroyAllWindows()
+                    # Use CV2
+                    self.imshow_thread = threading.Thread(target=lambda: I.show(), daemon=True)
+                    self.imshow_thread.start()
                 # create directory if doesn't exist
                 if not Path(self.path_var.get()).exists():
                     try:
@@ -1339,9 +1337,10 @@ class App:
                     if self.overwrite_bool is True:
                         if self.addTextOverlay_var_bool.get():
                             try:
-                                cv2.imwrite(save_path, outputImage)
+                                # cv2.imwrite(save_path, outputImage)
+                                I.save(save_path)
                             except IOError:
-                                print("cv2 save Failed")
+                                # print("cv2 save Failed")
                                 self.status_var.set("Cannot save file, check folder and filename")
                         else:
                             with open(save_path, "wb") as imgFile:
@@ -1358,9 +1357,10 @@ class App:
                         else:
                             if self.addTextOverlay_var_bool.get():
                                 try:
-                                    cv2.imwrite(filepath, outputImage)
+                                    # cv2.imwrite(filepath, outputImage)
+                                    I.save(save_path)
                                 except IOError:
-                                    print("cv2 save Failed")
+                                    # print("cv2 save Failed")
                                     self.status_var.set("Cannot save file, check folder and filename")
                             else:
                                 with open(Path(filepath), "wb") as imgFile:
@@ -1465,6 +1465,7 @@ class App:
                 else:
                     pass
                 scope.write('TRIGger:A SETLevel')
+                self.status_var.set("trigger set.")
                 scope.close()
             rm.close()
         except ValueError:
@@ -1490,6 +1491,7 @@ class App:
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
+                self.status_var.set("time division adjusted.")
             rm.close()
         except ValueError:
             self.status_var.set("VISA driver Error")
@@ -1514,6 +1516,7 @@ class App:
                 else:
                     pass
                 scope.write('HORizontal:MODE AUTO')
+                self.status_var.set("time division adjusted.")
             rm.close()
         except ValueError:
             self.status_var.set("VISA driver Error")
@@ -1543,6 +1546,7 @@ class App:
                 else:
                     pass
                 scope.write(cmd_scale)
+                self.status_var.set("scale adjusted.")
                 scope.close()
             rm.close()
         except ValueError:
@@ -1557,20 +1561,28 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.sel_ch1_var_bool.get():
                     scope.write('SELect:CH1 ON')
+                    self.status_var.set("set CH1 On.")
                 else:
                     scope.write('SELect:CH1 OFF')
+                    self.status_var.set("set CH1 Off.")
                 if self.sel_ch2_var_bool.get():
                     scope.write('SELect:CH2 ON')
+                    self.status_var.set("set CH2 On.")
                 else:
                     scope.write('SELect:CH2 OFF')
+                    self.status_var.set("set CH2 Off.")
                 if (self.sel_ch3_var_bool.get()) and (self.ch_available > 2):
                     scope.write('SELect:CH3 ON')
+                    self.status_var.set("set CH3 On.")
                 else:
                     scope.write('SELect:CH3 OFF')
+                    self.status_var.set("set CH3 Off.")
                 if (self.sel_ch4_var_bool.get()) and (self.ch_available > 2):
                     scope.write('SELect:CH4 ON')
+                    self.status_var.set("set CH4 On.")
                 else:
                     scope.write('SELect:CH4 OFF')
+                    self.status_var.set("set CH4 Off.")
                 scope.close()
             rm.close()
         except ValueError:
