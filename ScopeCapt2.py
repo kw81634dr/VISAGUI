@@ -966,7 +966,7 @@ class App:
                         else:
                             pass
                         print("offset&pos1=", offset1, pos1)
-                        self.spinbox_cur1_y['from_'] = scale1*-5 + offset1 + pos1*scale1
+                        self.spinbox_cur1_y['from_'] = scale1*-5 + offset1 - pos1*scale1
                         self.spinbox_cur1_y['to'] = scale1*5 + offset1 - pos1*scale1
 
                         self.spinbox_cur2_y['increment'] = self.spinbox_cur2_y_increment
@@ -987,7 +987,7 @@ class App:
                         else:
                             pass
                         print("offset&pos2=", offset2, pos2)
-                        self.spinbox_cur2_y['from_'] = scale2 * -5 + offset2 + pos2*scale2
+                        self.spinbox_cur2_y['from_'] = scale2 * -5 + offset2 - pos2*scale2
                         self.spinbox_cur2_y['to'] = scale2 * 5 + offset2 - pos2*scale2
 
                         if self.cursor_type_combobox.current() == 0:
@@ -1340,6 +1340,7 @@ class App:
                             try:
                                 # cv2.imwrite(save_path, outputImage)
                                 I.save(save_path)
+                                self.status_var.set("Saved: " + str(save_path))
                             except IOError:
                                 # print("cv2 save Failed")
                                 self.status_var.set("Cannot save file, check folder and filename")
