@@ -433,6 +433,10 @@ class App:
         self.cursor_type_combobox.grid(row=0, column=0, padx=2, pady=0)
         self.cursor_type_combobox.current(0)
 
+        ## remove cursor grid for release
+        self.labelFr_cursor.grid_remove()
+        ## 10/13/2021 10:43 PT
+
         # ✜
         self.btn_cur_set = tk.Button(self.labelFr_cursor, text="set", command=self.adjust_cur)
         self.btn_cur_set.grid(row=0, column=1, padx=1, pady=0)
