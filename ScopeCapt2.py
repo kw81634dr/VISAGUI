@@ -698,19 +698,29 @@ class App:
     def task_check_app_update(self):
         url_api = 'https://api.github.com/repos/kw81634dr/VISAGUI/releases/latest'
         url_release = 'https://github.com/kw81634dr/VISAGUI/releases/latest'
-        response = requests.get(url_api)
-        latest_release_float = float((response.json()["name"])[1:])
-        print(response.json())
+        latest_release_float = 0.0
+        browser_download_url = ''
+        try:
+            response = requests.get(url_api)
+            # print(response.json())
+            latest_release_float = float((response.json()["name"])[1:])
+            browser_download_url = response.json()["assets"][-1]['browser_download_url']
+            print("browser_download_url=", browser_download_url)
+        except Exception as e:
+            print(e)
         # response = requests.get("",
         #                         headers={"PRIVATE-TOKEN": ""})
         # print("GitLab-Version=", response.json()[0]['name'])
+
         if latest_release_float > self.app_version:
             print("there's an Update")
             ans = messagebox.askokcancel("Version check", "New version available,"
-                                         + "\nWould you like to take a look?"
-                                         + "\n** click [OK] will direct you to repository)")
+                                         + "\nWould you like to download?")
             if ans:
-                webbrowser.open(url_release)
+                if browser_download_url != '':
+                    webbrowser.open(browser_download_url)
+                else:
+                    messagebox.showinfo("Version check", "See: " + url_release)
         else:
             messagebox.showinfo("Version check", "You are using the latest version."
                                 + " v" + str(self.app_version))
