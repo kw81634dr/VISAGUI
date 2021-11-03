@@ -6,12 +6,12 @@
 App preview
 
 ![mac_GUI screen shot](img/scrshot/macGUIv1.7.png)
-![win_GUI screen shot](img/scrshot/v2.1scrshot.png)
+![win_GUI screen shot](img/scrshot/v2.3scrshot.png)
 
 ## Features
 
 #### Screen Shot
-* Capture ScreenShot without USB flash drive.(shortcut: `Enter`)
+* Capture ScreenShot without USB flash drive.
 * Add text overlay
 * Enable Ink Saver
 
