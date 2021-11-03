@@ -172,7 +172,7 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = 2.2
+        self.app_version = 2.3
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
@@ -567,7 +567,7 @@ class App:
         file_submenu_recall_setup.add_command(label="Slot 4", command=lambda: self.recall_setup_slot(slot_num=4))
         file_submenu_recall_setup.add_command(label="Slot 5", command=lambda: self.recall_setup_slot(slot_num=5))
 
-        filemenu.add_command(label="Check App Updates", underline=0, command=self.check_app_update)
+        filemenu.add_command(label="Check App Updates", underline=0, command=self.on_click_check_app_update)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
@@ -627,7 +627,8 @@ class App:
 
         atexit.register(self.at_exit)
         self.frame.pack()
-
+        self.last_update_time = 0
+        self.is_auto_check_app_update = False
         self.target_gpib_address = tk.StringVar()
         self.read_user_pref()
         self.update_addr_inApp()
@@ -644,7 +645,12 @@ class App:
         # !!! add parameter:[daemon=True] to prevent ghost thread!!!
         self.update_scope_thread = threading.Thread(target=self.task_update_device_state, daemon=True)
         self.update_scope_thread.start()
-        
+        self.is_manually_check_update = False
+        if time.time() - self.last_update_time > 86400*7:
+            print("Auto Checking App update.")
+            self.is_auto_check_app_update = True
+            self.check_app_update()
+
     def validate_spinbox(self, new_value):
         # Returning True allows the edit to happen, False prevents it.
         return new_value.isdigit()
@@ -681,7 +687,6 @@ class App:
         self.write_user_pref()
         self.master.destroy()
 
-
     def at_exit(self):
         try:
             pass
@@ -691,7 +696,12 @@ class App:
     def onKey(self, event):
         print("On key")
 
+    def on_click_check_app_update(self):
+        self.is_auto_check_app_update = False
+        self.check_app_update()
+
     def check_app_update(self):
+        self.last_update_time = time.time()
         self.check_app_update_thread = threading.Thread(target=self.task_check_app_update, daemon=True)
         self.check_app_update_thread.start()
 
@@ -722,8 +732,10 @@ class App:
                 else:
                     messagebox.showinfo("Version check", "See: " + url_release)
         else:
-            messagebox.showinfo("Version check", "You are using the latest version."
-                                + " v" + str(self.app_version))
+            print("Using latest version.")
+            if not self.is_auto_check_app_update:
+                messagebox.showinfo("Version check", "You are using the latest version."
+                                    + " v" + str(self.app_version))
         exit()
 
     def read_user_pref(self):
@@ -741,6 +753,7 @@ class App:
                 self.use_inkSaver_var_bool.set(config["use_inkSaver_var_bool"])
                 App.cls_var = config["target_gpib_address"]
                 self.target_gpib_address.set(config["target_gpib_address"])
+                self.last_update_time = config["last_update_time"]
             except:
                 return self.write_user_pref()
         else:
@@ -755,7 +768,8 @@ class App:
                       "path_var": self.path_var.get(),
                       "filename_var": self.filename_var.get(),
                       "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get(),
-                      "target_gpib_address": self.target_gpib_address.get()
+                      "target_gpib_address": self.target_gpib_address.get(),
+                      "last_update_time": self.last_update_time
                       }
             json.dump(config, f)
 
@@ -770,7 +784,7 @@ class App:
             self.is_cur_use_fine_step = False
 
     def get_acq_state(self):
-        opc = 0
+        busy = 1
         focused_obj = None
         try:
             focused_obj = self.frame.focus_get()
@@ -783,10 +797,10 @@ class App:
                 try:
                     if focused_obj is not None:
                         scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
-                        opc = scope.query('*OPC?')
+                        busy = int(scope.query('BUSY?').rstrip())
                     else:
                         pass
-                    if opc:
+                    if not busy:
                         idn_query = scope.query('*IDN?')
                         series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
                         series = series.split(',')[1]
@@ -1061,10 +1075,11 @@ class App:
                     # self.status_var.set(e)
                 rm.close()
                 # self.offset_err_cnt = self.offset_err_cnt + 1
-            except Exception:
+            except Exception as e :
                 self.status_var.set("Connection issue! Retrying...")
                 # self.offset_err_cnt = self.offset_err_cnt + 1
                 print("Cannot get Acq status-VISA driver Error")
+                print(e)
         else:
             pass
 
