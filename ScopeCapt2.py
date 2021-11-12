@@ -663,7 +663,7 @@ class App:
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
-                    time.sleep(0.5)
+                    time.sleep(0.15)
                 except Exception as e:
                     print("task update state->", e)
         # messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
@@ -736,7 +736,6 @@ class App:
             if not self.is_auto_check_app_update:
                 messagebox.showinfo("Version check", "You are using the latest version."
                                     + " v" + str(self.app_version))
-        exit()
 
     def read_user_pref(self):
         # self.update_addr_inApp()
@@ -944,7 +943,7 @@ class App:
 
                         cmd_ask_scale1 = 'CH' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
                         cmd_ask_scale2 = 'CH' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
-                        print(cmd_ask_scale1, cmd_ask_scale2)
+                        # print(cmd_ask_scale1, cmd_ask_scale2)
                         self.scale1 = float(scope.query(cmd_ask_scale1).rstrip())
                         self.scale2 = float(scope.query(cmd_ask_scale2).rstrip())
 
@@ -1316,7 +1315,7 @@ class App:
                     text_to_overlay = self.filename_var.get()
                     # text_to_overlay = "Kp=44 Kd=50 Jitter Ontime CPU1 2 VDDQ ABCD2 Default 20%Load"
                     # font = ImageFont.load_default()
-                    fontsize = 13
+                    fontsize = 14
                     font = ImageFont.truetype("FreeSansBold.ttf", fontsize)
                     draw = ImageDraw.Draw(I)
                     #rectangle[x0, y0, x1, y1]
