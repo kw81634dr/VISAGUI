@@ -13,6 +13,7 @@ App preview
 ## Features
 
 #### Screen Shot
+* (shortcut: `Enter`)
 * Capture ScreenShot without USB flash drive.
 * Add text overlay
 * Enable Ink Saver
@@ -42,7 +43,6 @@ App preview
 3rd party driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147)
 
 3rd party library : [pyvisa](https://pypi.org/project/PyVISA/),
-~~ [openCV](https://pypi.org/project/opencv-python/), ~~
 [PIL](https://pypi.org/project/Pillow/),
 [requests](https://pypi.org/project/requests/)
 
