@@ -42,9 +42,11 @@ App preview
 3rd party driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147)
 
 3rd party library : [pyvisa](https://pypi.org/project/PyVISA/),
-[openCV](https://pypi.org/project/opencv-python/),
+~~ [openCV](https://pypi.org/project/opencv-python/), ~~
 [PIL](https://pypi.org/project/Pillow/),
 [requests](https://pypi.org/project/requests/)
+
+Tkinter library not found solution for MacOS: `$ brew install python-tk`
 
 ## Compatible model:
 
