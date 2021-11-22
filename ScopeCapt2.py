@@ -19,7 +19,7 @@ import threading
 import json
 import requests
 import webbrowser
-from prefixed import Float as SIFloat
+# from prefixed import Float as SIFloat
 
 
 class mySpinbox(tk.Spinbox):
@@ -417,7 +417,7 @@ class App:
         self.btn_ch4_down.grid(row=1, column=2, padx=0, pady=1)
 
         # --------------row 7
-        self.btn_capture = tk.Button(self.frame, text=" Take ScreenShot ", command=self.btn_capture_clicked)
+        self.btn_capture = tk.Button(self.frame, text="ScreenShot (⮐)", command=self.btn_capture_clicked)
         self.btn_capture.grid(row=7, column=1, padx=3, pady=2, columnspan=3)
         self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl+⮐)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=7, column=3, padx=3, pady=2, columnspan=3)
@@ -663,7 +663,7 @@ class App:
                     self.update_addr_inApp()
                     self.get_acq_state()
                     self.master.update_idletasks()
-                    time.sleep(0.15)
+                    time.sleep(0.25)
                 except Exception as e:
                     print("task update state->", e)
         # messagebox.showerror("Failed!", "Failed to establish connection between instrument and PC."
@@ -1749,11 +1749,18 @@ class App:
         self.pause_get_status_thread = False
 
     def btn_capture_clicked(self, *args):
-        self.pause_get_status_thread = True
-        folder = self.path_var.get()
-        print("Capture Btn clicked, save folder", folder)
-        self.get_shot_scope()
-        self.pause_get_status_thread = False
+        focused_obj = None
+        try:
+            focused_obj = self.frame.focus_get()
+            # print("focused=", focused_obj)
+        except Exception as e:
+            print(e)
+        if focused_obj is not None:
+            self.pause_get_status_thread = True
+            folder = self.path_var.get()
+            print("Capture Btn clicked, save folder", folder)
+            self.get_shot_scope()
+            self.pause_get_status_thread = False
 
 
 def center(win):
@@ -1807,7 +1814,7 @@ def mainApp():
     # NEED a better way to fix the delete of filename and cannot Paste by Ctrl+V bug.
     # root.bind("<Control_L>", lambda i: app.frame.focus_set())
     root.bind("<Control_R>", lambda i: app.frame.focus_set())
-    # root.bind("<Return>", app.btn_capture_clicked)
+    root.bind("<Return>", app.btn_capture_clicked)
     # root.bind("<Return>", lambda i: app.frame.focus_set())
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
