@@ -6,7 +6,7 @@
 App preview
 
 ![mac_GUI screen shot](img/scrshot/macGUIv2.3.png)
-![win_GUI screen shot](img/scrshot/v2.3scrshot.png)
+![win_GUI screen shot](img/scrshot/v2.4scrshot.png)
 
 ### >>Download the latest release -> [here](https://github.com/kw81634dr/VISAGUI/releases)
 

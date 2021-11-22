@@ -172,7 +172,7 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = 2.3
+        self.app_version = 2.4
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
@@ -1726,27 +1726,34 @@ class App:
         self.pause_get_status_thread = False
 
     def btn_runstop_clicked(self, *args):
-        self.pause_get_status_thread = True
-        print("Run/Stop Btn clicked")
-        # print("obj_[selected_device_addr]->", self.gpibScannerObj.selected_device_addr)
+        focused_obj = None
         try:
-            rm = visa.ResourceManager()
-            with rm.open_resource(self.target_gpib_address.get()) as scope:
-                if self.acq_state_var_bool.get() == True:
-                    scope.write('ACQuire:STATE OFF')
-                    self.status_var.set("STOP Acquisition")
-                else:
-                    scope.write('ACQ:STOPA RUNST')
-                    scope.write('ACQuire:STATE ON')
-                    self.status_var.set("START Acquisition")
-                scope.close()
-            rm.close()
-        except ValueError:
-            print("cannot RunStop-VISA driver Error")
-            self.status_var.set("VISA driver Error")
-            self.btn_RunStop.configure(fg="red")
-        self.get_acq_state()
-        self.pause_get_status_thread = False
+            focused_obj = self.frame.focus_get()
+            # print("focused=", focused_obj)
+        except Exception as e:
+            print(e)
+        if focused_obj is not None:
+            self.pause_get_status_thread = True
+            print("Run/Stop Btn clicked")
+            # print("obj_[selected_device_addr]->", self.gpibScannerObj.selected_device_addr)
+            try:
+                rm = visa.ResourceManager()
+                with rm.open_resource(self.target_gpib_address.get()) as scope:
+                    if self.acq_state_var_bool.get() == True:
+                        scope.write('ACQuire:STATE OFF')
+                        self.status_var.set("STOP Acquisition")
+                    else:
+                        scope.write('ACQ:STOPA RUNST')
+                        scope.write('ACQuire:STATE ON')
+                        self.status_var.set("START Acquisition")
+                    scope.close()
+                rm.close()
+            except ValueError:
+                print("cannot RunStop-VISA driver Error")
+                self.status_var.set("VISA driver Error")
+                self.btn_RunStop.configure(fg="red")
+            self.get_acq_state()
+            self.pause_get_status_thread = False
 
     def btn_capture_clicked(self, *args):
         focused_obj = None
