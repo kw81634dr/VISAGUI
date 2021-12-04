@@ -85,6 +85,16 @@ Foot Padel control implementation (Arduino Code available in sub directory)
 ![Scope RUN/STOP](img/scrshot/Scoperunstop_gif.gif)
 ![Animation](img/scrshot/AppAnimation_gif.gif)
 
+> Padel definition
+> * `RUN/STOP` -- Single step on padel.
+> *  Take ScreenShot -- Double Step on padel.
+> * `Clear` -- long press then release the padel.
+
+
+> Pin assignment - using Arduino Leonardo (Pro mini):
+>* D2 - NO(normal open) of toggle switch
+>* Gnd - COM(common) pin of toggle switch
+
 
 ## Todo
 - [ ] Support other brand's scope.
