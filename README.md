@@ -1,7 +1,5 @@
 # VISA GUI
-**Manipulate your Oscilloscope with keyboard & mouse**
-
----
+**Manipulate your Oscilloscope with keyboard & mouse (or even foot padel !)**
 
 App preview
 
@@ -25,9 +23,9 @@ App preview
 * Position & Offset** Adjustment.
 
 #### Acquisition
-* Set ==Run==/==Stop= Acq (shortcut: `Ctrl` + `Enter`)
-* Set ==Single= Acq (shortcut: `Ctrl` + `Enter`)
-* ==Clear== (shortcut: `Ctrl` + `Del`)
+* Set `Run`/`Stop` Acq (shortcut: `Ctrl` + `Enter`)
+* Set `Single` Acq (shortcut: `Ctrl` + `Enter`)
+* `Clear` (shortcut: `Ctrl` + `Del`)
 * Toggle FastAcq**
 * Toggle Infinite Persistence.
 * Signal Trigger adjusment. 
@@ -80,8 +78,12 @@ Captured ScreenShot from DPO7104C
 
 ![Scope screen shot](img/scrshot/test.png)
 
-## Additional
-Foot Padel control implementation
+## One more thing :bulb:
+Foot Padel control implementation (Arduino Code available in sub directory)
+
+![Foot Padel](img/scrshot/footPadel_gif.gif)
+![Scope RUN/STOP](img/scrshot/Scoperunstop_gif.gif)
+
 
 ## Todo
 - [ ] Support other brand's scope.
