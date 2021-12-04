@@ -16,18 +16,21 @@ App preview
 * (shortcut: `Enter`)
 * Capture ScreenShot without USB flash drive.
 * Add text overlay
-* Enable Ink Saver
+* Toggle Ink Saver
 
 #### Channels
-* Turn ON/OFF individually
-* Adjust vertical scale individually.
-* Adjust horizontal scale. (shortcut: `Ctrl` + `←`/`→`)
+* Turn ON/OFF.
+* Vertical scale Adjustment.
+* Horizontal scale Adjustment. (shortcut: `Ctrl` + `←`/`→`)
+* Position & Offset** Adjustment.
 
 #### Acquisition
-* Set Run/Stop Acq (shortcut: `Ctrl` + `Enter`)
-* Clear (shortcut: `Ctrl` + `Del`)
-* Trigger FastAcq*
-* Trigger Infinite Persistence
+* Set ==Run==/==Stop= Acq (shortcut: `Ctrl` + `Enter`)
+* Set ==Single= Acq (shortcut: `Ctrl` + `Enter`)
+* ==Clear== (shortcut: `Ctrl` + `Del`)
+* Toggle FastAcq**
+* Toggle Infinite Persistence.
+* Signal Trigger adjusment. 
 
 #### Scope
 * execute AutoSet
@@ -37,33 +40,48 @@ App preview
 #### Handy Tool
 * GPIB bus Scanner
 
-*availability of such features depends on your scope model.
+![pic of GPIB Scanner](img/scrshot/GPIBScan.png)
 
-##### Dependencies
-3rd party driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147)
 
-3rd party library : [pyvisa](https://pypi.org/project/PyVISA/),
+**availability of such features depends on your scope model.
+
+> Dependencies
+>> VISA driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147), Python libraries : [pyvisa](https://pypi.org/project/PyVISA/),
 [PIL](https://pypi.org/project/Pillow/),
 [requests](https://pypi.org/project/requests/)
 
-Tkinter library not found solution for MacOS: `$ brew install python-tk`
+>> Tkinter library not found solution for MacOS: `$ brew install python-tk`
+
+
+[Brew Homepage](https://brew.sh/)
 
 ## Compatible model:
 
 |Verified| TeK           | remarks  |
 |--------|---------------|---|
 |Pending | TBS1052B-EDU  |   |
+|&check; | DPO2014B      |   |
 |&check; | MSO2024B      |   |
 |&check; | DPO4104       |   |
 |&check; | MDO4024C      |   |
 |&check; | DPO7104       |   |
 |&check; | DPO7104C      |   |
 
+Captured ScreenShot from DPO2014B (with & without Ink Saver Enabled)
+
+![pic of Ink Saver](img/scrshot/DPO2014B_InkSaver.png)
+![Scope screen shot](img/scrshot/DPO2014B.png)
+
 Captured ScreenShot from DPO4104
+
 ![Scope screen shot](img/scrshot/DPO4104.png)
 
 Captured ScreenShot from DPO7104C
+
 ![Scope screen shot](img/scrshot/test.png)
+
+## Additional
+Foot Padel control implementation
 
 ## Todo
 - [ ] Support other brand's scope.
