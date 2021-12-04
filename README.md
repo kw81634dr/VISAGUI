@@ -10,6 +10,8 @@ App preview
 
 ## Features
 
+**availability of such features depends on your scope model.
+
 #### Screen Shot
 * (shortcut: `Enter`)
 * Capture ScreenShot without USB flash drive.
@@ -38,22 +40,20 @@ App preview
 #### Handy Tool
 * GPIB bus Scanner
 
-![pic of GPIB Scanner](img/scrshot/GPIBScan.png)
+![pic of GPIB Scanner](img/scrshot/GPIBScan.PNG)
 
 
-**availability of such features depends on your scope model.
-
-> Dependencies
->> VISA driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147), Python libraries : [pyvisa](https://pypi.org/project/PyVISA/),
+## Dependencies
+> VISA driver : [NI-488.2(NI-VISA)](https://www.ni.com/en-us/support/downloads/drivers/download.ni-488-2.html#306147), Python libraries : [pyvisa](https://pypi.org/project/PyVISA/),
 [PIL](https://pypi.org/project/Pillow/),
 [requests](https://pypi.org/project/requests/)
 
->> Tkinter library not found solution for MacOS: `$ brew install python-tk`
+> Tkinter library not found solution for MacOS: `$ brew install python-tk`
 
 
 [Brew Homepage](https://brew.sh/)
 
-## Compatible model:
+## Tested Compatible model:
 
 |Verified| TeK           | remarks  |
 |--------|---------------|---|
@@ -90,4 +90,4 @@ Foot Padel control implementation (Arduino Code available in sub directory)
 - [ ] Customize Keyboard Shortcut.
 - [ ] Transform to MVC model and clean up messy code.
 
-https://icoconvert.com/
+windows `.icn` icon file conversion using: [https://icoconvert.com/](https://icoconvert.com/)
