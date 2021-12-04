@@ -83,6 +83,7 @@ Foot Padel control implementation (Arduino Code available in sub directory)
 
 ![Foot Padel](img/scrshot/footPadel_gif.gif)
 ![Scope RUN/STOP](img/scrshot/Scoperunstop_gif.gif)
+![Animation](img/scrshot/AppAnimation_gif.gif)
 
 
 ## Todo
