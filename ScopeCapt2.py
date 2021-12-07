@@ -177,7 +177,7 @@ class App:
         self.master = master
         self.frame = tk.Frame(self.master)
 
-        self.app_version = 2.4
+        self.app_version = 2.5
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
         self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
