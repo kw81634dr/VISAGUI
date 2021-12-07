@@ -70,13 +70,9 @@ Captured ScreenShot from DPO2014B (with & without Ink Saver Enabled)
 ![pic of Ink Saver](img/scrshot/DPO2014B_InkSaver.png)
 ![Scope screen shot](img/scrshot/DPO2014B.png)
 
-Captured ScreenShot from DPO4104
+![Captured ScreenShot from DPO4104](img/scrshot/DPO4104.png)
 
-![Scope screen shot](img/scrshot/DPO4104.png)
-
-Captured ScreenShot from DPO7104C
-
-![Scope screen shot](img/scrshot/test.png)
+![Captured ScreenShot from DPO7104C](img/scrshot/test.png)
 
 ## One more thing :bulb:
 Foot Padel control implementation (Arduino Code available in sub directory)
