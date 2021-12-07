@@ -13,7 +13,7 @@ App preview
 **availability of such features depends on your scope model.
 
 #### Screen Shot
-* (shortcut: `Enter`)
+* Take Screen shot of oscilloscope (shortcut: `Enter`)
 * Capture ScreenShot without USB flash drive.
 * Add text overlay
 * Toggle Ink Saver
@@ -22,7 +22,7 @@ App preview
 * Turn ON/OFF.
 * Vertical scale Adjustment.
 * Horizontal scale Adjustment. (shortcut: `Ctrl` + `←`/`→`)
-* Position & Offset** Adjustment.
+* Position & Offset** Adjustment. (mouse wheel supported)
 
 #### Acquisition
 * Set `Run`/`Stop` Acq (shortcut: `Ctrl` + `Enter`)
