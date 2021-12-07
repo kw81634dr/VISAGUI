@@ -165,6 +165,11 @@ class WindowGPIBScanner:
         self.master.title("GPIB Scanner [finished!]")
 
 
+def validate_spinbox(new_value):
+    # Returning True allows the edit to happen, False prevents it.
+    return new_value.isdigit()
+
+
 class App:
     cls_var = ""
 
@@ -204,6 +209,7 @@ class App:
         self.path_var = tk.StringVar()
         self.path_var.set(os.getcwd())
         self.filename_var.set('Name_File_Here')
+        self.is_check_app_update_periodically = IntVar(value=1)
 
         self.use_inkSaver_var_bool = IntVar(value=0)
         self.cursor_mode = IntVar(value=0)
@@ -567,7 +573,10 @@ class App:
         file_submenu_recall_setup.add_command(label="Slot 4", command=lambda: self.recall_setup_slot(slot_num=4))
         file_submenu_recall_setup.add_command(label="Slot 5", command=lambda: self.recall_setup_slot(slot_num=5))
 
-        filemenu.add_command(label="Check App Updates", underline=0, command=self.on_click_check_app_update)
+        filemenu.add_command(label="Check App Update", underline=0, command=self.on_click_check_app_update)
+        filemenu.add_checkbutton(label="Disable auto update checking", onvalue=0, offvalue=1,
+                                 variable=self.is_check_app_update_periodically)
+
         filemenu.add_separator()
         filemenu.add_command(label="Exit", underline=0, command=self.ask_quit)
 
@@ -646,14 +655,11 @@ class App:
         self.update_scope_thread = threading.Thread(target=self.task_update_device_state, daemon=True)
         self.update_scope_thread.start()
         self.is_manually_check_update = False
-        if time.time() - self.last_update_time > 86400*7:
-            print("Auto Checking App update.")
-            self.is_auto_check_app_update = True
-            self.check_app_update()
-
-    def validate_spinbox(self, new_value):
-        # Returning True allows the edit to happen, False prevents it.
-        return new_value.isdigit()
+        if self.is_check_app_update_periodically.get():
+            if time.time() - self.last_update_time > 86400*7:
+                print("Auto Checking App update.")
+                self.is_auto_check_app_update = True
+                self.check_app_update()
 
     def task_update_device_state(self):
         while 1:
@@ -753,6 +759,7 @@ class App:
                 App.cls_var = config["target_gpib_address"]
                 self.target_gpib_address.set(config["target_gpib_address"])
                 self.last_update_time = config["last_update_time"]
+                self.is_check_app_update_periodically.set(config["is_check_app_update_periodically"])
             except:
                 return self.write_user_pref()
         else:
@@ -768,7 +775,8 @@ class App:
                       "filename_var": self.filename_var.get(),
                       "use_inkSaver_var_bool": self.use_inkSaver_var_bool.get(),
                       "target_gpib_address": self.target_gpib_address.get(),
-                      "last_update_time": self.last_update_time
+                      "last_update_time": self.last_update_time,
+                      "is_check_app_update_periodically": self.is_check_app_update_periodically.get()
                       }
             json.dump(config, f)
 
@@ -1756,18 +1764,23 @@ class App:
             self.pause_get_status_thread = False
 
     def btn_capture_clicked(self, *args):
-        focused_obj = None
-        try:
-            focused_obj = self.frame.focus_get()
-            # print("focused=", focused_obj)
-        except Exception as e:
-            print(e)
-        if focused_obj is not None:
-            self.pause_get_status_thread = True
-            folder = self.path_var.get()
-            print("Capture Btn clicked, save folder", folder)
-            self.get_shot_scope()
-            self.pause_get_status_thread = False
+        self.pause_get_status_thread = True
+        folder = self.path_var.get()
+        print("Capture Btn clicked, save folder", folder)
+        self.get_shot_scope()
+        self.pause_get_status_thread = False
+
+    def handle_return_key_event(self, event):
+        print("return: event.widget is", event.widget)
+        print("focus is:", self.frame.focus_get())
+        exclusive_tuple = (self.spinbox_offset_ch1, self.spinbox_pos_ch1,
+                           self.spinbox_offset_ch2, self.spinbox_pos_ch2,
+                           self.spinbox_offset_ch3, self.spinbox_pos_ch3,
+                           self.spinbox_offset_ch4, self.spinbox_pos_ch4,
+                           self.trig_ch_combobox, self.trig_edge_combobox,
+                           self.chkbox_persistence, self.chkbox_fastacq)
+        if event.widget not in exclusive_tuple:
+            self.btn_capture_clicked()
 
 
 def center(win):
@@ -1821,7 +1834,7 @@ def mainApp():
     # NEED a better way to fix the delete of filename and cannot Paste by Ctrl+V bug.
     # root.bind("<Control_L>", lambda i: app.frame.focus_set())
     root.bind("<Control_R>", lambda i: app.frame.focus_set())
-    root.bind("<Return>", app.btn_capture_clicked)
+    root.bind("<Return>", app.handle_return_key_event)
     # root.bind("<Return>", lambda i: app.frame.focus_set())
     root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
