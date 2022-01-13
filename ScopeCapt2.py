@@ -721,7 +721,7 @@ class App:
             # print(response.json())
             latest_release_float = float((response.json()["name"])[1:])
             browser_download_url = response.json()["assets"][-1]['browser_download_url']
-            print("browser_download_url=", browser_download_url)
+            print("browser_download_url=", latest_release_float)
         except Exception as e:
             print(e)
         # response = requests.get("",
@@ -734,7 +734,7 @@ class App:
                                          + "\nWould you like to download?")
             if ans:
                 if browser_download_url != '':
-                    webbrowser.open(browser_download_url)
+                    webbrowser.open(url_release)
                 else:
                     messagebox.showinfo("Version check", "See: " + url_release)
         else:
