@@ -804,7 +804,7 @@ class App:
                 try:
                     if focused_obj is not None:
                         scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
-                        busy = 1
+                        busy = 0
                     else:
                         pass
                     if not busy:
@@ -820,60 +820,26 @@ class App:
                         self.master.title(Text)
 
                         # # Test if Scope support Offset
-                        # if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
-                        #     try:
-                        #         scope.query('CH1:OFFS?').rstrip()
-                        #         self.offset_err_cnt = self.offset_err_cnt - 1
-                        #     except Exception as e:
-                        #         self.offset_err_cnt = self.offset_err_cnt + 1
-                        #         print("stst cmd dsn support ", e)
-                        # if self.scope_series_num == 1:
-                        #     self.chkbox_fastacq["state"] = "disabled"
-                        # else:
-                        #     self.chkbox_fastacq["state"] = "normal"
-                        #
-                        # if self.ch_available == 2:
-                        #     self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                        #     self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                        #     self.sel_ch3_var_bool.set(value=0)
-                        #     self.sel_ch4_var_bool.set(value=0)
-                        #     self.btn_ch3_up["state"] = "disabled"
-                        #     self.btn_ch3_down["state"] = "disabled"
-                        #     self.btn_ch4_up["state"] = "disabled"
-                        #     self.btn_ch4_down["state"] = "disabled"
-                        #     self.spinbox_pos_ch3['state'] = 'disabled'
-                        #     self.spinbox_offset_ch3['state'] = 'disabled'
-                        #     self.spinbox_pos_ch4['state'] = 'disabled'
-                        #     self.spinbox_offset_ch4['state'] = 'disabled'
-                        #     self.labelFr_ch3['text'] = 'Ch3 Unavailable'
-                        #     self.labelFr_ch4['text'] = 'Ch4 Unavailable'
-                        #
-                        #     # ch1_pos_offset
-                        #     if 1:
-                        #         if focused_obj != self.spinbox_offset_ch1:
-                        #             # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                        #             self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
-                        #         if focused_obj != self.spinbox_pos_ch1:
-                        #             self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
-                        #
-                        #     # ch2_pos_offset
-                        #     if 1:
-                        #         if focused_obj != self.spinbox_offset_ch2:
-                        #             self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
-                        #         if focused_obj != self.spinbox_pos_ch2:
-                        #             self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
-                        #
-                        #     self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        #     self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        #     self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
-                        #     self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
-                        #
-                        # else:
-                        #     self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                        #     self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                        #     self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
-                        #     self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
-                        #
+                        if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
+                            try:
+                                scope.query('CHAN1:OFFS?').rstrip()
+                                self.offset_err_cnt = self.offset_err_cnt - 1
+                            except Exception as e:
+                                self.offset_err_cnt = self.offset_err_cnt + 1
+                                print("stst cmd dsn support ", e)
+                        if self.scope_series_num == 1:
+                            self.chkbox_fastacq["state"] = "disabled"
+                        else:
+                            self.chkbox_fastacq["state"] = "normal"
+
+                        if 0:
+                            pass
+                        else:
+                            self.sel_ch1_var_bool.set(value=int(scope.query('CHAN1:DISP?').rstrip()))
+                            self.sel_ch2_var_bool.set(value=int(scope.query('CHAN2:DISP?').rstrip()))
+                            self.sel_ch3_var_bool.set(value=int(scope.query('CHAN3:DISP?').rstrip()))
+                            self.sel_ch4_var_bool.set(value=int(scope.query('CHAN4:DISP?').rstrip()))
+
                         #     # ch1_pos_offset
                         #     if 1:
                         #         if focused_obj != self.spinbox_offset_ch1:
@@ -912,29 +878,25 @@ class App:
                         # self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
                         # self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
 
-                        acq_state = int(scope.query('ACQuire:STATE?').rstrip())
-                        acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
+                        # acq_state = int(scope.query('ACQuire:STATE?').rstrip())
+                        # acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
                         # print("scope acq state=", acq_state)
-                        self.acq_state_var_bool.set(acq_state)
-                        acqlabeltext = " Acq #" + str(acq_num)
-                        self.label_acqnum.config(text=acqlabeltext)
-                        self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
-                        # orig_color = self.chkbox_fastacq.cget("background")
-                        if self.fastacq_var_bool.get():
-                            self.chkbox_fastacq.configure(fg="Purple2")
-                        else:
-                            self.chkbox_fastacq.configure(fg="black")
+                        # self.acq_state_var_bool.set(acq_state)
+                        # acqlabeltext = " Acq #" + str(acq_num)
+                        # self.label_acqnum.config(text=acqlabeltext)
+                        # self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
+                        # # orig_color = self.chkbox_fastacq.cget("background")
+                        # if self.fastacq_var_bool.get():
+                        #     self.chkbox_fastacq.configure(fg="Purple2")
+                        # else:
+                        #     self.chkbox_fastacq.configure(fg="black")
                         # Persistence---checked on DPO4104B
                         if (self.scope_series_num > 1) and (self.scope_series_num < 5):
-                            if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
+                            if (scope.query('DISPlay:GRADing:TIME?').rstrip()).upper() == 'MIN':
                                 self.persistence_var_bool.set(0)
                             else:
                                 self.persistence_var_bool.set(1)
-                        else:
-                            if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
-                                self.persistence_var_bool.set(0)
-                            else:
-                                self.persistence_var_bool.set(1)
+
                         if self.acq_state_var_bool.get():
                             self.btn_RunStop.configure(fg="green4")
                         elif not self.acq_state_var_bool.get():
@@ -944,126 +906,126 @@ class App:
                             self.status_var.set("Cannot get Acq state")
 
                         # get the index of closest value
-                        time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
-                        horizontal_pos = float(scope.query('HORizontal:POSition?'))
+                        time_scale = float(scope.query('TIMebase:SCALe?'))
+                        horizontal_pos = float(scope.query('TIMebase:OFFSet?'))
                         # self.closest_timediv_index = min(range(len(self.time_scaleList)),
                         #                                  key=lambda i: abs(self.time_scaleList[i] - time_scale))
 
-                        cmd_ask_scale1 = 'CH' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
-                        cmd_ask_scale2 = 'CH' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
-                        # print(cmd_ask_scale1, cmd_ask_scale2)
-                        self.scale1 = float(scope.query(cmd_ask_scale1).rstrip())
-                        self.scale2 = float(scope.query(cmd_ask_scale2).rstrip())
+                        # cmd_ask_scale1 = 'CHAN' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
+                        # cmd_ask_scale2 = 'CHAN' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
+                        # # print(cmd_ask_scale1, cmd_ask_scale2)
+                        # self.scale1 = float(scope.query(cmd_ask_scale1).rstrip())
+                        # self.scale2 = float(scope.query(cmd_ask_scale2).rstrip())
+                        #
+                        # if focused_obj != self.cursor1_ch_combobox:
+                        #     cur1_source = int(scope.query('CURS:SOU1?').rstrip()[-1])
+                        #     self.cursor1_ch_combobox.current(cur1_source-1)
+                        #
+                        # if focused_obj != self.cursor2_ch_combobox:
+                        #     cur2_source = int(scope.query('CURS:SOU2?').rstrip()[-1])
+                        #     self.cursor2_ch_combobox.current(cur2_source - 1)
+                        #
+                        # if self.is_cur_use_fine_step:
+                        #     self.spinbox_cur1_x_increment = time_scale*0.01
+                        #     self.spinbox_cur2_x_increment = time_scale * 0.01
+                        #     self.spinbox_cur1_y['increment'] = 0.02
+                        #     self.spinbox_cur2_y['increment'] = 0.02
+                        # else:
+                        #     self.spinbox_cur1_x_increment = time_scale * 0.1
+                        #     self.spinbox_cur2_x_increment = time_scale * 0.1
+                        #     self.spinbox_cur1_y['increment'] = 0.2
+                        #     self.spinbox_cur2_y['increment'] = 0.2
+                        # # print("horizontal_pos=", horizontal_pos)
+                        # self.spinbox_cur1_x['increment'] = self.spinbox_cur1_x_increment
+                        # self.spinbox_cur1_x['from_'] = time_scale * -10 * horizontal_pos*0.01
+                        # self.spinbox_cur1_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
+                        #
+                        # self.spinbox_cur2_x['increment'] = self.spinbox_cur2_x_increment
+                        # self.spinbox_cur2_x['from_'] = time_scale * -10 * horizontal_pos*0.01
+                        # self.spinbox_cur2_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
 
-                        if focused_obj != self.cursor1_ch_combobox:
-                            cur1_source = int(scope.query('CURS:SOU1?').rstrip()[-1])
-                            self.cursor1_ch_combobox.current(cur1_source-1)
-
-                        if focused_obj != self.cursor2_ch_combobox:
-                            cur2_source = int(scope.query('CURS:SOU2?').rstrip()[-1])
-                            self.cursor2_ch_combobox.current(cur2_source - 1)
-
-                        if self.is_cur_use_fine_step:
-                            self.spinbox_cur1_x_increment = time_scale*0.01
-                            self.spinbox_cur2_x_increment = time_scale * 0.01
-                            self.spinbox_cur1_y['increment'] = 0.02
-                            self.spinbox_cur2_y['increment'] = 0.02
-                        else:
-                            self.spinbox_cur1_x_increment = time_scale * 0.1
-                            self.spinbox_cur2_x_increment = time_scale * 0.1
-                            self.spinbox_cur1_y['increment'] = 0.2
-                            self.spinbox_cur2_y['increment'] = 0.2
-                        # print("horizontal_pos=", horizontal_pos)
-                        self.spinbox_cur1_x['increment'] = self.spinbox_cur1_x_increment
-                        self.spinbox_cur1_x['from_'] = time_scale * -10 * horizontal_pos*0.01
-                        self.spinbox_cur1_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
-
-                        self.spinbox_cur2_x['increment'] = self.spinbox_cur2_x_increment
-                        self.spinbox_cur2_x['from_'] = time_scale * -10 * horizontal_pos*0.01
-                        self.spinbox_cur2_x['to'] = time_scale * 10 * (100-horizontal_pos)*0.01
-
-                        offset1 = 0
-                        pos1 = 0
-                        if self.cursor1_ch_combobox.get() == '1':
-                            offset1 = float(self.ch1_offset.get())
-                            pos1 = float(self.ch1_pos.get())
-                        elif self.cursor1_ch_combobox.get() == '2':
-                            offset1 = float(self.ch2_offset.get())
-                            pos1 = float(self.ch2_pos.get())
-                        elif self.cursor1_ch_combobox.get() == '3':
-                            offset1 = float(self.ch3_offset.get())
-                            pos1 = float(self.ch3_pos.get())
-                        elif self.cursor1_ch_combobox.get() == '4':
-                            offset1 = float(self.ch4_offset.get())
-                            pos1 = float(self.ch4_pos.get())
-                        else:
-                            pass
-                        offset2 = 0
-                        pos2 = 0
-                        if self.cursor2_ch_combobox.get() == '1':
-                            offset2 = float(self.ch1_offset.get())
-                            pos2 = float(self.ch1_pos.get())
-                        elif self.cursor2_ch_combobox.get() == '2':
-                            offset2 = float(self.ch2_offset.get())
-                            pos2 = float(self.ch2_pos.get())
-                        elif self.cursor2_ch_combobox.get() == '3':
-                            offset2 = float(self.ch3_offset.get())
-                            pos2 = float(self.ch3_pos.get())
-                        elif self.cursor2_ch_combobox.get() == '4':
-                            offset2 = float(self.ch4_offset.get())
-                            pos2 = float(self.ch4_pos.get())
-                        else:
-                            pass
-
-                        self.spinbox_cur1_y['from_'] = -5 - pos1
-                        self.spinbox_cur1_y['to'] = 5 - pos1
-                        self.spinbox_cur2_y['from_'] = -5 - pos2
-                        self.spinbox_cur2_y['to'] = 5 - pos2
-
-                        if self.cursor_type_combobox.current() == 0:
-                            self.cursor1_ch_combobox['state'] = 'disable'
-                            self.cursor2_ch_combobox['state'] = 'disable'
-                            self.spinbox_cur1_x['state'] = 'disable'
-                            self.spinbox_cur1_y['state'] = 'disable'
-                            self.spinbox_cur2_x['state'] = 'disable'
-                            self.spinbox_cur2_y['state'] = 'disable'
-                        elif self.cursor_type_combobox.current() == 1:
-                            self.cursor1_ch_combobox['state'] = 'normal'
-                            self.cursor2_ch_combobox['state'] = 'normal'
-                            self.spinbox_cur1_x['state'] = 'disable'
-                            self.spinbox_cur1_y['state'] = 'normal'
-                            self.spinbox_cur2_x['state'] = 'disable'
-                            self.spinbox_cur2_y['state'] = 'normal'
-                        elif self.cursor_type_combobox.current() == 2 or self.cursor_type_combobox.current() == 3:
-                            self.cursor1_ch_combobox['state'] = 'normal'
-                            self.cursor2_ch_combobox['state'] = 'normal'
-                            self.spinbox_cur1_x['state'] = 'normal'
-                            self.spinbox_cur1_y['state'] = 'disable'
-                            self.spinbox_cur2_x['state'] = 'normal'
-                            self.spinbox_cur2_y['state'] = 'disable'
-                        else:
-                            self.cursor1_ch_combobox['state'] = 'normal'
-                            self.cursor2_ch_combobox['state'] = 'normal'
-                            self.spinbox_cur1_x['state'] = 'normal'
-                            self.spinbox_cur1_y['state'] = 'normal'
-                            self.spinbox_cur2_x['state'] = 'normal'
-                            self.spinbox_cur2_y['state'] = 'normal'
-
-                        if focused_obj != self.cursor_type_combobox:
-                            if int(scope.query('CURSor:STATE?').rstrip()):
-                                curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
-                                if curfuncnow == 'HBA':
-                                    self.cursor_type_combobox.current(1)
-                                elif curfuncnow == 'VBA':
-                                    self.cursor_type_combobox.current(2)
-                                elif curfuncnow == 'WAVE':
-                                    self.cursor_type_combobox.current(3)
-                                elif curfuncnow == 'SCREEN':
-                                    self.cursor_type_combobox.current(4)
-                                else:
-                                    self.cursor_type_combobox.current(0)
-                            else:
-                                self.cursor_type_combobox.current(0)
+                        # offset1 = 0
+                        # pos1 = 0
+                        # if self.cursor1_ch_combobox.get() == '1':
+                        #     offset1 = float(self.ch1_offset.get())
+                        #     pos1 = float(self.ch1_pos.get())
+                        # elif self.cursor1_ch_combobox.get() == '2':
+                        #     offset1 = float(self.ch2_offset.get())
+                        #     pos1 = float(self.ch2_pos.get())
+                        # elif self.cursor1_ch_combobox.get() == '3':
+                        #     offset1 = float(self.ch3_offset.get())
+                        #     pos1 = float(self.ch3_pos.get())
+                        # elif self.cursor1_ch_combobox.get() == '4':
+                        #     offset1 = float(self.ch4_offset.get())
+                        #     pos1 = float(self.ch4_pos.get())
+                        # else:
+                        #     pass
+                        # offset2 = 0
+                        # pos2 = 0
+                        # if self.cursor2_ch_combobox.get() == '1':
+                        #     offset2 = float(self.ch1_offset.get())
+                        #     pos2 = float(self.ch1_pos.get())
+                        # elif self.cursor2_ch_combobox.get() == '2':
+                        #     offset2 = float(self.ch2_offset.get())
+                        #     pos2 = float(self.ch2_pos.get())
+                        # elif self.cursor2_ch_combobox.get() == '3':
+                        #     offset2 = float(self.ch3_offset.get())
+                        #     pos2 = float(self.ch3_pos.get())
+                        # elif self.cursor2_ch_combobox.get() == '4':
+                        #     offset2 = float(self.ch4_offset.get())
+                        #     pos2 = float(self.ch4_pos.get())
+                        # else:
+                        #     pass
+                        #
+                        # self.spinbox_cur1_y['from_'] = -5 - pos1
+                        # self.spinbox_cur1_y['to'] = 5 - pos1
+                        # self.spinbox_cur2_y['from_'] = -5 - pos2
+                        # self.spinbox_cur2_y['to'] = 5 - pos2
+                        #
+                        # if self.cursor_type_combobox.current() == 0:
+                        #     self.cursor1_ch_combobox['state'] = 'disable'
+                        #     self.cursor2_ch_combobox['state'] = 'disable'
+                        #     self.spinbox_cur1_x['state'] = 'disable'
+                        #     self.spinbox_cur1_y['state'] = 'disable'
+                        #     self.spinbox_cur2_x['state'] = 'disable'
+                        #     self.spinbox_cur2_y['state'] = 'disable'
+                        # elif self.cursor_type_combobox.current() == 1:
+                        #     self.cursor1_ch_combobox['state'] = 'normal'
+                        #     self.cursor2_ch_combobox['state'] = 'normal'
+                        #     self.spinbox_cur1_x['state'] = 'disable'
+                        #     self.spinbox_cur1_y['state'] = 'normal'
+                        #     self.spinbox_cur2_x['state'] = 'disable'
+                        #     self.spinbox_cur2_y['state'] = 'normal'
+                        # elif self.cursor_type_combobox.current() == 2 or self.cursor_type_combobox.current() == 3:
+                        #     self.cursor1_ch_combobox['state'] = 'normal'
+                        #     self.cursor2_ch_combobox['state'] = 'normal'
+                        #     self.spinbox_cur1_x['state'] = 'normal'
+                        #     self.spinbox_cur1_y['state'] = 'disable'
+                        #     self.spinbox_cur2_x['state'] = 'normal'
+                        #     self.spinbox_cur2_y['state'] = 'disable'
+                        # else:
+                        #     self.cursor1_ch_combobox['state'] = 'normal'
+                        #     self.cursor2_ch_combobox['state'] = 'normal'
+                        #     self.spinbox_cur1_x['state'] = 'normal'
+                        #     self.spinbox_cur1_y['state'] = 'normal'
+                        #     self.spinbox_cur2_x['state'] = 'normal'
+                        #     self.spinbox_cur2_y['state'] = 'normal'
+                        #
+                        # if focused_obj != self.cursor_type_combobox:
+                        #     if int(scope.query('CURSor:STATE?').rstrip()):
+                        #         curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
+                        #         if curfuncnow == 'HBA':
+                        #             self.cursor_type_combobox.current(1)
+                        #         elif curfuncnow == 'VBA':
+                        #             self.cursor_type_combobox.current(2)
+                        #         elif curfuncnow == 'WAVE':
+                        #             self.cursor_type_combobox.current(3)
+                        #         elif curfuncnow == 'SCREEN':
+                        #             self.cursor_type_combobox.current(4)
+                        #         else:
+                        #             self.cursor_type_combobox.current(0)
+                        #     else:
+                        #         self.cursor_type_combobox.current(0)
 
                         # if focused_obj != self.spinbox_cur1_x:
                         #     self.cur_x1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION1?').rstrip())))
@@ -1540,7 +1502,7 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                cmd = 'CH'+str(ch)+':SCALe?'
+                cmd = 'CHAN'+str(ch)+':SCALe?'
                 scale_current = float(scope.query(cmd))
                 # get the index of closest value
                 self.closest_timediv_index = min(range(len(self.vertical_scaleList)),
@@ -1548,12 +1510,12 @@ class App:
                 if updn == 'up':
                     if self.closest_timediv_index < (len(self.vertical_scaleList)) - 1:
                         target_index = self.closest_timediv_index + 1
-                        cmd_scale = 'CH'+str(ch)+':SCALe ' + str(self.vertical_scaleList[target_index])
+                        cmd_scale = 'CHAN'+str(ch)+':SCALe ' + str(self.vertical_scaleList[target_index])
                         print('scale cmd=', cmd_scale)
                 elif updn == 'dn':
                     if self.closest_timediv_index > 0:
                         target_index = self.closest_timediv_index - 1
-                        cmd_scale = 'CH' + str(ch) + ':SCALe ' + str(self.vertical_scaleList[target_index])
+                        cmd_scale = 'CHAN' + str(ch) + ':SCALe ' + str(self.vertical_scaleList[target_index])
                         print('scale cmd=', cmd_scale)
                 else:
                     pass
@@ -1572,28 +1534,28 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.sel_ch1_var_bool.get():
-                    scope.write('SELect:CH1 ON')
+                    scope.write('CHAN1:DISP 1')
                     self.status_var.set("set CH1 On.")
                 else:
-                    scope.write('SELect:CH1 OFF')
+                    scope.write('CHAN1:DISP 0')
                     self.status_var.set("set CH1 Off.")
                 if self.sel_ch2_var_bool.get():
-                    scope.write('SELect:CH2 ON')
+                    scope.write('CHAN2:DISP 1')
                     self.status_var.set("set CH2 On.")
                 else:
-                    scope.write('SELect:CH2 OFF')
+                    scope.write('CHAN2:DISP 0')
                     self.status_var.set("set CH2 Off.")
-                if (self.sel_ch3_var_bool.get()) and (self.ch_available > 2):
-                    scope.write('SELect:CH3 ON')
+                if self.sel_ch3_var_bool.get():
+                    scope.write('CHAN3:DISP 1')
                     self.status_var.set("set CH3 On.")
                 else:
-                    scope.write('SELect:CH3 OFF')
+                    scope.write('CHAN3:DISP 0')
                     self.status_var.set("set CH3 Off.")
-                if (self.sel_ch4_var_bool.get()) and (self.ch_available > 2):
-                    scope.write('SELect:CH4 ON')
+                if self.sel_ch4_var_bool.get():
+                    scope.write('CHAN4:DISP 1')
                     self.status_var.set("set CH4 On.")
                 else:
-                    scope.write('SELect:CH4 OFF')
+                    scope.write('CHAN4:DISP 0')
                     self.status_var.set("set CH4 Off.")
                 scope.close()
             rm.close()
@@ -1624,25 +1586,9 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.persistence_var_bool.get():
                     # TBS1000 series
-                    if self.scope_series_num == 1:
-                        scope.write('DISplay:PERSistence INF')
-                    # 234 series
-                    elif (self.scope_series_num > 1) and (self.scope_series_num < 5):
-                        scope.write('DISplay:PERSistence INFInite')
-                    # 5000,7000 series
-                    else:
-                        scope.write('DISplay:PERSistence INFPersist')
+                    scope.write('DISPlay:GRADing:TIME INFinite')
                 else:
-                    # TBS1000 series
-                    if self.scope_series_num == 1:
-                        scope.write('DISplay:PERSistence OFF')
-                    # 234 series
-                    elif (self.scope_series_num > 1) and (self.scope_series_num < 5):
-                        scope.write('DISplay:PERSistence MINImum')
-                        scope.write('DISplay:PERSistence CLEAR')
-                    # 5000,7000 series
-                    else:
-                        scope.write('DISplay:PERSistence OFF')
+                    scope.write('DISPlay:GRADing:TIME MIN')
                 scope.close()
             rm.close()
         except:
