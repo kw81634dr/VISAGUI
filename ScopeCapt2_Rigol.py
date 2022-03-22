@@ -804,7 +804,7 @@ class App:
                 try:
                     if focused_obj is not None:
                         scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
-                        busy = 0
+                        busy = 1
                     else:
                         pass
                     if not busy:
@@ -819,125 +819,119 @@ class App:
                         Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
                         self.master.title(Text)
 
-                        # Test if Scope support Offset
-                        if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
-                            try:
-                                scope.query(':CHAN1:OFFS?').rstrip()
-                                self.offset_err_cnt = self.offset_err_cnt - 1
-                            except Exception as e:
-                                self.offset_err_cnt = self.offset_err_cnt + 1
-                                print("stst cmd dsn support ", e)
-                        if self.scope_series_num == 1:
-                            self.chkbox_fastacq["state"] = "disabled"
-                        else:
-                            self.chkbox_fastacq["state"] = "normal"
+                        # # Test if Scope support Offset
+                        # if (self.offset_err_cnt < 2) and (self.offset_err_cnt > -1):
+                        #     try:
+                        #         scope.query('CH1:OFFS?').rstrip()
+                        #         self.offset_err_cnt = self.offset_err_cnt - 1
+                        #     except Exception as e:
+                        #         self.offset_err_cnt = self.offset_err_cnt + 1
+                        #         print("stst cmd dsn support ", e)
+                        # if self.scope_series_num == 1:
+                        #     self.chkbox_fastacq["state"] = "disabled"
+                        # else:
+                        #     self.chkbox_fastacq["state"] = "normal"
+                        #
+                        # if self.ch_available == 2:
+                        #     self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                        #     self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                        #     self.sel_ch3_var_bool.set(value=0)
+                        #     self.sel_ch4_var_bool.set(value=0)
+                        #     self.btn_ch3_up["state"] = "disabled"
+                        #     self.btn_ch3_down["state"] = "disabled"
+                        #     self.btn_ch4_up["state"] = "disabled"
+                        #     self.btn_ch4_down["state"] = "disabled"
+                        #     self.spinbox_pos_ch3['state'] = 'disabled'
+                        #     self.spinbox_offset_ch3['state'] = 'disabled'
+                        #     self.spinbox_pos_ch4['state'] = 'disabled'
+                        #     self.spinbox_offset_ch4['state'] = 'disabled'
+                        #     self.labelFr_ch3['text'] = 'Ch3 Unavailable'
+                        #     self.labelFr_ch4['text'] = 'Ch4 Unavailable'
+                        #
+                        #     # ch1_pos_offset
+                        #     if 1:
+                        #         if focused_obj != self.spinbox_offset_ch1:
+                        #             # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                        #             self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
+                        #         if focused_obj != self.spinbox_pos_ch1:
+                        #             self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
+                        #
+                        #     # ch2_pos_offset
+                        #     if 1:
+                        #         if focused_obj != self.spinbox_offset_ch2:
+                        #             self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
+                        #         if focused_obj != self.spinbox_pos_ch2:
+                        #             self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
+                        #
+                        #     self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        #     self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        #     self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
+                        #     self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
+                        #
+                        # else:
+                        #     self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
+                        #     self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                        #     self.sel_ch3_var_bool.set(value=int(scope.query('SELect:CH3?').rstrip()))
+                        #     self.sel_ch4_var_bool.set(value=int(scope.query('SELect:CH4?').rstrip()))
+                        #
+                        #     # ch1_pos_offset
+                        #     if 1:
+                        #         if focused_obj != self.spinbox_offset_ch1:
+                        #             # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
+                        #             self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
+                        #         if focused_obj != self.spinbox_pos_ch1:
+                        #             self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
+                        #
+                        #     # ch2_pos_offset
+                        #     if 1:
+                        #         if focused_obj != self.spinbox_offset_ch2:
+                        #             self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
+                        #         if focused_obj != self.spinbox_pos_ch2:
+                        #             self.ch2_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
+                        #
+                        #     # ch3_pos_offset
+                        #     if 1:
+                        #         if focused_obj != self.spinbox_offset_ch3:
+                        #             self.ch3_offset.set(value="{:.3f}".format(float(scope.query('CH3:OFFS?').rstrip())))
+                        #         if focused_obj != self.spinbox_pos_ch3:
+                        #             self.ch3_pos.set(value="{:.2f}".format(float(scope.query('CH3:POS?').rstrip())))
+                        #
+                        #     # ch4_pos_offset
+                        #     if 1:
+                        #         if focused_obj != self.spinbox_offset_ch4:
+                        #             self.ch4_offset.set(value="{:.3f}".format(float(scope.query('CH4:OFFS?').rstrip())))
+                        #         if focused_obj != self.spinbox_pos_ch4:
+                        #             self.ch4_pos.set(value="{:.2f}".format(float(scope.query('CH4:POS?').rstrip())))
+                        #
+                        # self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
+                        # self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
+                        # self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
+                        # self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
+                        # self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
 
-                        if self.ch_available == 2:
-                            self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                            self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
-                            self.sel_ch3_var_bool.set(value=0)
-                            self.sel_ch4_var_bool.set(value=0)
-                            self.btn_ch3_up["state"] = "disabled"
-                            self.btn_ch3_down["state"] = "disabled"
-                            self.btn_ch4_up["state"] = "disabled"
-                            self.btn_ch4_down["state"] = "disabled"
-                            self.spinbox_pos_ch3['state'] = 'disabled'
-                            self.spinbox_offset_ch3['state'] = 'disabled'
-                            self.spinbox_pos_ch4['state'] = 'disabled'
-                            self.spinbox_offset_ch4['state'] = 'disabled'
-                            self.labelFr_ch3['text'] = 'Ch3 Unavailable'
-                            self.labelFr_ch4['text'] = 'Ch4 Unavailable'
-
-                            # ch1_pos_offset
-                            if 1:
-                                if focused_obj != self.spinbox_offset_ch1:
-                                    # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                                    self.ch1_offset.set(value="{:.3f}".format(float(scope.query('CH1:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch1:
-                                    self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH1:POS?').rstrip())))
-
-                            # ch2_pos_offset
-                            if 1:
-                                if focused_obj != self.spinbox_offset_ch2:
-                                    self.ch2_offset.set(value="{:.3f}".format(float(scope.query('CH2:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch2:
-                                    self.ch1_pos.set(value="{:.2f}".format(float(scope.query('CH2:POS?').rstrip())))
-
-                            self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                            self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                            self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
-                            self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
-
-                        else:
-                            self.sel_ch1_var_bool.set(value=int(scope.query(':CHAN1:DISP?').rstrip()))
-                            self.sel_ch2_var_bool.set(value=int(scope.query(':CHAN2:DISP?').rstrip()))
-                            self.sel_ch3_var_bool.set(value=int(scope.query(':CHAN3:DISP?').rstrip()))
-                            self.sel_ch4_var_bool.set(value=int(scope.query(':CHAN4:DISP?').rstrip()))
-
-                            # ch1_pos_offset
-                            if 1:
-                                if focused_obj != self.spinbox_offset_ch1:
-                                    # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                                    self.ch1_offset.set(value="{:.3f}".format(float(scope.query(':CHAN1:DISP:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch1:
-                                    self.ch1_pos.set(value="{:.2f}".format(float(scope.query(':CHAN1:OFFS?').rstrip())))
-
-                            # ch2_pos_offset
-                            if 1:
-                                if focused_obj != self.spinbox_offset_ch2:
-                                    self.ch2_offset.set(value="{:.3f}".format(float(scope.query(':CHAN2:DISP:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch2:
-                                    self.ch2_pos.set(value="{:.2f}".format(float(scope.query(':CHAN2:OFFS?').rstrip())))
-
-                            # ch3_pos_offset
-                            if 1:
-                                if focused_obj != self.spinbox_offset_ch3:
-                                    self.ch3_offset.set(value="{:.3f}".format(float(scope.query(':CHAN3:DISP:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch3:
-                                    self.ch3_pos.set(value="{:.2f}".format(float(scope.query(':CHAN3:OFFS?').rstrip())))
-
-                            # ch4_pos_offset
-                            if 1:
-                                if focused_obj != self.spinbox_offset_ch4:
-                                    self.ch4_offset.set(value="{:.3f}".format(float(scope.query(':CHAN4:DISP:OFFS?').rstrip())))
-                                if focused_obj != self.spinbox_pos_ch4:
-                                    self.ch4_pos.set(value="{:.2f}".format(float(scope.query(':CHAN4:OFFS?').rstrip())))
-
-                        self.spinbox_offset_ch1['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        self.spinbox_offset_ch2['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        self.spinbox_offset_ch3['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        self.spinbox_offset_ch4['state'] = 'disabled' if self.offset_err_cnt > 1 else 'normal'
-                        self.labelFr_ch1['text'] = 'CH1-ON' if self.sel_ch1_var_bool.get() else 'CH1-OFF'
-                        self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
-                        self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
-                        self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
-
-                        if scope.query(':RSTate?').rstrip().upper() == 'RUN':
-                            acq_state = 1
-                        else:
-                            acq_state = 0
-                        # acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
-                        acq_num = 0
+                        acq_state = int(scope.query('ACQuire:STATE?').rstrip())
+                        acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
                         # print("scope acq state=", acq_state)
                         self.acq_state_var_bool.set(acq_state)
                         acqlabeltext = " Acq #" + str(acq_num)
                         self.label_acqnum.config(text=acqlabeltext)
-                        # self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
-                        self.fastacq_var_bool.set(0)
+                        self.fastacq_var_bool.set(int(scope.query('FASTAcq:STATE?')))
                         # orig_color = self.chkbox_fastacq.cget("background")
                         if self.fastacq_var_bool.get():
                             self.chkbox_fastacq.configure(fg="Purple2")
                         else:
                             self.chkbox_fastacq.configure(fg="black")
-
                         # Persistence---checked on DPO4104B
                         if (self.scope_series_num > 1) and (self.scope_series_num < 5):
-                            if (scope.query(':DISplay:PERSistence?').rstrip()) == 0:
+                            if float(scope.query('DISplay:PERSistence?').rstrip()) == 0:
                                 self.persistence_var_bool.set(0)
                             else:
                                 self.persistence_var_bool.set(1)
                         else:
-                            if scope.query('DISplay:PERSistence?').rstrip().upper() == 'MIN':
+                            if scope.query('DISplay:PERSistence?').rstrip() == 'OFF':
                                 self.persistence_var_bool.set(0)
                             else:
                                 self.persistence_var_bool.set(1)
@@ -950,24 +944,24 @@ class App:
                             self.status_var.set("Cannot get Acq state")
 
                         # get the index of closest value
-                        time_scale = float(scope.query(':TIMebase:SCALe?'))
-                        horizontal_pos = float(scope.query(':TIMebase:POSition?'))
+                        time_scale = float(scope.query('HORizontal:MAIn:SCAle?'))
+                        horizontal_pos = float(scope.query('HORizontal:POSition?'))
                         # self.closest_timediv_index = min(range(len(self.time_scaleList)),
                         #                                  key=lambda i: abs(self.time_scaleList[i] - time_scale))
 
-                        cmd_ask_scale1 = ':CHAN' + str(self.cursor1_ch_combobox.get()) + ':DISP:SCALe?'
-                        cmd_ask_scale2 = ':CHAN' + str(self.cursor2_ch_combobox.get()) + ':DISP:SCALe?'
+                        cmd_ask_scale1 = 'CH' + str(self.cursor1_ch_combobox.get()) + ':SCALe?'
+                        cmd_ask_scale2 = 'CH' + str(self.cursor2_ch_combobox.get()) + ':SCALe?'
                         # print(cmd_ask_scale1, cmd_ask_scale2)
                         self.scale1 = float(scope.query(cmd_ask_scale1).rstrip())
                         self.scale2 = float(scope.query(cmd_ask_scale2).rstrip())
 
-                        # if focused_obj != self.cursor1_ch_combobox:
-                        #     cur1_source = int(scope.query('CURS:SOU1?').rstrip()[-1])
-                        #     self.cursor1_ch_combobox.current(cur1_source-1)
-                        #
-                        # if focused_obj != self.cursor2_ch_combobox:
-                        #     cur2_source = int(scope.query('CURS:SOU2?').rstrip()[-1])
-                        #     self.cursor2_ch_combobox.current(cur2_source - 1)
+                        if focused_obj != self.cursor1_ch_combobox:
+                            cur1_source = int(scope.query('CURS:SOU1?').rstrip()[-1])
+                            self.cursor1_ch_combobox.current(cur1_source-1)
+
+                        if focused_obj != self.cursor2_ch_combobox:
+                            cur2_source = int(scope.query('CURS:SOU2?').rstrip()[-1])
+                            self.cursor2_ch_combobox.current(cur2_source - 1)
 
                         if self.is_cur_use_fine_step:
                             self.spinbox_cur1_x_increment = time_scale*0.01
@@ -1055,21 +1049,21 @@ class App:
                             self.spinbox_cur2_x['state'] = 'normal'
                             self.spinbox_cur2_y['state'] = 'normal'
 
-                        # if focused_obj != self.cursor_type_combobox:
-                        #     if int(scope.query('CURSor:STATE?').rstrip()):
-                        #         curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
-                        #         if curfuncnow == 'HBA':
-                        #             self.cursor_type_combobox.current(1)
-                        #         elif curfuncnow == 'VBA':
-                        #             self.cursor_type_combobox.current(2)
-                        #         elif curfuncnow == 'WAVE':
-                        #             self.cursor_type_combobox.current(3)
-                        #         elif curfuncnow == 'SCREEN':
-                        #             self.cursor_type_combobox.current(4)
-                        #         else:
-                        #             self.cursor_type_combobox.current(0)
-                        #     else:
-                        #         self.cursor_type_combobox.current(0)
+                        if focused_obj != self.cursor_type_combobox:
+                            if int(scope.query('CURSor:STATE?').rstrip()):
+                                curfuncnow = str(scope.query('CURSor:FUNCtion?').rstrip()).upper()
+                                if curfuncnow == 'HBA':
+                                    self.cursor_type_combobox.current(1)
+                                elif curfuncnow == 'VBA':
+                                    self.cursor_type_combobox.current(2)
+                                elif curfuncnow == 'WAVE':
+                                    self.cursor_type_combobox.current(3)
+                                elif curfuncnow == 'SCREEN':
+                                    self.cursor_type_combobox.current(4)
+                                else:
+                                    self.cursor_type_combobox.current(0)
+                            else:
+                                self.cursor_type_combobox.current(0)
 
                         # if focused_obj != self.spinbox_cur1_x:
                         #     self.cur_x1_doublevar.set(value="{:.4f}".format(float(scope.query('CURS:VBA:POSITION1?').rstrip())))
@@ -1208,7 +1202,7 @@ class App:
                     value = self.spinbox_pos_ch4.get()
                 else:
                     pass
-                ch1_pos_cmd = ":CHAN" + str(ch) + ":OFFSet " + str(value)
+                ch1_pos_cmd = "CH" + str(ch) + ":POS " + str(value)
                 # ch1_pos_cmd = "CH1:POS " + str(self.spinbox_pos_ch1.get())
                 scope.write(ch1_pos_cmd)
                 self.status_var.set("position set.")
@@ -1233,7 +1227,7 @@ class App:
                     value = self.spinbox_offset_ch4.get()
                 else:
                     pass
-                ch1_offset_cmd = ":CHAN" + str(ch) + ":DISP:OFFS " + str(value)
+                ch1_offset_cmd = "CH" + str(ch) + ":OFFS " + str(value)
                 # ch1_offset_cmd = "CH1:OFFS " + str(self.spinbox_offset_ch1.get())
                 scope.write(ch1_offset_cmd)
                 self.status_var.set("offset set.")
@@ -1255,7 +1249,7 @@ class App:
             self.savefilename = self.filename_var.get() + '_' + time_now
         else:
             if self.filename_var.get() == '':
-                self.filename_var.set('DSA')
+                self.filename_var.set('Z')
             self.savefilename = self.filename_var.get()
         # self.status_var.set("Time Stamp Applied")
 
@@ -1270,8 +1264,10 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
 
-                img_data = scope.query_binary_values(':DISPlay:DATA? PNG', datatype='B')
-                # print(img_data)
+                scope.write("DISP:DATA?")
+                img_data = scope.read_raw()[2 + 9:]
+                print(img_data)
+
                 file_png_data = BytesIO(img_data)
                 I = Image.open(file_png_data)
                 # I = Image.open('img/scrshot/DPO4104B_151449.png')
@@ -1493,7 +1489,7 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                time_scale = float(scope.query(':TIMebase:SCALe?'))
+                time_scale = float(scope.query('TIMebase:SCALe?'))
                 print("Scale = ", time_scale)
                 # get the index of closest value
                 self.closest_timediv_index = min(range(len(self.time_scaleList)),
@@ -1501,12 +1497,12 @@ class App:
                 self.target_index = self.closest_timediv_index
                 if self.closest_timediv_index < (len(self.time_scaleList)) - 1:
                     self.target_index = self.closest_timediv_index + 1
-                    scope.write(':TIMebase:SCALe ' + str(self.time_scaleList[self.target_index]))
+                    scope.write('TIMebase:SCALe ' + str(self.time_scaleList[self.target_index]))
                     # scope.write('HORizontal:RESOlution 1e5')  # set resolution to 100k
-                    # scope.write('HORizontal:POSition 50')
+                    scope.write('TIMebase:OFFSet 0')
                 else:
                     pass
-                # scope.write('HORizontal:MODE AUTO')
+                scope.write('HORizontal:MODE AUTO')
                 self.status_var.set("time division adjusted.")
             rm.close()
         except ValueError:
@@ -1519,16 +1515,16 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                time_scale = float(scope.query(':TIMebase:SCALe?'))
+                time_scale = float(scope.query('TIMebase:SCALe?'))
                 # get the index of closest value
                 self.closest_timediv_index = min(range(len(self.time_scaleList)),
                                          key=lambda i: abs(self.time_scaleList[i] - time_scale))
                 self.target_index = self.closest_timediv_index
                 if self.closest_timediv_index > 1:
                     self.target_index = self.closest_timediv_index - 1
-                    scope.write(':TIMebase:SCALe ' + str(self.time_scaleList[self.target_index]))
+                    scope.write('TIMebase:SCALe ' + str(self.time_scaleList[self.target_index]))
                     # scope.write('HORizontal:RESOlution 1e5')  # set resolution to 100k
-                    # scope.write(':TIMebase:POSition 50')
+                    scope.write('TIMebase:OFFSet 0')
                 else:
                     pass
                 # scope.write('HORizontal:MODE AUTO')
@@ -1576,28 +1572,28 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.sel_ch1_var_bool.get():
-                    scope.write(':CHANnel1:DISPlay ON')
+                    scope.write('SELect:CH1 ON')
                     self.status_var.set("set CH1 On.")
                 else:
-                    scope.write(':CHANnel1:DISPlay OFF')
+                    scope.write('SELect:CH1 OFF')
                     self.status_var.set("set CH1 Off.")
                 if self.sel_ch2_var_bool.get():
-                    scope.write(':CHANnel2:DISPlay ON')
+                    scope.write('SELect:CH2 ON')
                     self.status_var.set("set CH2 On.")
                 else:
-                    scope.write(':CHANnel2:DISPlay OFF')
+                    scope.write('SELect:CH2 OFF')
                     self.status_var.set("set CH2 Off.")
                 if (self.sel_ch3_var_bool.get()) and (self.ch_available > 2):
-                    scope.write(':CHANnel3:DISPlay ON')
+                    scope.write('SELect:CH3 ON')
                     self.status_var.set("set CH3 On.")
                 else:
-                    scope.write(':CHANnel3:DISPlay OFF')
+                    scope.write('SELect:CH3 OFF')
                     self.status_var.set("set CH3 Off.")
                 if (self.sel_ch4_var_bool.get()) and (self.ch_available > 2):
-                    scope.write(':CHANnel4:DISPlay ON')
+                    scope.write('SELect:CH4 ON')
                     self.status_var.set("set CH4 On.")
                 else:
-                    scope.write(':CHANnel4:DISPlay OFF')
+                    scope.write('SELect:CH4 OFF')
                     self.status_var.set("set CH4 Off.")
                 scope.close()
             rm.close()
@@ -1607,18 +1603,18 @@ class App:
 
     def trigger_fstacq(self):
         self.pause_get_status_thread = True
-        # try:
-        #     rm = visa.ResourceManager()
-        #     with rm.open_resource(self.target_gpib_address.get()) as scope:
-        #         if self.fastacq_var_bool.get():
-        #             scope.write('FASTAcq:STATE ON')
-        #         else:
-        #             scope.write('FASTAcq:STATE OFF')
-        #         scope.close()
-        #     rm.close()
-        # except ValueError:
-        #     print("cannot trigger FastAcq-VISA driver Error")
-        #     self.status_var.set("VISA driver Error")
+        try:
+            rm = visa.ResourceManager()
+            with rm.open_resource(self.target_gpib_address.get()) as scope:
+                if self.fastacq_var_bool.get():
+                    scope.write('FASTAcq:STATE ON')
+                else:
+                    scope.write('FASTAcq:STATE OFF')
+                scope.close()
+            rm.close()
+        except ValueError:
+            print("cannot trigger FastAcq-VISA driver Error")
+            self.status_var.set("VISA driver Error")
         self.pause_get_status_thread = False
 
     def set_persistence(self):
@@ -1627,9 +1623,26 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.persistence_var_bool.get():
-                    scope.write('DISplay:PERSistence INF')
+                    # TBS1000 series
+                    if self.scope_series_num == 1:
+                        scope.write('DISplay:PERSistence INF')
+                    # 234 series
+                    elif (self.scope_series_num > 1) and (self.scope_series_num < 5):
+                        scope.write('DISplay:PERSistence INFInite')
+                    # 5000,7000 series
+                    else:
+                        scope.write('DISplay:PERSistence INFPersist')
                 else:
-                    scope.write('DISplay:PERSistence OFF')
+                    # TBS1000 series
+                    if self.scope_series_num == 1:
+                        scope.write('DISplay:PERSistence OFF')
+                    # 234 series
+                    elif (self.scope_series_num > 1) and (self.scope_series_num < 5):
+                        scope.write('DISplay:PERSistence MINImum')
+                        scope.write('DISplay:PERSistence CLEAR')
+                    # 5000,7000 series
+                    else:
+                        scope.write('DISplay:PERSistence OFF')
                 scope.close()
             rm.close()
         except:
@@ -1637,13 +1650,12 @@ class App:
             self.status_var.set("VISA driver Error")
         self.pause_get_status_thread = False
 
-    def btn_single_clicked(self, *args):
+    def btn_single_clicked(self):
         self.pause_get_status_thread = True
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scope.write(':SINGle')
-                # scope.write('ACQ:STATE ON')
+                scope.write('SINGLe')
                 self.status_var.set("Single Acquisition")
             scope.close()
             rm.close()
@@ -1657,8 +1669,7 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scope.write(':CDISplay')
-                self.status_var.set("Cleared")
+                scope.write('CLEar')
                 scope.close()
             rm.close()
         except:
@@ -1680,19 +1691,14 @@ class App:
             try:
                 rm = visa.ResourceManager()
                 with rm.open_resource(self.target_gpib_address.get()) as scope:
-                    if self.acq_state_var_bool.get() == True:
-                        scope.write(':STOP')
-                        self.status_var.set("STOP Acquisition")
-                    else:
-                        scope.write(':RUN')
-                        self.status_var.set("START Acquisition")
+                    scope.write('SYST:KEY:PRES RSTop')
                     scope.close()
                 rm.close()
             except ValueError:
                 print("cannot RunStop-VISA driver Error")
                 self.status_var.set("VISA driver Error")
                 self.btn_RunStop.configure(fg="red")
-            self.get_acq_state()
+            # self.get_acq_state()
             self.pause_get_status_thread = False
 
     def btn_capture_clicked(self, *args):
@@ -1768,8 +1774,7 @@ def mainApp():
     root.bind("<Control_R>", lambda i: app.frame.focus_set())
     root.bind("<Return>", app.handle_return_key_event)
     # root.bind("<Return>", lambda i: app.frame.focus_set())
-    # root.bind("<Control-Return>", app.btn_runstop_clicked)
-    root.bind("<Control-Return>", app.btn_single_clicked)
+    root.bind("<Control-Return>", app.btn_runstop_clicked)
     root.bind("<Control-Delete>", app.btn_clear_clicked)
     root.bind("<Control-Left>", app.horizontal_zoom_out)
     root.bind("<Control-Right>", app.horizontal_zoom_in)
