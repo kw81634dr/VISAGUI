@@ -1270,8 +1270,8 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
 
-                img_data = scope.query_binary_values(':DISPlay:DATA? PNG', datatype='B')
-                # print(img_data)
+                img_data = scope.query_binary_values(':DISPlay:DATA? PNG', datatype='B', container=bytearray)
+                print(img_data)
                 file_png_data = BytesIO(img_data)
                 I = Image.open(file_png_data)
                 # I = Image.open('img/scrshot/DPO4104B_151449.png')
