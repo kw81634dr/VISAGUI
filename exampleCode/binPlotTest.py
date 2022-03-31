@@ -4,20 +4,33 @@ from PIL import ImageDraw
 from io import BytesIO
 import numpy as np
 import cv2
+import webbrowser
+
+import sys
+import subprocess
+
 #from matplotlib import pyplot as plt
 
-with open("../img/scrshot/test.png", 'rb') as f:
+def openImage(path):
+    imageViewerFromCommandLine = {'linux':'xdg-open',
+                                  'win32':'explorer',
+                                  'darwin':'open'}[sys.platform]
+    subprocess.run([imageViewerFromCommandLine, path])
+
+with open("../img/scrshot/P1V0.png", 'rb') as f:
     f_bin = f.read()
     f.close()
     file_jpgdata = BytesIO(f_bin)
+    # print(file_jpgdata.getvalue())
+    # print(file_jpgdata.getvalue()[2 + 9:])
     dt = Image.open(file_jpgdata)
-    #dt.show()
+    I = np.asarray(dt)
 
-use_OpenCV = False
+
+use_OpenCV = True
 
 if use_OpenCV:
-    I = np.asarray(dt)
-    print(I.shape)
+    # print(I.shape)
     I_cv2 = cv2.cvtColor(I, cv2.COLOR_RGB2BGR)
 
     font = cv2.FONT_HERSHEY_DUPLEX
@@ -30,12 +43,15 @@ if use_OpenCV:
     img_text = cv2.putText(I_cv2, text, (width-width+677, height-height+20), font, font_size, font_color, font_thickness,
                            cv2.LINE_AA)
 
-    cv2.imshow("Shot", img_text)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # cv2.imshow("Shot", img_text)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+    cv2.imwrite('sample-out.png', img_text)
+    openImage('sample-out.png')
+
 
 else:
-    img = Image.open(file_jpgdata)
+    img = Image.fromarray(I)
     draw = ImageDraw.Draw(img)
     # font = ImageFont.truetype(<font-file>, <font-size>)
     font = ImageFont.load_default()
@@ -45,5 +61,7 @@ else:
     draw.rectangle((0, 0, 900, 32), fill=(37, 37, 37))
     text_to_overlay = "Kp=44 Kd=50 Jitter Ontime CPU1 2 VDDQ ABCD2 Default 20%Load"
     draw.text((11, 4), text_to_overlay, fill=(255, 165, 55), font=font)
-    img.show()
+    # img.show()
     img.save('sample-out.png')
+    openImage('sample-out.png')
+
