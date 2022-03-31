@@ -6,7 +6,7 @@ from pathlib import Path
 import atexit
 from PIL import Image, ImageTk, ImageFont, ImageDraw
 from io import BytesIO, StringIO
-
+import sys, subprocess
 import base64
 import imgBase64 as myIcon
 import time
@@ -174,6 +174,7 @@ class App:
     cls_var = ""
 
     def __init__(self, master):
+        self.runstxor = 1
         self.master = master
         self.frame = tk.Frame(self.master)
 
@@ -804,7 +805,7 @@ class App:
                 try:
                     if focused_obj is not None:
                         scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
-                        busy = 0
+                        busy = 1
                     else:
                         pass
                     if not busy:
@@ -1243,6 +1244,12 @@ class App:
             print(e)
         self.pause_get_status_thread = False
 
+    def openImage(self, path):
+        imageViewerFromCommandLine = {'linux': 'xdg-open',
+                                      'win32': 'explorer',
+                                      'darwin': 'open'}[sys.platform]
+        subprocess.run([imageViewerFromCommandLine, path])
+
     def get_default_filename(self):
         # self.update_addr_inApp()
         # Generate a filename based on the current Date & Time
@@ -1270,8 +1277,13 @@ class App:
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 scope.timeout = self.visa_timeout_duration
 
+                if self.use_inkSaver_var_bool.get():
+                    scope.write(':HARDcopy:INKSaver 1')
+                else:
+                    scope.write(':HARDcopy:INKSaver 0')
+
                 img_data = scope.query_binary_values(':DISPlay:DATA? PNG', datatype='B', container=bytearray)
-                print(img_data)
+                # print(img_data)
                 file_png_data = BytesIO(img_data)
                 I = Image.open(file_png_data)
                 # I = Image.open('img/scrshot/DPO4104B_151449.png')
@@ -1392,7 +1404,8 @@ class App:
             # self.imshow_thread = threading.Thread(target=self.show_image(save_path), daemon=True)
             # self.imshow_thread.start()
             print("open image->", save_path)
-            webbrowser.open(save_path)
+            # webbrowser.open(save_path)
+            self.openImage(save_path)
             self.status_var.set("Saved: " + save_path)
 
     def prompt_path(self):
@@ -1630,6 +1643,7 @@ class App:
                     scope.write('DISplay:PERSistence INF')
                 else:
                     scope.write('DISplay:PERSistence OFF')
+                    scope.write(':CDISplay')
                 scope.close()
             rm.close()
         except:
@@ -1666,6 +1680,8 @@ class App:
             self.status_var.set("VISA driver Error")
         self.pause_get_status_thread = False
 
+
+
     def btn_runstop_clicked(self, *args):
         focused_obj = None
         try:
@@ -1680,12 +1696,13 @@ class App:
             try:
                 rm = visa.ResourceManager()
                 with rm.open_resource(self.target_gpib_address.get()) as scope:
-                    if self.acq_state_var_bool.get() == True:
+                    if self.runstxor:
                         scope.write(':STOP')
                         self.status_var.set("STOP Acquisition")
                     else:
                         scope.write(':RUN')
                         self.status_var.set("START Acquisition")
+                    self.runstxor ^= 1
                     scope.close()
                 rm.close()
             except ValueError:
