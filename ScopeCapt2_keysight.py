@@ -805,19 +805,15 @@ class App:
                 try:
                     if focused_obj is not None:
                         scope = rm.open_resource(self.target_gpib_address.get(), open_timeout=1)
-                        busy = 1
+                        busy = 0
                     else:
                         pass
                     if not busy:
                         idn_query = scope.query('*IDN?')
                         series = re.sub(r"[\n\t\s]+", "", idn_query)  # remove \n\t\s
                         series = series.split(',')[1]
-                        self.scope_series_num = int(re.sub(r"[aA-zZ]", "", series)[0])
-                        self.ch_available = int(re.sub(r"[aA-zZ]", "", series)[-1])
-                        # print("self.ch_available->", self.ch_available)
-                        idn_splited = idn_query.rstrip().split(',')
-                        idn_title = idn_splited[0] + ", " + idn_splited[1]
-                        Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_title
+
+                        Text = "KW Scope Capture" + " v" + str(self.app_version) + "  Found: " + idn_query
                         self.master.title(Text)
 
                         # Test if Scope support Offset
@@ -834,8 +830,8 @@ class App:
                             self.chkbox_fastacq["state"] = "normal"
 
                         if self.ch_available == 2:
-                            self.sel_ch1_var_bool.set(value=int(scope.query('SELect:CH1?').rstrip()))
-                            self.sel_ch2_var_bool.set(value=int(scope.query('SELect:CH2?').rstrip()))
+                            self.sel_ch1_var_bool.set(value=int(scope.query('CHAN1:DISP?').rstrip()))
+                            self.sel_ch2_var_bool.set(value=int(scope.query('CHAN2:DISP?').rstrip()))
                             self.sel_ch3_var_bool.set(value=0)
                             self.sel_ch4_var_bool.set(value=0)
                             self.btn_ch3_up["state"] = "disabled"
@@ -1600,13 +1596,13 @@ class App:
                 else:
                     scope.write(':CHANnel2:DISPlay OFF')
                     self.status_var.set("set CH2 Off.")
-                if (self.sel_ch3_var_bool.get()) and (self.ch_available > 2):
+                if self.sel_ch3_var_bool.get() :
                     scope.write(':CHANnel3:DISPlay ON')
                     self.status_var.set("set CH3 On.")
                 else:
                     scope.write(':CHANnel3:DISPlay OFF')
                     self.status_var.set("set CH3 Off.")
-                if (self.sel_ch4_var_bool.get()) and (self.ch_available > 2):
+                if self.sel_ch4_var_bool.get():
                     scope.write(':CHANnel4:DISPlay ON')
                     self.status_var.set("set CH4 On.")
                 else:
