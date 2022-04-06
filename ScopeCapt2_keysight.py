@@ -180,7 +180,7 @@ class App:
 
         self.app_version = 2.5
         # self.master.geometry("+%d+%d" % (self.frame.window_start_x, self.frame.window_start_y))
-        self.appTitleText = "KW Scope Capture" + "v" + str(self.app_version)
+        self.appTitleText = "KW Scope Capture-Keysight Beta " + "v" + str(self.app_version)
         self.master.title(self.appTitleText)
 
         self.user_pref_filename = Path(os.getcwd()) / Path('user_pref.json')
@@ -402,6 +402,14 @@ class App:
         self.spinbox_offset_ch4.bind('<Return>', lambda i: (self.spinbox_offset_ch4.invoke('buttondown'),
                                                             self.spinbox_offset_ch4.invoke('buttonup'),
                                                             self.frame.focus_force()))
+        self.spinbox_pos_ch1.config(state="disabled")
+        self.spinbox_pos_ch2.config(state="disabled")
+        self.spinbox_pos_ch3.config(state="disabled")
+        self.spinbox_pos_ch4.config(state="disabled")
+        self.spinbox_offset_ch1.config(state="disabled")
+        self.spinbox_offset_ch2.config(state="disabled")
+        self.spinbox_offset_ch3.config(state="disabled")
+        self.spinbox_offset_ch4.config(state="disabled")
 
         self.btn_ch1_up = tk.Button(self.labelFr_ch1, text="▲", command=lambda: self.ch_scale_adj(ch=1, updn='up'))
         self.btn_ch1_up.grid(row=5, column=3, padx=0, pady=1)
@@ -424,11 +432,11 @@ class App:
         self.btn_ch4_down.grid(row=1, column=2, padx=0, pady=1)
 
         # --------------row 7
-        self.btn_capture = tk.Button(self.frame, text="ScreenShot (⮐)", command=self.btn_capture_clicked)
+        self.btn_capture = tk.Button(self.frame, text="ScreenShot", command=self.btn_capture_clicked)
         self.btn_capture.grid(row=7, column=1, padx=3, pady=2, columnspan=3)
-        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Ctrl+⮐)", command=self.btn_runstop_clicked)
+        self.btn_RunStop = tk.Button(self.frame, text="Run/Stop (Enter⮐)", command=self.btn_runstop_clicked)
         self.btn_RunStop.grid(row=7, column=3, padx=3, pady=2, columnspan=3)
-        self.btn_Single = tk.Button(self.frame, text=" Single Acq ", command=self.btn_single_clicked)
+        self.btn_Single = tk.Button(self.frame, text=" Single Acq  (Ctrl+⮐)", command=self.btn_single_clicked)
         self.btn_Single.grid(row=7, column=7, padx=3, pady=2, columnspan=2)
         self.btn_Clear = tk.Button(self.frame, text="Clear (Ctrl+Del)", command=self.btn_clear_clicked)
         self.btn_Clear.grid(row=7, column=8, padx=3, pady=2, columnspan=3)
@@ -442,7 +450,19 @@ class App:
 
         ## remove cursor grid for release
         self.labelFr_cursor.grid_remove()
-        ## 10/13/2021 10:43 PT
+        self.chkbox_fastacq.config(state="disabled")
+        self.trig_ch_combobox.config(state="disabled")
+        self.trig_edge_combobox.config(state="disabled")
+        self.btn_trig50.config(state="disabled")
+        self.spinbox_pos_ch1.config(state="disabled")
+        self.spinbox_pos_ch2.config(state="disabled")
+        self.spinbox_pos_ch3.config(state="disabled")
+        self.spinbox_pos_ch4.config(state="disabled")
+        self.spinbox_offset_ch1.config(state="disabled")
+        self.spinbox_offset_ch2.config(state="disabled")
+        self.spinbox_offset_ch3.config(state="disabled")
+        self.spinbox_offset_ch4.config(state="disabled")
+        ## 4/5/2022 18:36 PT
 
         # ✜
         self.btn_cur_set = tk.Button(self.labelFr_cursor, text="set", command=self.adjust_cur)
@@ -708,9 +728,10 @@ class App:
         self.check_app_update()
 
     def check_app_update(self):
-        self.last_update_time = time.time()
-        self.check_app_update_thread = threading.Thread(target=self.task_check_app_update, daemon=True)
-        self.check_app_update_thread.start()
+        print("Disable check APP Update feature on Beta Version.")
+        # self.last_update_time = time.time()
+        # self.check_app_update_thread = threading.Thread(target=self.task_check_app_update, daemon=True)
+        # self.check_app_update_thread.start()
 
     def task_check_app_update(self):
         url_api = 'https://api.github.com/repos/kw81634dr/VISAGUI/releases/latest'
@@ -1725,7 +1746,7 @@ class App:
                            self.trig_ch_combobox, self.trig_edge_combobox,
                            self.chkbox_persistence, self.chkbox_fastacq)
         if event.widget not in exclusive_tuple:
-            self.btn_capture_clicked()
+            self.btn_runstop_clicked()
 
 
 def center(win):
