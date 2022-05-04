@@ -1312,7 +1312,7 @@ class App:
 
                 img_data = scope.query_binary_values(r"MMEM:DATA? 'C:\Temp\tempShot.png'", datatype='B',
                                                     container=bytearray)
-                print(img_data)
+                # print(img_data)
                 file_png_data = BytesIO(img_data)
                 I = Image.open(file_png_data)
                 # I = Image.open('img/scrshot/DPO4104B_151449.png')
@@ -1669,10 +1669,11 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.persistence_var_bool.get():
-                    scope.write('DISplay:PERSistence INF')
+                    scope.write('DISplay:PERSistence:INF ON')
+                    scope.write('DISplay:PERSistence ON')
                 else:
                     scope.write('DISplay:PERSistence OFF')
-                    scope.write(':CDISplay')
+                    scope.write('DISPlay:CLR')
                 scope.close()
             rm.close()
         except:
@@ -1700,7 +1701,7 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                scope.write(':CDISplay')
+                scope.write('DISPlay:CLR')
                 self.status_var.set("Cleared")
                 scope.close()
             rm.close()
@@ -1708,8 +1709,6 @@ class App:
             print("cannot clear scope-VISA driver Error")
             self.status_var.set("VISA driver Error")
         self.pause_get_status_thread = False
-
-
 
     def btn_runstop_clicked(self, *args):
         focused_obj = None
@@ -1726,10 +1725,10 @@ class App:
                 rm = visa.ResourceManager()
                 with rm.open_resource(self.target_gpib_address.get()) as scope:
                     if self.runstxor:
-                        scope.write(':STOP')
+                        scope.write('STOP')
                         self.status_var.set("STOP Acquisition")
                     else:
-                        scope.write(':RUN')
+                        scope.write('RUN')
                         self.status_var.set("START Acquisition")
                     self.runstxor ^= 1
                     scope.close()
