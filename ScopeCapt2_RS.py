@@ -851,8 +851,8 @@ class App:
                             self.chkbox_fastacq["state"] = "normal"
 
                         if self.ch_available == 2:
-                            self.sel_ch1_var_bool.set(value=int(scope.query('CHAN1:DISP?').rstrip()))
-                            self.sel_ch2_var_bool.set(value=int(scope.query('CHAN2:DISP?').rstrip()))
+                            self.sel_ch1_var_bool.set(value=int(scope.query('CHANnel1:STATe?').rstrip()))
+                            self.sel_ch2_var_bool.set(value=int(scope.query('CHANnel2:STATe?').rstrip()))
                             self.sel_ch3_var_bool.set(value=0)
                             self.sel_ch4_var_bool.set(value=0)
                             self.btn_ch3_up["state"] = "disabled"
@@ -887,37 +887,37 @@ class App:
                             self.labelFr_ch2['text'] = 'CH2-ON' if self.sel_ch2_var_bool.get() else 'CH2-OFF'
 
                         else:
-                            self.sel_ch1_var_bool.set(value=int(scope.query(':CHAN1:DISP?').rstrip()))
-                            self.sel_ch2_var_bool.set(value=int(scope.query(':CHAN2:DISP?').rstrip()))
-                            self.sel_ch3_var_bool.set(value=int(scope.query(':CHAN3:DISP?').rstrip()))
-                            self.sel_ch4_var_bool.set(value=int(scope.query(':CHAN4:DISP?').rstrip()))
+                            self.sel_ch1_var_bool.set(value=int(scope.query('CHANnel1:STATe?').rstrip()))
+                            self.sel_ch2_var_bool.set(value=int(scope.query('CHANnel2:STATe?').rstrip()))
+                            self.sel_ch3_var_bool.set(value=int(scope.query('CHANnel3:STATe?').rstrip()))
+                            self.sel_ch4_var_bool.set(value=int(scope.query('CHANnel4:STATe?').rstrip()))
 
                             # ch1_pos_offset
                             if 1:
                                 if focused_obj != self.spinbox_offset_ch1:
                                     # self.ch1_offset.set(value=float(scope.query('CH1:OFFS?').rstrip()))
-                                    self.ch1_offset.set(value="{:.3f}".format(float(scope.query(':CHAN1:DISP:OFFS?').rstrip())))
+                                    self.ch1_offset.set(value="{:.3f}".format(float(scope.query(':CHAN1:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch1:
                                     self.ch1_pos.set(value="{:.2f}".format(float(scope.query(':CHAN1:OFFS?').rstrip())))
 
                             # ch2_pos_offset
                             if 1:
                                 if focused_obj != self.spinbox_offset_ch2:
-                                    self.ch2_offset.set(value="{:.3f}".format(float(scope.query(':CHAN2:DISP:OFFS?').rstrip())))
+                                    self.ch2_offset.set(value="{:.3f}".format(float(scope.query(':CHAN2:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch2:
                                     self.ch2_pos.set(value="{:.2f}".format(float(scope.query(':CHAN2:OFFS?').rstrip())))
 
                             # ch3_pos_offset
                             if 1:
                                 if focused_obj != self.spinbox_offset_ch3:
-                                    self.ch3_offset.set(value="{:.3f}".format(float(scope.query(':CHAN3:DISP:OFFS?').rstrip())))
+                                    self.ch3_offset.set(value="{:.3f}".format(float(scope.query(':CHAN3:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch3:
                                     self.ch3_pos.set(value="{:.2f}".format(float(scope.query(':CHAN3:OFFS?').rstrip())))
 
                             # ch4_pos_offset
                             if 1:
                                 if focused_obj != self.spinbox_offset_ch4:
-                                    self.ch4_offset.set(value="{:.3f}".format(float(scope.query(':CHAN4:DISP:OFFS?').rstrip())))
+                                    self.ch4_offset.set(value="{:.3f}".format(float(scope.query(':CHAN4:OFFS?').rstrip())))
                                 if focused_obj != self.spinbox_pos_ch4:
                                     self.ch4_pos.set(value="{:.2f}".format(float(scope.query(':CHAN4:OFFS?').rstrip())))
 
@@ -930,12 +930,12 @@ class App:
                         self.labelFr_ch3['text'] = 'CH3-ON' if self.sel_ch3_var_bool.get() else 'CH3-OFF'
                         self.labelFr_ch4['text'] = 'CH4-ON' if self.sel_ch4_var_bool.get() else 'CH4-OFF'
 
-                        if scope.query(':RSTate?').rstrip().upper() == 'RUN':
+                        if scope.query('ACQuire:STATe?').rstrip().upper() == 'RUN':
                             acq_state = 1
                         else:
                             acq_state = 0
-                        # acq_num = int(scope.query("ACQ:NUMAC?").rstrip())
-                        acq_num = 0
+                        acq_num = int(scope.query("ACQuire:CURRent?").rstrip())
+                        # acq_num = 0
                         # print("scope acq state=", acq_state)
                         self.acq_state_var_bool.set(acq_state)
                         acqlabeltext = " Acq #" + str(acq_num)
@@ -973,8 +973,8 @@ class App:
                         # self.closest_timediv_index = min(range(len(self.time_scaleList)),
                         #                                  key=lambda i: abs(self.time_scaleList[i] - time_scale))
 
-                        cmd_ask_scale1 = ':CHAN' + str(self.cursor1_ch_combobox.get()) + ':DISP:RANG?'
-                        cmd_ask_scale2 = ':CHAN' + str(self.cursor2_ch_combobox.get()) + ':DISP:RANG?'
+                        cmd_ask_scale1 = ':CHAN' + str(self.cursor1_ch_combobox.get()) + ':SCAL?'
+                        cmd_ask_scale2 = ':CHAN' + str(self.cursor2_ch_combobox.get()) + ':SCAL?'
                         # print(cmd_ask_scale1, cmd_ask_scale2)
                         self.scale1 = float(scope.query(cmd_ask_scale1).rstrip())
                         self.scale2 = float(scope.query(cmd_ask_scale2).rstrip())
@@ -1454,7 +1454,7 @@ class App:
             try:
                 rm = visa.ResourceManager()
                 with rm.open_resource(self.target_gpib_address.get()) as scope:
-                    scope.write('AUTOSet EXECute')
+                    scope.write('AUToscale')
                     scope.close()
                 rm.close()
             except ValueError:
@@ -1586,7 +1586,7 @@ class App:
         try:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
-                cmd = 'CH'+str(ch)+':SCALe?'
+                cmd = 'CHAN'+str(ch)+':SCALe?'
                 scale_current = float(scope.query(cmd))
                 # get the index of closest value
                 self.closest_timediv_index = min(range(len(self.vertical_scaleList)),
@@ -1594,12 +1594,12 @@ class App:
                 if updn == 'up':
                     if self.closest_timediv_index < (len(self.vertical_scaleList)) - 1:
                         target_index = self.closest_timediv_index + 1
-                        cmd_scale = 'CH'+str(ch)+':SCALe ' + str(self.vertical_scaleList[target_index])
+                        cmd_scale = 'CHAN'+str(ch)+':SCALe ' + str(self.vertical_scaleList[target_index])
                         print('scale cmd=', cmd_scale)
                 elif updn == 'dn':
                     if self.closest_timediv_index > 0:
                         target_index = self.closest_timediv_index - 1
-                        cmd_scale = 'CH' + str(ch) + ':SCALe ' + str(self.vertical_scaleList[target_index])
+                        cmd_scale = 'CHAN' + str(ch) + ':SCALe ' + str(self.vertical_scaleList[target_index])
                         print('scale cmd=', cmd_scale)
                 else:
                     pass
@@ -1618,28 +1618,28 @@ class App:
             rm = visa.ResourceManager()
             with rm.open_resource(self.target_gpib_address.get()) as scope:
                 if self.sel_ch1_var_bool.get():
-                    scope.write(':CHANnel1:DISPlay ON')
+                    scope.write('CHANnel1:STATe 1')
                     self.status_var.set("set CH1 On.")
                 else:
-                    scope.write(':CHANnel1:DISPlay OFF')
+                    scope.write('CHANnel1:STATe 0')
                     self.status_var.set("set CH1 Off.")
                 if self.sel_ch2_var_bool.get():
-                    scope.write(':CHANnel2:DISPlay ON')
+                    scope.write('CHANnel2:STATe 1')
                     self.status_var.set("set CH2 On.")
                 else:
-                    scope.write(':CHANnel2:DISPlay OFF')
+                    scope.write('CHANnel2:STATe 0')
                     self.status_var.set("set CH2 Off.")
                 if self.sel_ch3_var_bool.get() :
-                    scope.write(':CHANnel3:DISPlay ON')
+                    scope.write('CHANnel3:STATe 1')
                     self.status_var.set("set CH3 On.")
                 else:
-                    scope.write(':CHANnel3:DISPlay OFF')
+                    scope.write('CHANnel3:STATe 0')
                     self.status_var.set("set CH3 Off.")
                 if self.sel_ch4_var_bool.get():
-                    scope.write(':CHANnel4:DISPlay ON')
+                    scope.write('CHANnel4:STATe 1')
                     self.status_var.set("set CH4 On.")
                 else:
-                    scope.write(':CHANnel4:DISPlay OFF')
+                    scope.write('CHANnel4:STATe 0')
                     self.status_var.set("set CH4 Off.")
                 scope.close()
             rm.close()
